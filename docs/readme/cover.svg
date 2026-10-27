@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="440" viewBox="0 0 1200 440" role="img" aria-labelledby="title desc">
+  <title id="title">玩趣盒 · LittleGames</title>
+  <desc id="desc">蓝青色玩具盒、棋盘与彩色方块组成的品牌插画。把零碎时间，留给一点好玩。</desc>
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#F4F8FB"/>
+      <stop offset="1" stop-color="#EBF4F5"/>
+    </linearGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="0.8" y2="1">
+      <stop stop-color="#3C8FCA"/>
+      <stop offset="1" stop-color="#17659D"/>
+    </linearGradient>
+    <linearGradient id="lid" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#9FE4DF"/>
+      <stop offset="1" stop-color="#64C4C4"/>
+    </linearGradient>
+    <linearGradient id="coral" x1="0" y1="0" x2="0.6" y2="1">
+      <stop stop-color="#FFB69F"/>
+      <stop offset="1" stop-color="#EE8C74"/>
+    </linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="200%">
+      <feDropShadow dx="0" dy="12" stdDeviation="12" flood-color="#153D57" flood-opacity="0.13"/>
+    </filter>
+    <filter id="smallShadow" x="-40%" y="-40%" width="180%" height="200%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#153D57" flood-opacity="0.12"/>
+    </filter>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#94B6C5" opacity="0.25"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="440" rx="28" fill="url(#paper)"/>
+  <circle cx="957" cy="191" r="221" fill="#DDF0EF"/>
+  <circle cx="1004" cy="151" r="181" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.65"/>
+  <rect x="1022" y="302" width="132" height="94" fill="url(#dots)"/>
+  <path d="M654 362C736 331 770 405 851 384" fill="none" stroke="#BDDBDE" stroke-width="2"/>
+
+  <g font-family="Segoe UI, Microsoft YaHei, PingFang SC, sans-serif">
+    <rect x="64" y="58" width="29" height="29" rx="10" fill="#236FA9"/>
+    <path d="M76 66L85 72.5L76 79Z" fill="#D5F4E9"/>
+    <text x="106" y="78" fill="#36576D" font-size="15" font-weight="650" letter-spacing="3">LITTLEGAMES</text>
+    <text x="62" y="204" fill="#15374F" font-size="80" font-weight="750" letter-spacing="3">玩趣盒</text>
+    <circle cx="330" cy="193" r="9" fill="#54BDB8"/>
+    <text x="66" y="257" fill="#4F6A7B" font-size="25" letter-spacing="1">把零碎时间，留给一点好玩。</text>
+    <path d="M67 304H104" stroke="#4EADA9" stroke-width="3" stroke-linecap="round"/>
+    <text x="118" y="309" fill="#496A7D" font-size="12" font-weight="600" letter-spacing="2.6">NATIVE. LOCAL. PLAYFUL.</text>
+    <text x="66" y="390" fill="#78909D" font-size="12" letter-spacing="1.5">A LITTLE BOX OF PLAY / HARMONYOS</text>
+  </g>
+
+  <ellipse cx="897" cy="363" rx="169" ry="21" fill="#1D5270" opacity="0.08"/>
+
+  <!-- A fixed-camera toy illustration, separate from the app screenshots. -->
+  <g transform="translate(741 105) rotate(-9 120 100)" filter="url(#shadow)">
+    <rect x="0" y="6" width="178" height="170" rx="23" fill="#CFD6D8"/>
+    <rect width="178" height="170" rx="23" fill="#FFFEF5"/>
+    <rect x="14" y="14" width="150" height="140" rx="14" fill="#E8F1EE"/>
+    <g fill="#B5DAD3">
+      <rect x="26" y="26" width="36" height="34" rx="6"/>
+      <rect x="70" y="26" width="36" height="34" rx="6"/>
+      <rect x="114" y="26" width="36" height="34" rx="6"/>
+      <rect x="26" y="68" width="36" height="34" rx="6"/>
+      <rect x="70" y="68" width="36" height="34" rx="6"/>
+      <rect x="114" y="68" width="36" height="34" rx="6"/>
+      <rect x="26" y="110" width="36" height="32" rx="6"/>
+      <rect x="70" y="110" width="36" height="32" rx="6"/>
+      <rect x="114" y="110" width="36" height="32" rx="6"/>
+    </g>
+    <rect x="70" y="68" width="36" height="34" rx="6" fill="#F4C976"/>
+    <circle cx="88" cy="85" r="7" fill="#FFF4D6"/>
+  </g>
+
+  <g transform="translate(941 94) rotate(15 58 78)" filter="url(#shadow)">
+    <rect x="0" y="6" width="112" height="148" rx="17" fill="#D78270"/>
+    <rect width="112" height="148" rx="17" fill="url(#coral)"/>
+    <path d="M55 39L75 72L55 105L35 72Z" fill="#FFF4DF"/>
+    <circle cx="19" cy="20" r="4" fill="#FFE4D4"/>
+    <circle cx="93" cy="128" r="4" fill="#FFE4D4"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <path d="M750 255L904 217L1053 256L901 303Z" fill="#174E76"/>
+    <path d="M750 255L901 298V367L765 326Q750 322 750 306Z" fill="url(#box)"/>
+    <path d="M901 298L1053 256V306Q1053 321 1038 326L901 367Z" fill="#124E7C"/>
+    <path d="M763 253L902 219L1039 255L901 292Z" fill="#D2E9E9"/>
+    <path d="M779 253L903 229L1023 255L901 281Z" fill="#275D79"/>
+    <path d="M757 269L891 307" stroke="#63A6CB" stroke-width="2" opacity="0.55"/>
+    <path d="M914 308L1043 271" stroke="#457FA1" stroke-width="2" opacity="0.5"/>
+    <path d="M810 300L854 312V330L810 318Z" fill="#E6F5EB"/>
+    <path d="M825 307L841 313L825 317Z" fill="#408DAA"/>
+  </g>
+
+  <g transform="translate(849 182) rotate(-8 50 40)" filter="url(#smallShadow)">
+    <rect x="0" y="8" width="42" height="42" rx="10" fill="#D6A353"/>
+    <rect width="42" height="42" rx="10" fill="#F5D18B"/>
+    <rect x="46" y="8" width="42" height="42" rx="10" fill="#D6A353"/>
+    <rect x="46" width="42" height="42" rx="10" fill="#F5D18B"/>
+    <rect x="46" y="52" width="42" height="42" rx="10" fill="#D6A353"/>
+    <rect x="46" y="46" width="42" height="42" rx="10" fill="#F5D18B"/>
+    <path d="M12 10H27M59 10H72M59 56H72" stroke="#FFF0C9" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(1000 187) rotate(12)" filter="url(#smallShadow)">
+    <rect x="-17" y="-29" width="34" height="57" rx="10" fill="#A096C0"/>
+    <rect x="-29" y="-17" width="57" height="34" rx="10" fill="#B6ACD0"/>
+    <circle r="8" fill="#EEEAF6"/>
+  </g>
+
+  <g transform="translate(1026 67) rotate(-13 10 10)" filter="url(#smallShadow)">
+    <path d="M-65 5L37-21L103 0L1 29Z" fill="url(#lid)"/>
+    <path d="M-65 5V17L1 42V29Z" fill="#63AAA9"/>
+    <path d="M1 29L103 0V12L1 42Z" fill="#7CC7C4"/>
+    <path d="M-49 6L36-13L85 0" fill="none" stroke="#D1F3E9" stroke-width="2" opacity="0.75"/>
+  </g>
+
+  <circle cx="704" cy="285" r="19" fill="#F5C773" filter="url(#smallShadow)"/>
+  <circle cx="698" cy="279" r="6" fill="#FFE5AC" opacity="0.8"/>
+  <circle cx="1094" cy="286" r="9" fill="#71B9BA"/>
+  <path d="M714 130V147M706 139H723" stroke="#7FBAB9" stroke-width="3" stroke-linecap="round"/>
+  <path d="M1082 196V207M1077 201H1087" stroke="#D59B81" stroke-width="2" stroke-linecap="round"/>
+</svg>
