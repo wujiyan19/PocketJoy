@@ -100,7 +100,8 @@ module.exports = c => {
         const hash = key(next, boxes); if (seen.has(hash)) continue; seen.add(hash); q.push({ p: next, boxes, prev: k, dir: d }); }
     }
     assert(end >= 0); const route = []; for (let i = end; q[i].prev >= 0; i = q[i].prev) route.unshift(q[i].dir);
-    const controls = ['↑', '→', '↓', '←'].map(label => find(ns, label)); assert(controls.every(Boolean)); batch(route.map(d => controls[d]));
+    const controls = ['up', 'right', 'down', 'left'].map(direction => ns.find(n => n.id === 'control-pad-' + direction));
+    assert(controls.every(Boolean)); batch(route.map(d => controls[d]));
     return { strategy: 'BFS from screenshot crate/player positions to public level goals', moves: route.length };
   };
   const boardBackground = (node, ns) => ns.filter(p => node.hierarchy.startsWith(p.hierarchy + ',') && p.type === 'Column' && p.backgroundColor !== '#00000000').at(-1)?.backgroundColor;

@@ -4,6 +4,8 @@ import { ContinuationValidation as V } from '../common/GameSessionTransfer';
 import { GameDataManager } from '../model/GameData';
 import { CollectionModel, CollectionState, COLLECTION_IDS } from '../model/game/CollectionModel';
 import { GameSoundEvent, gameSound } from '../common/GameSound';
+import { modesForGame } from '../common/GameModes';
+import { systemDateTime } from '@kit.BasicServicesKit';
 
 interface CollectionSnapshot {
   version: number;
@@ -20,22 +22,47 @@ export class CollectionViewModel implements GameLifecycleObserver {
   @Trace checked: boolean = false;
   @Trace feedback: string = '';
   @Trace lastCorrect: boolean = false;
+  @Trace modeId: string = '';
+  @Trace modeHighScore: number = 0;
   private model: CollectionModel = new CollectionModel();
   private timer: number = -1;
   private recorded: boolean = false;
   private id: string = '';
   private initialProgress: string = '';
+  private elapsedTimer: number = -1;
+  private elapsedStart: number = -1;
 
   init(id: string): void {
     this.id = id; this.difficulty = GameDataManager.getInitialDifficulty(id);
+    const mode: string = GameDataManager.getTextSetting('mode_' + id, id);
+    this.modeId = modesForGame(id).includes(mode) ? mode : id;
+  }
+  changeMode(mode: string): void {
+    if (!modesForGame(this.id).includes(mode) || mode === this.modeId) { return; }
+    this.modeId = mode; GameDataManager.setTextSetting('mode_' + this.id, mode); this.startGame();
   }
   startGame(): void {
     gameSound.stop(this.id);
     this.dispose(); this.confirmExit = false; this.checked = false; this.recorded = false; this.feedback = '';
     const level: number = this.difficulty === GameDifficulty.EASY ? 0 : this.difficulty === GameDifficulty.HARD ? 2 : 1;
-    this.model.start(this.id, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
+    this.model.start(this.modeId, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
     this.initialProgress = JSON.stringify(this.state);
+    this.startElapsed();
   }
+  private startElapsed(): void {
+    if (!['schulte', 'hanoi'].includes(this.id) || this.state.outcome !== 0 || this.confirmExit) { return; }
+    this.elapsedStart = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
+    this.elapsedTimer = setInterval(() => {
+      this.checkpointElapsed();
+      this.sync(false);
+    }, 200);
+  }
+  private checkpointElapsed(): void {
+    if (this.elapsedStart < 0) { return; }
+    const now: number = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
+    this.model.state.elapsedMs += Math.max(0, now - this.elapsedStart); this.elapsedStart = now;
+  }
+  setMarkEmpty(value: boolean): void { this.model.state.markEmpty = value; this.sync(false); }
   changeDifficulty(d: GameDifficulty): void {
     if (d === this.difficulty) { return; }
     this.difficulty = d; GameDataManager.rememberGameDifficulty(this.id, d); this.startGame();
@@ -44,7 +71,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
     const previous: CollectionState = this.state;
     // Replace the snapshot so ArkUI observes mutations of arrays and scalar model fields.
     this.state = JSON.parse(JSON.stringify(this.model.state)) as CollectionState;
-    if (feedback && previous.id === this.id && previous.outcome === 0) {
+    if (feedback && previous.id === this.modeId && previous.outcome === 0) {
       if (this.state.outcome !== 0) {
         gameSound.play(this.id, this.model.isDuel() ? (this.state.outcome === 3 ? GameSoundEvent.DRAW : GameSoundEvent.WIN) :
           this.state.outcome === 1 ? GameSoundEvent.WIN : GameSoundEvent.LOSE);
@@ -56,11 +83,15 @@ export class CollectionViewModel implements GameLifecycleObserver {
         this.state.cursor !== previous.cursor || this.state.phase !== previous.phase) { gameSound.play(this.id); }
     }
     this.isFinished = this.state.outcome !== 0;
+    this.modeHighScore = GameDataManager.getModeScore(this.modeId, this.difficulty);
     if (this.state.outcome !== 0 && !this.recorded) {
       this.recorded = true; this.dispose();
+      this.state.elapsedMs = this.model.state.elapsedMs;
       const game = GameDataManager.getGameById(this.id);
       const score: number = this.model.isDuel() ? (game?.highScore ?? 0) + 1 : this.state.score;
       GameDataManager.updateHighScore(this.id, score);
+      GameDataManager.recordMode(this.modeId, this.difficulty, score, this.state.outcome === 1 ? this.state.elapsedMs : 0);
+      this.modeHighScore = GameDataManager.getModeScore(this.modeId, this.difficulty);
     }
   }
   tap(index: number): void {
@@ -79,7 +110,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
     this.model.choose(index);
     if (this.model.isQuiz() && this.model.state.round > round) {
       this.lastCorrect = value === answer;
-      this.feedback = this.id === 'compare' ? (answer === -1 ? '＜' : answer === 0 ? '＝' : '＞') : answer.toString();
+      this.feedback = this.modeId === 'compare' ? (answer === -1 ? '＜' : answer === 0 ? '＝' : '＞') : answer.toString();
     }
     this.sync();
   }
@@ -107,14 +138,21 @@ export class CollectionViewModel implements GameLifecycleObserver {
     this.dispose();
     if (this.id === 'reaction' && this.state.outcome === 0) { this.model.state.phase = 0; this.model.state.signalAt = 0; this.sync(false); }
   }
-  onAppShown(): void {}
+  onAppShown(): void { if (this.elapsedTimer < 0) { this.startElapsed(); } }
   onBackRequested(): boolean { return this.requestBack(); }
   requestBack(): boolean {
     if (this.state.outcome !== 0 || !GameDataManager.getSetting('confirmExitEnabled', true)) { return false; }
     this.onAppHidden(); gameSound.stop(this.id); this.confirmExit = true; return true;
   }
-  dismissExitConfirm(): void { this.confirmExit = false; }
-  dispose(): void { if (this.timer >= 0) { clearTimeout(this.timer); this.timer = -1; } }
+  dismissExitConfirm(): void { this.confirmExit = false; this.onAppShown(); }
+  dispose(): void {
+    if (this.timer >= 0) { clearTimeout(this.timer); this.timer = -1; }
+    if (this.elapsedTimer >= 0) {
+      this.checkpointElapsed(); this.elapsedStart = -1;
+      clearInterval(this.elapsedTimer); this.elapsedTimer = -1;
+      this.state.elapsedMs = this.model.state.elapsedMs;
+    }
+  }
   isPlayTimeActive(): boolean {
     return this.state.id.length > 0 && this.state.outcome === 0 && !this.confirmExit;
   }
@@ -123,7 +161,8 @@ export class CollectionViewModel implements GameLifecycleObserver {
 
   continuationGameId(): string { return this.id; }
   exportContinuation(): string {
-    const snapshot: CollectionSnapshot = { version: 1, state: this.state, recorded: this.recorded };
+    this.checkpointElapsed();
+    const snapshot: CollectionSnapshot = { version: 1, state: this.model.state, recorded: this.recorded };
     return JSON.stringify(snapshot);
   }
   importContinuation(payload: string): boolean {
@@ -132,16 +171,22 @@ export class CollectionViewModel implements GameLifecycleObserver {
       const snapshot: CollectionSnapshot = JSON.parse(payload) as CollectionSnapshot;
       if (snapshot === null || snapshot.version !== 1 || typeof snapshot.recorded !== 'boolean') { return false; }
       const s: CollectionState = snapshot.state;
-      if (s === null || s.id !== this.id || !COLLECTION_IDS.includes(s.id) || !V.integer(s.level, 0, 2) ||
+      if (s !== null) {
+        s.elapsedMs = s.elapsedMs ?? 0; s.goalPost = s.goalPost ?? 2;
+        s.minimumMoves = s.minimumMoves ?? 0; s.markEmpty = s.markEmpty ?? false;
+        s.variant = s.variant ?? 0;
+      }
+      if (s === null || !modesForGame(this.id).includes(s.id) || !COLLECTION_IDS.includes(s.id) || !V.integer(s.level, 0, 2) ||
         !V.integer(s.cols, 1, 11) || !V.integer(s.selected, -1, 120) || !V.integer(s.player, 1, 2) ||
         !V.integer(s.moves, 0, 1000000) || !V.integer(s.round, 0, 10) || !V.integer(s.score, 0, 100000) ||
         !V.integer(s.answer, -1000, 1000000) || !V.integer(s.cursor, 0, 121) || !V.integer(s.phase, 0, 2) ||
         !V.integer(s.outcome, 0, 3) || typeof s.prompt !== 'string' || s.prompt.length > 200 ||
-        !Number.isFinite(s.signalAt) || s.signalAt < 0 ||
+        !Number.isFinite(s.signalAt) || s.signalAt < 0 || !V.integer(s.elapsedMs, 0, 1000000000) ||
+        !V.integer(s.goalPost, 0, 2) || !V.integer(s.minimumMoves, 0, 1000) || typeof s.markEmpty !== 'boolean' || !V.integer(s.variant, 0, 1) ||
         !Array.isArray(s.board) || s.board.length > 121 || !V.numbers(s.board, s.board.length, -1, 1000) ||
         !Array.isArray(s.target) || s.target.length > 36 || !V.numbers(s.target, s.target.length, 0, 1000) ||
         !Array.isArray(s.choices) || s.choices.length > 6 || !V.numbers(s.choices, s.choices.length, -1000, 1000)) { return false; }
-      const expected: CollectionModel = new CollectionModel(); expected.start(this.id, s.level);
+      const expected: CollectionModel = new CollectionModel(); expected.start(s.id, s.level);
       if (s.cols !== expected.state.cols || s.board.length !== expected.state.board.length ||
           s.target.length !== expected.state.target.length || s.choices.length !== expected.state.choices.length) { return false; }
       if (['nim', 'hanoi', 'flood', 'compare'].includes(s.id) &&
@@ -151,13 +196,15 @@ export class CollectionViewModel implements GameLifecycleObserver {
       if (s.id === 'peg') {
         if (s.selected >= s.board.length || (s.selected >= 0 && s.board[s.selected] !== 1)) { return false; }
         for (let i = 0; i < s.board.length; i++) {
-          const valid: boolean = Math.floor(i / 5) === 2 || i % 5 === 2;
+          const r: number = Math.floor(i / 5); const c: number = i % 5;
+          const valid: boolean = s.variant === 1 ? (r >= 1 && r <= 3) || (c >= 1 && c <= 3) : r === 2 || c === 2;
           if (valid ? !V.integer(s.board[i], 0, 1) : s.board[i] !== -1) { return false; }
         }
       }
       if (s.id === 'maze' && (!V.numbers(s.board, s.board.length, 0, 1) || s.cursor >= s.board.length ||
           s.answer !== s.board.length - s.cols - 2 || s.board[s.cursor] !== 0 || s.board[s.answer] !== 0)) { return false; }
-      if (['lights', 'nonogram'].includes(s.id) && !V.numbers(s.board, s.board.length, 0, 1)) { return false; }
+      if (s.id === 'lights' && !V.numbers(s.board, s.board.length, 0, 1)) { return false; }
+      if (s.id === 'nonogram' && !V.numbers(s.board, s.board.length, 0, 2)) { return false; }
       if (s.id === 'nonogram' && !V.numbers(s.target, s.target.length, 0, 1)) { return false; }
       if (s.id === 'flood' && (!V.numbers(s.board, s.board.length, 0, 3) || !V.integer(s.answer, 1, s.board.length + 4))) { return false; }
       if (s.id === 'memorysequence' && (!V.numbers(s.target, s.target.length, 1, 9) || s.cursor > s.target.length)) { return false; }
@@ -170,12 +217,12 @@ export class CollectionViewModel implements GameLifecycleObserver {
       if (s.id === 'missing' && (new Set<number>(s.target).size !== s.target.length ||
           !s.target.includes(s.answer) || s.board.includes(s.answer) || new Set<number>(s.board).size !== s.board.length ||
           s.board.some((value: number) => !s.target.includes(value)) || s.choices.some((value: number) => !s.target.includes(value)))) { return false; }
-      this.dispose(); this.model.state = s;
+      this.dispose(); this.model.state = s; this.modeId = s.id;
       this.difficulty = s.level === 0 ? GameDifficulty.EASY : s.level === 2 ? GameDifficulty.HARD : GameDifficulty.NORMAL;
       // A restored result must not award its score a second time.
       this.recorded = snapshot.recorded || s.outcome !== 0;
       if (s.id === 'reaction' && s.outcome === 0) { s.phase = 0; s.signalAt = 0; }
-      this.confirmExit = false; this.checked = false; this.feedback = ''; this.sync(false); return true;
+      this.confirmExit = false; this.checked = false; this.feedback = ''; this.sync(false); this.startElapsed(); return true;
     } catch (e) { return false; }
   }
 }

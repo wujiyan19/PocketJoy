@@ -575,6 +575,26 @@
     {
       "name": "toy_screw_lilac",
       "value": "#A591C7"
+    },
+    {
+      "name": "toy_drift_grass",
+      "value": "#233E3D"
+    },
+    {
+      "name": "toy_drift_road",
+      "value": "#34434E"
+    },
+    {
+      "name": "toy_drift_shoulder",
+      "value": "#7A7461"
+    },
+    {
+      "name": "toy_drift_edge",
+      "value": "#F2DCAA"
+    },
+    {
+      "name": "toy_drift_marking",
+      "value": "#E9E2CB"
     }
   ]
 }

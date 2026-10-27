@@ -8,11 +8,13 @@ import { Haptics } from '../../common/Haptics';
 import { HarmonyMotion } from '../../common/HarmonyMotion';
 import { resolveString } from '../../common/I18nUtils';
 import { ToyRollingStage } from '../../components/ToyRollingStage';
+import { ToyDriftStage } from '../../components/ToyDriftStage';
 
 @ComponentV2
 export struct ExpansionWorldBoard {
   @Param gameId: string = '';
   @Param vm: ExpansionViewModel = new ExpansionViewModel();
+  @Param heightLimit: number = 460;
   @Local arenaWidth: number = 320;
   arenaScale(): number { return this.arenaWidth / 360; }
   camera(): number { return ['platformer', 'grapple', 'hillclimb'].includes(this.gameId) ? Math.max(0, this.vm.state.pieces[0].x - 160) : 0; }
@@ -55,9 +57,16 @@ export struct ExpansionWorldBoard {
     Column({ space: SpacingTokens.base }) {
       if (this.gameId === 'backpack') { this.Backpack() } else if (this.gameId === 'dots') { this.Dots() }
       else if (this.gameId === 'tug') { this.Tug() } else {
-        if (this.gameId === 'rollingball') { ToyRollingStage({ vm: this.vm }) } else { this.Arena() }
+        if (this.gameId === 'rollingball') { ToyRollingStage({ vm: this.vm }) }
+        else if (this.gameId === 'drift') { ToyDriftStage({ vm: this.vm, heightLimit: this.heightLimit }) }
+        else { this.Arena() }
         if (this.vm.state.phase === 0 && !['billiards', 'golf', 'bowling'].includes(this.gameId)) {
-          Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); })
+          if (this.gameId === 'drift') {
+            Button($r('app.string.expansion_ready')).width('100%').height($r('app.float.expansion_control_height'))
+              .onClick(() => { this.vm.activate(); })
+          } else {
+            Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); })
+          }
         }
         if (this.gameId === 'platformer') {
           Row({ space: SpacingTokens.sm }) {
@@ -76,7 +85,15 @@ export struct ExpansionWorldBoard {
         }
         if (this.gameId === 'flappy') { Button($r('app.string.expansion_flap')).height($r('app.float.expansion_control_height')).width('100%').onClick(() => { this.vm.tap(0); }) }
         if (this.gameId === 'fortress') { Button($r('app.string.expansion_upgrade')).onClick(() => { this.vm.tap(0); }) }
-        if (this.gameId === 'drift') { Button($r('app.string.expansion_drift')).width('100%').height($r('app.float.expansion_control_height')).onClick(() => { this.vm.tap(0); }) }
+        if (this.gameId === 'survival') {
+          Text($r('app.string.survival_upgrade', this.vm.state.data[1])).fontColor(SemanticColors.textSecondary)
+          Flex({ wrap: FlexWrap.Wrap }) {
+            Button($r('app.string.survival_power')).onClick(() => { this.vm.tap(0); })
+            Button($r('app.string.survival_rate')).onClick(() => { this.vm.tap(1); })
+            Button($r('app.string.survival_heal')).onClick(() => { this.vm.tap(2); })
+          }.width('100%')
+        }
+        if (this.gameId === 'drift' && this.vm.state.phase !== 0) { Button($r('app.string.expansion_drift')).width('100%').height($r('app.float.expansion_control_height')).onClick(() => { this.vm.tap(0); }) }
         if (this.gameId === 'hillclimb') {
           Row({ space: SpacingTokens.sm }) {
             Button($r('app.string.expansion_brake')).layoutWeight(1).height($r('app.float.expansion_control_height')).onTouch((event: TouchEvent) => { this.hold(event, 1, 2); })

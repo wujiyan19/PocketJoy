@@ -6,6 +6,7 @@ import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../c
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
 import { GameArtTile } from '../../components/GameArtTile';
+import { ExpansionChessBoard } from './ExpansionChessBoard';
 
 @ComponentV2
 export struct ExpansionCardBoard {
@@ -34,10 +35,6 @@ export struct ExpansionCardBoard {
     if (cards.length > 0) { return this.cardColor(cards[cards.length - 1]); }
     return slot === 5 || slot === 6 ? SemanticColors.error : SemanticColors.textPrimary;
   }
-  chessText(piece: number): string {
-    if (piece === 0) { return ''; } const side: number = piece > 10 ? 2 : 1; const type: number = piece % 10;
-    return this.gameId === 'chess' ? ['', '♚', '♛', '♜', '♝', '♞', '♟'][type] : (side === 1 ? ['', '帥', '仕', '相', '馬', '車', '炮', '兵'] : ['', '將', '士', '象', '馬', '車', '砲', '卒'])[type];
-  }
   tableauHeight(): number { return Math.max(230, ...this.vm.state.piles.slice(0, this.gameId === 'spider' ? 10 : 8).map((pile: ExpansionPile) => pile.cards.length * 24 + 40)); }
   ludoPoint(token: ExpansionPiece): number[] {
     if (token.x < 0) { const side: number = token.owner; return [side === 0 || side === 3 ? 30 + token.id % 2 * 38 : 254 + token.id % 2 * 38, side < 2 ? 25 + Math.floor(token.id % 4 / 2) * 38 : 365 + Math.floor(token.id % 4 / 2) * 38]; }
@@ -47,13 +44,13 @@ export struct ExpansionCardBoard {
   measure(area: Area): void { const width: number = Number(area.width); if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; } }
   build() {
     Column({ space: SpacingTokens.base }) {
-      if (CHESS_IDS.includes(this.gameId)) { this.Chess() }
+      if (CHESS_IDS.includes(this.gameId)) { ExpansionChessBoard({ gameId: this.gameId, vm: this.vm }) }
       if (POKER_IDS.includes(this.gameId)) { this.Poker() }
       if (this.gameId === 'mahjong') { this.Mahjong() }
       if (this.gameId === 'ludo') { this.Ludo() }
       if (this.gameId === 'spider' || this.gameId === 'freecell') { this.Solitaire() }
     }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-      .enabled(!this.vm.computerThinking)
+      .enabled(CHESS_IDS.includes(this.gameId) || !this.vm.computerThinking)
   }
   @Builder
   Card(card: number) {
@@ -90,40 +87,6 @@ export struct ExpansionCardBoard {
         Button($r('app.string.expansion_pass')).layoutWeight(1).enabled(this.vm.state.data[2] !== 0).onClick(() => { this.vm.tap(901); })
         Button($r('app.string.expansion_play_cards')).layoutWeight(1).onClick(() => { this.vm.tap(900); })
       }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Chess() {
-    Column({ space: SpacingTokens.sm }) {
-      Text($r('app.string.expansion_board_opponent')).fontColor(SemanticColors.textSecondary)
-      Column({ space: 1 }) {
-        ForEach(range(this.vm.state.rows), (row: number) => {
-          Row({ space: 1 }) {
-            ForEach(range(this.vm.state.cols), (col: number) => {
-              Column() {
-                GameArtTile({ image: this.vm.state.board[row * this.vm.state.cols + col] === 0 ? $r('app.media.exp_empty') : this.gameId === 'chess' ? ExpansionArt.chess(this.vm.state.board[row * this.vm.state.cols + col]) : $r('app.media.exp_chip'),
-                  label: this.gameId === 'xiangqi' ? this.chessText(this.vm.state.board[row * this.vm.state.cols + col]) : '',
-                  textColor: this.vm.state.board[row * this.vm.state.cols + col] > 10 ? SemanticColors.textPrimary : SemanticColors.error,
-                  selected: this.vm.state.selected === row * this.vm.state.cols + col,
-                  description: $r('app.string.expansion_cell', row + 1, col + 1, this.chessText(this.vm.state.board[row * this.vm.state.cols + col])),
-                  onTap: () => { this.vm.tap(row * this.vm.state.cols + col); } })
-              }.layoutWeight(1).height('100%').padding(0)
-                .backgroundColor(this.vm.legalTargets.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight : (row + col) % 2 === 0 ? SemanticColors.surface : SemanticColors.boardBg)
-                .border({ width: this.vm.state.selected === row * this.vm.state.cols + col ? 2 : 0, color: SemanticColors.primary })
-                .accessibilityText($r('app.string.expansion_cell', row + 1, col + 1, this.chessText(this.vm.state.board[row * this.vm.state.cols + col])))
-            }, (col: number) => col.toString())
-          }.width('100%').layoutWeight(1)
-        }, (row: number) => row.toString())
-      }.width('100%').aspectRatio(this.vm.state.cols / this.vm.state.rows).padding(SpacingTokens.xs).backgroundColor(SemanticColors.border).borderRadius(RadiusTokens.sm)
-      if (this.gameId === 'chess') {
-        Text($r('app.string.expansion_promotion')).fontColor(SemanticColors.textSecondary)
-        Row({ space: SpacingTokens.sm }) {
-          ForEach(range(4), (choice: number) => {
-            Column() { GameArtTile({ image: ExpansionArt.chess(choice + 2), description: ['♛', '♜', '♝', '♞'][choice], selected: this.vm.state.data[9] === choice + 2,
-              onTap: () => { this.vm.choose(choice); } }) }.layoutWeight(1).height(52)
-          }, (choice: number) => choice.toString())
-        }.width('100%')
-      }
     }.width('100%')
   }
   @Builder

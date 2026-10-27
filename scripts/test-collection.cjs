@@ -11,7 +11,7 @@ const before = m => JSON.stringify(m.state);
 test('catalog: all games are distinct with nonempty categories, bidirectional routes and localized assets', () => {
   const games = f.data().getAllGames(); const categories = f.load('entry/src/main/ets/common/GameConstants.ets').GAME_CATEGORIES;
   const routes = f.load('entry/src/main/ets/router/GameRouteRegistry.ets').GameRoutes;
-  assert.equal(games.length, 76); assert.equal(new Set(games.map(g => g.id)).size, games.length); assert.equal(categories.length, 6);
+  assert.equal(games.length, 64); assert.equal(new Set(games.map(g => g.id)).size, games.length); assert.equal(categories.length, 6);
   for (const cat of categories) assert(games.some(g => g.category === cat));
   for (const g of games) { assert(routes.routeName(g.id)); assert.equal(routes.gameIdForRoute(routes.routeName(g.id)), g.id); }
   assert.equal(routes.routeName('invalid'), ''); assert.equal(routes.gameIdForRoute('Collection_invalid'), '');
@@ -117,10 +117,14 @@ for(const level of [0,1,2])test(`generated puzzles/${level}: 30 seeds each are s
   const n=create('nonogram',level,seed);n.action();assert.equal(n.state.outcome,0);n.state.target.forEach((v,i)=>{if(v)n.tap(i);});n.action();assert.equal(n.state.outcome,1);
  }
 });
-test('tower transfer: illegal larger disc is blocked; all difficulties solve in 2^n−1 moves',()=>{
- for(const level of [0,1,2]){const m=create('hanoi',level);m.choose(0);m.choose(1);m.choose(0);m.choose(1);assert.equal(m.state.moves,1);
-  m.start('hanoi',level);const solve=(n,from,to,other)=>{if(!n)return;solve(n-1,from,other,to);m.choose(from);m.choose(to);solve(n-1,other,to,from);};solve(m.state.board.length,0,2,1);
-  assert.equal(m.state.outcome,1);assert.equal(m.state.moves,2**(3+level)-1);}
+test('tower transfer: random starts solve through legal minimum-length routes',()=>{
+ for(const level of [0,1,2]){const m=create('hanoi',level);const start=m.state.board.slice(),goal=m.state.goalPost;
+ const queue=[start],previous=new Map([[start.join(','),null]]),moves=new Map();let solved='';
+ for(let i=0;i<queue.length;i++){const board=queue[i],key=board.join(',');if(board.every(v=>v===goal)){solved=key;break;}
+ for(let from=0;from<3;from++)for(let to=0;to<3;to++){const disc=board.indexOf(from),top=board.indexOf(to);if(from===to||disc<0||(top>=0&&disc>top))continue;const next=board.slice();next[disc]=to;const nk=next.join(',');if(!previous.has(nk)){previous.set(nk,key);moves.set(nk,[from,to]);queue.push(next);}}}
+ assert(solved);const route=[];for(let key=solved;previous.get(key)!==null;key=previous.get(key))route.unshift(moves.get(key));
+ assert.equal(route.length,m.state.minimumMoves);for(const [from,to]of route){m.choose(from);m.choose(to);}assert.equal(m.state.outcome,1);
+ const illegal=create('hanoi',level);illegal.state.board.fill(0);illegal.state.goalPost=2;illegal.choose(0);illegal.choose(1);illegal.choose(0);illegal.choose(1);assert.equal(illegal.state.moves,1);}
 });
 test('nonogram accepts a different board with identical run clues',()=>{
  const m=create('nonogram',0);m.state.target=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];

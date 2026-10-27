@@ -8,9 +8,11 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { GameDifficulty } from '../common/GameDifficulty';
 import { GameSound, gameSound } from '../common/GameSound';
 import { isGameAvailable } from '../common/GameAvailability';
+import { modesForGame, gameEntryForMode } from '../common/GameModes';
 
 export const GAME_DATA_STORE_NAME: string = 'little_games_data';
 const KEY_HIGH_SCORES = 'highScores';
+const KEY_MODE_RECORDS: string = 'modeRecordsV1';
 const KEY_PLAY_COUNTS = 'playCounts';
 const KEY_GAME_STARTS = 'gameStartCounts';
 const KEY_PLAY_TIMES = 'playTimesMs';
@@ -64,6 +66,7 @@ export class GameDataManager {
   /** Only actual new games count; page attachment and save restoration do not. */
   private static gameStarts: Record<string, number> = {};
   private static gameStartsDirty: boolean = false;
+  private static modeRecords: Record<string, number> = {};
   /** 完整登记目录用于保留撤下玩法的旧战绩，只有 games 对外提供上架内容。 */
   private static catalog: GameInfo[] = [
     {
@@ -216,6 +219,17 @@ export class GameDataManager {
 
   private static restore(): void {
     if (!GameDataManager.store) { return; }
+    GameDataManager.modeRecords = {};
+    try {
+      const records: Record<string, number> = JSON.parse(GameDataManager.store.getSync(KEY_MODE_RECORDS, '{}') as string) as Record<string, number>;
+      const keys: string[] = Object.keys(records);
+      for (let i: number = 0; i < keys.length; i++) {
+        const value: number | undefined = records[keys[i]];
+        if (typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= 1000000000) {
+          GameDataManager.modeRecords[keys[i]] = value;
+        }
+      }
+    } catch (e) { /* A damaged new record cannot erase the original score maps. */ }
     const saved2048 = GameDataManager.store.getSync(KEY_SAVED_2048, '');
     const savedSudoku = GameDataManager.store.getSync(KEY_SAVED_SUDOKU, '');
     GameDataManager.saved2048 = typeof saved2048 === 'string' ? saved2048 : '';
@@ -351,6 +365,9 @@ export class GameDataManager {
           times[game.id] = game.playTimeMs;
         }
         GameDataManager.store.putSync(KEY_HIGH_SCORES, JSON.stringify(scores));
+        if (Object.keys(GameDataManager.modeRecords).length > 0) {
+          GameDataManager.store.putSync(KEY_MODE_RECORDS, JSON.stringify(GameDataManager.modeRecords));
+        }
         GameDataManager.store.putSync(KEY_PLAY_TIMES, JSON.stringify(times));
         if (GameDataManager.gameStartsDirty) {
           GameDataManager.store.putSync(KEY_GAME_STARTS, JSON.stringify(GameDataManager.gameStarts));
@@ -400,7 +417,23 @@ export class GameDataManager {
   }
 
   static getAllGames(): GameInfo[] {
-    return GameDataManager.games;
+    return GameDataManager.games.map((game: GameInfo) => GameDataManager.summaryGame(game));
+  }
+  /** Fold display statistics only; original per-game records stay unchanged on disk. */
+  private static summaryGame(game: GameInfo): GameInfo {
+    const modes: string[] = modesForGame(game.id);
+    if (modes.length === 1) { return game; }
+    let time: number = 0; let score: number = 0;
+    GameDataManager.catalog.forEach((entry: GameInfo) => {
+      if (modes.includes(entry.id)) { time += entry.playTimeMs; score = Math.max(score, entry.highScore); }
+    });
+    return { id: game.id, name: game.name, category: game.category, icon: game.icon,
+      description: game.description, scoreLabel: game.scoreLabel, highScore: score, playTimeMs: time };
+  }
+  private static lastPlayed(id: string): number {
+    let result: number = 0;
+    modesForGame(id).forEach((mode: string) => { result = Math.max(result, GameDataManager.lastPlayedAtByGame[mode] ?? 0); });
+    return result;
   }
 
   /** Only the two supported games persist versioned, bounded game snapshots. */
@@ -426,11 +459,12 @@ export class GameDataManager {
   static getSavedGameRevision(): number { return GameDataManager.savedGameRevision; }
 
   static getGamesByCategory(category: GameCategory): GameInfo[] {
-    return GameDataManager.games.filter(g => g.category === category);
+    return GameDataManager.getAllGames().filter(g => g.category === category);
   }
 
   static getGameById(id: string): GameInfo | undefined {
-    return GameDataManager.games.find(g => g.id === id);
+    const game: GameInfo | undefined = GameDataManager.games.find(g => g.id === id);
+    return game === undefined ? undefined : GameDataManager.summaryGame(game);
   }
 
   static updateHighScore(id: string, score: number): void {
@@ -448,7 +482,7 @@ export class GameDataManager {
 
   static recordGameStarted(id: string): void {
     if (GameDataManager.getGameById(id) === undefined) { return; }
-    const count: number = GameDataManager.getPlayCount(id);
+    const count: number = GameDataManager.gameStarts[id] ?? 0;
     if (count < Number.MAX_SAFE_INTEGER) {
       GameDataManager.gameStarts[id] = count + 1;
       GameDataManager.gameStartsDirty = true;
@@ -456,7 +490,11 @@ export class GameDataManager {
     GameDataManager.recordGamePlayed(id);
   }
 
-  static getPlayCount(id: string): number { return GameDataManager.gameStarts[id] ?? 0; }
+  static getPlayCount(id: string): number {
+    let count: number = 0;
+    modesForGame(id).forEach((mode: string) => { count += GameDataManager.gameStarts[mode] ?? 0; });
+    return count;
+  }
 
   static getTotalStarts(): number {
     let total: number = 0;
@@ -470,8 +508,8 @@ export class GameDataManager {
     return GameDataManager.games.filter((game: GameInfo): boolean => GameDataManager.getPlayCount(game.id) > 0)
       .sort((a: GameInfo, b: GameInfo): number => {
         const difference: number = GameDataManager.getPlayCount(b.id) - GameDataManager.getPlayCount(a.id);
-        return difference !== 0 ? difference : (GameDataManager.lastPlayedAtByGame[b.id] ?? 0) - (GameDataManager.lastPlayedAtByGame[a.id] ?? 0);
-      }).slice(0, limit);
+        return difference !== 0 ? difference : GameDataManager.lastPlayed(b.id) - GameDataManager.lastPlayed(a.id);
+      }).slice(0, limit).map((game: GameInfo) => GameDataManager.summaryGame(game));
   }
 
   static recordGamePlayed(id: string): void {
@@ -485,7 +523,7 @@ export class GameDataManager {
   }
 
   static addPlayTime(id: string, milliseconds: number): void {
-    const game: GameInfo | undefined = GameDataManager.getGameById(id);
+    const game: GameInfo | undefined = GameDataManager.games.find((item: GameInfo) => item.id === id);
     if (game === undefined || !Number.isFinite(milliseconds) || milliseconds < 1) { return; }
     const elapsed: number = Math.floor(milliseconds);
     if (elapsed > Number.MAX_SAFE_INTEGER - game.playTimeMs) { return; }
@@ -496,25 +534,25 @@ export class GameDataManager {
 
   static getTotalPlayTimeMs(): number {
     let total: number = 0;
-    for (let i = 0; i < GameDataManager.games.length; i++) { total += GameDataManager.games[i].playTimeMs; }
+    GameDataManager.getAllGames().forEach((game: GameInfo) => { total += game.playTimeMs; });
     return total;
   }
 
   static getTopGames(limit: number = 5): GameInfo[] {
-    return [...GameDataManager.games].sort((a, b) => b.highScore - a.highScore).slice(0, limit);
+    return GameDataManager.getAllGames().sort((a, b) => b.highScore - a.highScore).slice(0, limit);
   }
 
   /** 按累计游玩时长排序，与最高分排行、最近顺序区分。 */
   static getMostPlayed(limit: number = 5): GameInfo[] {
-    return [...GameDataManager.games].sort((a, b) => b.playTimeMs - a.playTimeMs).slice(0, limit);
+    return GameDataManager.getAllGames().sort((a, b) => b.playTimeMs - a.playTimeMs).slice(0, limit);
   }
 
   /** 最近进入顺序，与累计时长无关。 */
   static getRecentlyPlayed(limit: number = 5): GameInfo[] {
     const result: GameInfo[] = [];
     for (let i = 0; i < GameDataManager.recentGameIds.length && result.length < limit; i++) {
-      const game = GameDataManager.getGameById(GameDataManager.recentGameIds[i]);
-      if (game !== undefined) { result.push(game); }
+      const game = GameDataManager.getGameById(gameEntryForMode(GameDataManager.recentGameIds[i]));
+      if (game !== undefined && !result.some((entry: GameInfo) => entry.id === game.id)) { result.push(game); }
     }
     return result;
   }
@@ -528,21 +566,22 @@ export class GameDataManager {
     }
     const result: PlayedGameRecord[] = [];
     for (let i = 0; i < orderedIds.length; i++) {
-      const game: GameInfo | undefined = GameDataManager.getGameById(orderedIds[i]);
-      if (game !== undefined) {
-        const lastPlayedAt: number = GameDataManager.lastPlayedAtByGame[game.id] ?? 0;
+      const game: GameInfo | undefined = GameDataManager.getGameById(gameEntryForMode(orderedIds[i]));
+      if (game !== undefined && !result.some((record: PlayedGameRecord) => record.game.id === game.id)) {
+        const lastPlayedAt: number = GameDataManager.lastPlayed(game.id);
         result.push(new PlayedGameRecord(game, lastPlayedAt));
       }
     }
     return result.sort((a: PlayedGameRecord, b: PlayedGameRecord): number => {
       const timeDifference: number = b.lastPlayedAt - a.lastPlayedAt;
       if (timeDifference !== 0) { return timeDifference; }
-      return orderedIds.indexOf(a.game.id) - orderedIds.indexOf(b.game.id);
+      return orderedIds.findIndex((id: string) => gameEntryForMode(id) === a.game.id) - orderedIds.findIndex((id: string) => gameEntryForMode(id) === b.game.id);
     });
   }
 
   static getPlayedGameCount(): number {
-    return GameDataManager.playedGameIds.filter((id: string): boolean => isGameAvailable(id)).length;
+    return new Set<string>(GameDataManager.playedGameIds.map((id: string) => gameEntryForMode(id))
+      .filter((id: string): boolean => isGameAvailable(id))).size;
   }
 
   /** 获取设置项，不存在时返回默认值 */
@@ -588,6 +627,26 @@ export class GameDataManager {
     }
   }
 
+  static getModeScore(mode: string, difficulty: string): number {
+    return GameDataManager.modeRecords[mode + ':' + difficulty + ':score'] ?? 0;
+  }
+  static getModeTime(mode: string, difficulty: string): number {
+    return GameDataManager.modeRecords[mode + ':' + difficulty + ':time'] ?? 0;
+  }
+  static archivedModeScore(mode: string): number {
+    const game: GameInfo | undefined = GameDataManager.catalog.find((item: GameInfo) => item.id === mode);
+    return game?.highScore ?? 0;
+  }
+  static recordMode(mode: string, difficulty: string, score: number, elapsedMs: number = 0): void {
+    const key: string = mode + ':' + difficulty;
+    GameDataManager.modeRecords[key + ':score'] = Math.max(score, GameDataManager.getModeScore(mode, difficulty));
+    if (elapsedMs > 0) {
+      const best: number = GameDataManager.getModeTime(mode, difficulty);
+      GameDataManager.modeRecords[key + ':time'] = best === 0 ? elapsedMs : Math.min(best, elapsedMs);
+    }
+    GameDataManager.markDirty();
+  }
+
   static setTextSetting(key: string, value: string): void {
     if (GameDataManager.settings[key] === value) { return; }
     GameDataManager.settings[key] = value;
@@ -626,6 +685,8 @@ export class GameDataManager {
 
   /** 清空战绩和最近游玩列表，保留用户设置。调用前由设置页确认。 */
   static clearPlayData(): void {
+    GameDataManager.modeRecords = {};
+    if (GameDataManager.store) { GameDataManager.store.putSync(KEY_MODE_RECORDS, '{}'); }
     for (let i = 0; i < GameDataManager.catalog.length; i++) {
       GameDataManager.catalog[i].highScore = 0;
       GameDataManager.catalog[i].playTimeMs = 0;

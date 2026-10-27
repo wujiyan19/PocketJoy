@@ -10,7 +10,7 @@ export class ExpansionPuzzle {
 
   start(s: ExpansionState): void {
     if (s.id === 'blockfit') {
-      s.cols = 6 + s.level; s.rows = s.cols; s.board = new Array<number>(s.cols * s.rows).fill(0);
+      s.variant = 1; s.cols = 6; s.rows = s.cols; s.board = new Array<number>(s.cols * s.rows).fill(0);
       s.goal = 800 + s.level * 400; this.refill(s);
     } else if (s.id === 'tilestack') { this.makeStack(s);
     } else if (s.id === 'watersort') { this.makeWater(s);
@@ -27,7 +27,8 @@ export class ExpansionPuzzle {
     } else if (s.id === 'parkingjam') { this.drive(s, index); }
   }
   private refill(s: ExpansionState): void {
-    s.tray = [this.pick(7 + s.level), this.pick(7 + s.level), this.pick(7 + s.level)]; s.selected = 0;
+    const count: number = s.variant === 1 && s.level === 2 ? 10 : 7 + s.level;
+    s.tray = [this.pick(count), this.pick(count), this.pick(count)]; s.selected = 0;
   }
   fits(s: ExpansionState, shapeId: number, index: number): boolean {
     if (shapeId < 0 || shapeId >= BLOCK_SHAPES.length || index < 0 || index >= s.board.length) { return false; }

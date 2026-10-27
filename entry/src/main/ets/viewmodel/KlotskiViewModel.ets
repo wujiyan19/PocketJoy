@@ -11,6 +11,7 @@ import { GameDataManager } from '../model/GameData';
 import { GameSoundEvent, gameSound } from '../common/GameSound';
 import { GameLifecycleObserver } from '../common/GameLifecycleBus';
 import { KlotskiBlock, KlotskiRules } from '../model/game/KlotskiModel';
+import { RandomSource, RealRandom } from '../model/game/RandomSource';
 
 const BW = 4;
 const BH = 5;
@@ -63,11 +64,13 @@ export class KlotskiViewModel implements GameLifecycleObserver {
   @Trace confirmExit: boolean = false;
 
   private rules: KlotskiRules = new KlotskiRules(BW, BH);
+  private random: RandomSource;
+  constructor(random: RandomSource = new RealRandom()) { this.random = random; }
 
   startGame(): void {
     gameSound.stop(GAME_ID);
     GameDataManager.recordGameStarted(GAME_ID);
-    this.blocks = this.rules.layout(this.difficulty);
+    this.blocks = this.rules.deal(this.difficulty, this.random);
     this.grid = this.rules.buildGrid(this.blocks);
     this.stepCount = 0;
     this.status = GameStatus.PLAYING;

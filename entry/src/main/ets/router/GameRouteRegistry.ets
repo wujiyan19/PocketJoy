@@ -42,7 +42,8 @@ export class GameRoutes {
     const ids: string[] = ['snake', 'tetris', '2048', 'whackmole', 'minesweeper', 'sudoku',
       'slidepuzzle', 'klotski', 'guessnumber', 'memorycard', 'jumpjump', 'brickbreaker', 'match3'];
     for (let i = 0; i < ids.length; i++) {
-      if (GameRoutes.routeName(ids[i]) === route) { return ids[i]; }
+      const name: string = GameRoutes.routeName(ids[i]);
+      if (name.length > 0 && name === route) { return ids[i]; }
     }
     return '';
   }

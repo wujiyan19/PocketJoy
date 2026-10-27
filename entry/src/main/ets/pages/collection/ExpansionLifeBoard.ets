@@ -24,6 +24,11 @@ export struct ExpansionLifeBoard {
     return ExpansionArt.furniture(piece ? piece.color : 0);
   }
   fishingStatus(): Resource { return [$r('app.string.expansion_cast_hint'), $r('app.string.expansion_wait_bite'), $r('app.string.expansion_hook_now'), $r('app.string.expansion_reel_hint')][this.vm.state.data[0]]; }
+  fishSpecies(): Resource {
+    const names: Resource[] = [$r('app.string.fishing_species_1'), $r('app.string.fishing_species_2'), $r('app.string.fishing_species_3'),
+      $r('app.string.fishing_species_4'), $r('app.string.fishing_species_5'), $r('app.string.fishing_species_6')];
+    return names[Math.max(0, this.vm.state.pieces[0].color - 1)];
+  }
   hold(event: TouchEvent): void {
     if (event.type === TouchType.Down) { this.vm.setDragging(true); this.vm.tap(1); }
     if (event.type === TouchType.Up || event.type === TouchType.Cancel) { this.vm.tap(2); this.vm.setDragging(false); }
@@ -87,6 +92,10 @@ export struct ExpansionLifeBoard {
   Fishing() {
     Column({ space: SpacingTokens.base }) {
       Text(this.fishingStatus()).fontSize(FontTokens.sizeSubtitle).fontColor(this.vm.state.data[0] === 2 ? SemanticColors.warningText : SemanticColors.textPrimary)
+      if (this.vm.state.variant === 1) {
+        Text($r('app.string.fishing_log', this.vm.state.target.filter((count: number) => count > 0).length)).fontColor(SemanticColors.textSecondary)
+        if (this.vm.state.data[0] > 0) { Text(this.fishSpecies()).fontColor(SemanticColors.textSecondary) }
+      }
       Stack() {
         Image(ExpansionArt.board('fishing')).width('100%').height('100%').objectFit(ImageFit.Fill).accessibilityLevel('no')
         Image(this.vm.state.data[0] === 2 ? $r('app.media.exp_bite') : this.vm.state.data[0] === 0 ? ExpansionArt.fish(3) : $r('app.media.exp_bobber'))

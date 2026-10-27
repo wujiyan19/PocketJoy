@@ -38,6 +38,7 @@ export class ExpansionState {
   serial: number = 1;
   time: number = 0;
   cooldown: number = 0;
+  variant: number = 0;
 }
 
 export class ExpansionPile { cards: number[] = []; }

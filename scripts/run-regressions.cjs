@@ -4,10 +4,10 @@ const path = require('node:path');
 const cp = require('node:child_process');
 const root = path.resolve(__dirname, '..');
 const suites = JSON.parse(fs.readFileSync(path.join(root, 'docs/single-player-validation-2026-10-12.json'), 'utf8'))
-  .results.map(result => result.script).concat('test-local-game-saves', 'test-daily-featured', 'test-line-rescue', 'test-game-sounds', 'test-data-recovery', 'test-ui-iteration', 'test-screwout', 'test-toy-scenes');
+  .results.map(result => result.script).concat('test-local-game-saves', 'test-daily-featured', 'test-line-rescue', 'test-game-sounds', 'test-data-recovery', 'test-ui-iteration', 'test-screwout', 'test-toy-scenes', 'test-toy-chase', 'test-chess-animation', 'test-retention-iteration');
 const directory = process.env.LITTLEGAMES_REGRESSION_OUTPUT || path.join(root, 'entry/build/iteration-20261013/regressions');
 fs.mkdirSync(directory, { recursive: true });
-const report = { startedAt: new Date().toISOString(), scope: '76-game single-player desktop regression; no native/device claims', results: [] };
+const report = { startedAt: new Date().toISOString(), scope: '64-entry single-player desktop regression; no native/device claims', results: [] };
 for (const script of suites) {
   const result = cp.spawnSync(process.execPath, [path.join(__dirname, script + '.cjs')], {
     cwd: root, encoding: 'utf8', timeout: 120000

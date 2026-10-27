@@ -43,9 +43,9 @@ export default function whackMoleModelTest() {
     });
 
     it('game_time_by_difficulty', 0, () => {
-      expect(rules.getGameTime(GameDifficulty.EASY)).assertEqual(40);
+      expect(rules.getGameTime(GameDifficulty.EASY)).assertEqual(30);
       expect(rules.getGameTime(GameDifficulty.NORMAL)).assertEqual(30);
-      expect(rules.getGameTime(GameDifficulty.HARD)).assertEqual(20);
+      expect(rules.getGameTime(GameDifficulty.HARD)).assertEqual(30);
     });
 
     it('spawn_interval_by_difficulty', 0, () => {

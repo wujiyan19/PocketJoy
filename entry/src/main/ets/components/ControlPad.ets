@@ -53,6 +53,7 @@ export struct ControlPad {
       .clickEffect(HarmonyMotion.press(this.getUIContext()))
 
       .accessibilityText($r('app.string.a11y_direction_up'))
+      .id('control-pad-up')
       .onClick(() => { Haptics.tap(); this.onUp(); })
 
       // 左 / 中 / 右
@@ -68,28 +69,33 @@ export struct ControlPad {
         .clickEffect(HarmonyMotion.press(this.getUIContext()))
 
         .accessibilityText($r('app.string.a11y_direction_left'))
+        .id('control-pad-left')
         .onClick(() => { Haptics.tap(); this.onLeft(); })
 
-        Button() {
-          if (this.centerLabel.length > 0) {
-            Text(this.centerLabel)
-              .fontFamily(FontTokens.family)
-              .fontSize(14)
-              .fontWeight(FontTokens.weightMedium)
-              .fontColor(SemanticColors.textPrimary)
-          } else {
-            Column().width(10).height(10).borderRadius(RadiusTokens.full)
-              .backgroundColor(SemanticColors.textPrimary)
+        if (this.showCenter || this.centerLabel.length > 0) {
+          Button() {
+            if (this.centerLabel.length > 0) {
+              Text(this.centerLabel)
+                .fontFamily(FontTokens.family)
+                .fontSize(14)
+                .fontWeight(FontTokens.weightMedium)
+                .fontColor(SemanticColors.textPrimary)
+            } else {
+              Column().width(10).height(10).borderRadius(RadiusTokens.full)
+                .backgroundColor(SemanticColors.textPrimary)
+            }
           }
-        }
-        .width(this.buttonSize).height(48)
-        .backgroundColor(SemanticColors.surface)
-        .borderRadius(RadiusTokens.base)
-        .clickEffect(HarmonyMotion.press(this.getUIContext()))
-        .opacity(this.getCenterOpacity())
+          .width(this.buttonSize).height(48)
+          .backgroundColor(SemanticColors.surface)
+          .borderRadius(RadiusTokens.base)
+          .clickEffect(HarmonyMotion.press(this.getUIContext()))
+          .opacity(this.getCenterOpacity())
 
-        .accessibilityText(this.getCenterA11yText())
-        .onClick(() => { Haptics.tap(); this.onCenter(); })
+          .accessibilityText(this.getCenterA11yText())
+          .onClick(() => { Haptics.tap(); this.onCenter(); })
+        } else {
+          Column().width(this.buttonSize).height(48).accessibilityLevel('no')
+        }
 
         Button() {
           SymbolGlyph($r('sys.symbol.arrow_right'))
@@ -102,6 +108,7 @@ export struct ControlPad {
         .clickEffect(HarmonyMotion.press(this.getUIContext()))
 
         .accessibilityText($r('app.string.a11y_direction_right'))
+        .id('control-pad-right')
         .onClick(() => { Haptics.tap(); this.onRight(); })
       }
 
@@ -117,7 +124,8 @@ export struct ControlPad {
       .clickEffect(HarmonyMotion.press(this.getUIContext()))
 
       .accessibilityText($r('app.string.a11y_direction_down'))
+      .id('control-pad-down')
       .onClick(() => { Haptics.tap(); this.onDown(); })
-    }
+    }.width('100%').alignItems(HorizontalAlign.Center)
   }
 }

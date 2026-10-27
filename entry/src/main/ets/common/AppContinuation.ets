@@ -2,6 +2,7 @@ import { GameLifecycleBus } from './GameLifecycleBus';
 import { GameSessionTransfer, ContinuationValidation } from './GameSessionTransfer';
 import { GameRoutes } from '../router/GameRouteRegistry';
 import { isGameAvailable } from './GameAvailability';
+import { MERGED_GAME_IDS, gameEntryForMode } from './GameModes';
 
 export interface ContinuationNavigationState {
   tab: number;
@@ -99,6 +100,13 @@ export class AppContinuation {
     try {
       if (payload.length > AppContinuation.MAX_PAYLOAD_LENGTH) { return false; }
       const state: AppContinuationState = JSON.parse(payload) as AppContinuationState;
+      if (state !== null && MERGED_GAME_IDS.includes(state.gameId) && Array.isArray(state.paths)) {
+        const original: string = state.gameId;
+        const oldRoute: string = (original === 'beatjump' ? 'Expansion_' : 'Collection_') + original;
+        const index: number = state.paths[0] === 'PlayHistoryPage' ? 1 : 0;
+        if (state.paths[index] !== oldRoute) { return false; }
+        state.gameId = gameEntryForMode(original); state.paths[index] = GameRoutes.routeName(state.gameId);
+      }
       if (!AppContinuation.isValid(state)) { return false; }
       const restore: ((state: AppContinuationState) => void) | null = AppContinuation.restoreNavigation;
       if (restore === null) { AppContinuation.pending = state; }

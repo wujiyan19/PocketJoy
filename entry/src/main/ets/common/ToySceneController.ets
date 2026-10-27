@@ -12,6 +12,7 @@ export class ToySceneController {
   private world: Node | null = null;
   private fitX: number = 0;
   private fitY: number = 0;
+  private nodes: Map<string, Node> = new Map<string, Node>();
 
   async load(uri: Resource, background: Color): Promise<boolean> {
     const generation: number = ++this.generation;
@@ -20,6 +21,7 @@ export class ToySceneController {
       const scene: Scene = await Scene.load(uri);
       if (generation !== this.generation) { scene.destroy(); return false; }
       this.scene = scene;
+      this.nodes.clear();
       const camera: Node | null = this.node('ToyCamera');
       if (camera === null) { throw new Error('Toy camera missing'); }
       const view: Camera = camera as Camera;
@@ -36,6 +38,7 @@ export class ToySceneController {
       if (generation === this.generation) {
         this.scene?.destroy(); this.scene = null; this.camera = null; this.world = null;
         this.options = undefined; this.failed = true;
+        this.nodes.clear();
         hilog.error(0x0000, 'LittleGames', 'Toy scene failed to load: %{public}s', String(e));
       }
       return false;
@@ -44,19 +47,18 @@ export class ToySceneController {
 
   node(name: string): Node | null {
     const root: Node | null = this.scene?.root ?? null;
-    return root === null ? null : this.find(root, name);
+    if (root === null) { return null; }
+    if (this.nodes.size === 0) { this.index(root); }
+    return this.nodes.get(name) ?? null;
   }
 
-  private find(root: Node, name: string): Node | null {
-    if (root.name === name) { return root; }
+  private index(root: Node): void {
+    // Traverse native handles once; pooled scenes otherwise repeat thousands of synchronous calls.
+    if (!this.nodes.has(root.name)) { this.nodes.set(root.name, root); }
     for (let i: number = 0; i < root.children.count(); i++) {
       const child: Node | null = root.children.get(i);
-      if (child !== null) {
-        const found: Node | null = this.find(child, name);
-        if (found !== null) { return found; }
-      }
+      if (child !== null) { this.index(child); }
     }
-    return null;
   }
 
   draw(): void {
@@ -80,6 +82,7 @@ export class ToySceneController {
     this.options = undefined;
     this.camera = null; this.world = null;
     this.fitX = 0; this.fitY = 0;
+    this.nodes.clear();
     this.scene?.destroy(); this.scene = null;
   }
 }

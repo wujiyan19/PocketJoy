@@ -17,6 +17,7 @@ const GAME_ID = 'whackmole';
 
 interface WhackMoleContinuationState {
   version: number;
+  rulesVersion?: number;
   holes: boolean[];
   score: number;
   highScore: number;
@@ -46,28 +47,34 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
   /** 本次暂停是否由「切后台」自动触发 */
   private autoPaused: boolean = false;
   private appVisible: boolean = true;
+  private legacyRound: boolean = false;
 
   constructor(rng?: RandomSource) {
     this.rng = rng ?? new RealRandom();
     this.highScore = GameDataManager.getGameById(GAME_ID)?.highScore ?? 0;
   }
 
-  getGameTime(): number { return this.rules.getGameTime(this.difficulty); }
+  getGameTime(): number { return this.legacyRound ? (this.difficulty === GameDifficulty.EASY ? 40 : this.difficulty === GameDifficulty.HARD ? 20 : 30) : this.rules.getGameTime(this.difficulty); }
   getSpawnInterval(): number { return this.rules.getSpawnInterval(this.difficulty); }
+  private recordDifficulty(): string { return this.legacyRound ? 'legacy_' + this.difficulty : this.difficulty; }
+  isLegacyRound(): boolean { return this.legacyRound; }
+  modeBest(): number { return Math.max(this.score, GameDataManager.getModeScore(GAME_ID, this.recordDifficulty())); }
 
   changeDifficulty(d: GameDifficulty): void {
     GameDataManager.rememberGameDifficulty(GAME_ID, d);
     if (this.difficulty === d) { return; }
+    this.settleCurrentScore(); this.score = 0;
     this.difficulty = d;
     this.startGame();
   }
 
   startGame(): void {
     gameSound.stop(GAME_ID);
-    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); }
+    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); GameDataManager.recordMode(GAME_ID, this.recordDifficulty(), this.score); }
     this.stopTimers();
     this.autoPaused = false;
     this.confirmExit = false;
+    this.legacyRound = false;
     GameDataManager.recordGameStarted(GAME_ID);
     this.score = 0;
     this.timeLeft = this.getGameTime();
@@ -106,7 +113,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
    * 中途退出会静默丢失当前得分。
    */
   private settleCurrentScore(): void {
-    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); }
+    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); GameDataManager.recordMode(GAME_ID, this.recordDifficulty(), this.score); }
   }
 
   /** 手动暂停/恢复。两个定时回调都只放行 PLAYING */
@@ -179,7 +186,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
     this.status = GameStatus.OVER;
     this.stopTimers();
     if (this.score > this.highScore) { this.highScore = this.score; }
-    GameDataManager.updateHighScore(GAME_ID, this.score);
+    GameDataManager.updateHighScore(GAME_ID, this.score); GameDataManager.recordMode(GAME_ID, this.recordDifficulty(), this.score);
   }
 
   private stopTimers(): void {
@@ -210,6 +217,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
 
     const state: WhackMoleContinuationState = {
       version: 1,
+      rulesVersion: this.legacyRound ? 1 : 2,
       holes: this.holes,
       score: this.score,
       highScore: this.highScore,
@@ -226,13 +234,15 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
     try {
       if (payload.length > 65536) { return false; }
       const s: WhackMoleContinuationState = JSON.parse(payload) as WhackMoleContinuationState;
+      const rulesVersion: number = s?.rulesVersion ?? 1;
       if (s === null || s.version !== 1 || !V.integer(s.score) ||
           !V.integer(s.highScore) ||
           !V.integer(s.timeLeft) ||
           (s.status !== GameStatus.PLAYING && s.status !== GameStatus.PAUSED && s.status !== GameStatus.OVER && s.status !== GameStatus.IDLE) ||
           (s.difficulty !== GameDifficulty.EASY && s.difficulty !== GameDifficulty.NORMAL && s.difficulty !== GameDifficulty.HARD) ||
           !V.integer(s.countdownRemainingMs)) { return false; }
-      if (!V.booleans(s.holes, 9) || s.timeLeft > this.rules.getGameTime(s.difficulty) ||
+      const limit: number = rulesVersion === 1 ? (s.difficulty === GameDifficulty.EASY ? 40 : s.difficulty === GameDifficulty.HARD ? 20 : 30) : 30;
+      if (!V.integer(rulesVersion, 1, 2) || !V.booleans(s.holes, 9) || s.timeLeft > limit ||
           !V.integer(s.countdownRemainingMs, 1, 1000)) { return false; }
       this.stopTimers();
       this.holes = s.holes;
@@ -242,6 +252,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
       this.timeLeft = s.timeLeft;
       this.status = s.status;
       this.difficulty = s.difficulty;
+      this.legacyRound = rulesVersion === 1;
       this.countdownRemainingMs = s.countdownRemainingMs;
       this.confirmExit = false;
       this.appVisible = true;

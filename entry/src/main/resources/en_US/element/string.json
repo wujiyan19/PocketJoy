@@ -1382,7 +1382,7 @@
     },
     {
       "name": "game_hanoi_rules",
-      "value": "Select a source post, then a destination. Only the top disc can move; larger discs cannot sit on smaller ones. Move every disc to post 3. Smaller numbers mean smaller discs."
+      "value": "Select a source peg and destination peg. Move only the top disc; larger discs cannot cover smaller discs. Each round has a different start and target peg. Match the displayed minimum moves and improve your time."
     },
     {
       "name": "game_peg_name",
@@ -1406,19 +1406,19 @@
     },
     {
       "name": "game_nonogram_rules",
-      "value": "Clues give lengths of filled runs. For example, 2 1 means two filled cells, at least one gap, then one filled cell. Tap to toggle and check when ready. Any grid matching all clues is accepted."
+      "value": "Row and column clues give the lengths of filled runs. New puzzles are checked for line-deduction solutions. Choose Fill or Mark empty, then tap cells and check your solution. Earlier saves remain supported."
     },
     {
       "name": "game_arithmetic_name",
-      "value": "Mental Arithmetic"
+      "value": "Math Challenge"
     },
     {
       "name": "game_arithmetic_desc",
-      "value": "Ten questions of addition, subtraction and multiplication."
+      "value": "Practice arithmetic, comparison, sequences, binary and missing sums with separate mode records."
     },
     {
       "name": "game_arithmetic_rules",
-      "value": "Choose the correct answer to each of ten questions. Correct answers earn points based on difficulty; wrong answers earn none."
+      "value": "Choose arithmetic, comparison, sequences, binary or missing sums. Answer ten questions per round. Each mode and level has its own record; original best scores are preserved."
     },
     {
       "name": "game_compare_name",
@@ -1674,7 +1674,7 @@
     },
     {
       "name": "game_runner_name",
-      "value": "Endless Runner"
+      "value": "Runner Challenge"
     },
     {
       "name": "game_runner_desc",
@@ -1694,7 +1694,7 @@
     },
     {
       "name": "game_blackhole_rules",
-      "value": "Tap or drag to guide a growing hole. Swallow smaller objects to grow enough for larger ones. Clear every object before time runs out to win."
+      "value": "Tap or drag to guide the hole. Swallow small toys with green rings to grow, then collect larger toys. Swallow every toy before time runs out to win. A new round changes the toy positions; continuing keeps the current round."
     },
     {
       "name": "game_fisheat_name",
@@ -1798,11 +1798,11 @@
     },
     {
       "name": "game_rhythm_desc",
-      "value": "Start the sequence and tap the matching lane key as a note reaches the line"
+      "value": "Two timing modes: four-lane notes and three-key jumps."
     },
     {
       "name": "game_rhythm_rules",
-      "value": "Start the sequence and tap the matching lane key as a note reaches the line. Closer timing earns more points. Complete the sequence to win; five missed or incorrect taps end the game."
+      "value": "Choose four-lane notes or three-key beat jumps. Hit the indicated lane at the line, or the indicated direction within the beat window. Five misses end the round. Modes keep separate records."
     },
     {
       "name": "game_restaurant_name",
@@ -1994,7 +1994,7 @@
     },
     {
       "name": "game_tanks_rules",
-      "value": "Drag your tank while its turret targets the nearest enemy. Avoid pursuing tanks and their shells. Defeat every attacker to win; losing three health points ends the battle."
+      "value": "Drag around obstacles, pursuers and shells. The turret targets the nearest enemy. Cover blocks shells from both sides: reposition for a clear shot or protection. Clear all enemies to win."
     },
     {
       "name": "game_fortress_name",
@@ -2018,7 +2018,7 @@
     },
     {
       "name": "game_survival_rules",
-      "value": "Drag to escape pursuers while your weapon targets the nearest enemy. Defeat every wave to win. Contact costs a health point; losing all health ends the run."
+      "value": "Drag to avoid enemies with different speeds and health. Your weapon fires automatically. Spend earned points on attack, fire rate or healing. Clear the waves to win; losing all health ends the round."
     },
     {
       "name": "game_backpack_name",
@@ -2058,7 +2058,7 @@
     },
     {
       "name": "game_pingpong_name",
-      "value": "Paddle Rally"
+      "value": "Paddle Duel"
     },
     {
       "name": "game_pingpong_desc",
@@ -2102,7 +2102,7 @@
     },
     {
       "name": "game_drift_rules",
-      "value": "Start and tap Drift to reverse the car's sideways motion. Keep it inside the curving road until the timer finishes. Leaving the road loses."
+      "value": "Each new round has a different smooth track. Start the car, then tap Drift to switch its sideways direction. Keep the whole car on the road until time runs out to win. Leaving the road ends the round. Restart for a new track; continuing keeps the current one."
     },
     {
       "name": "game_hillclimb_name",
@@ -2294,7 +2294,7 @@
     },
     {
       "name": "game_picturepuzzle_rules",
-      "value": "Use the complete image as a reference. Tap two fragments to swap them; any pair may be exchanged. Restore the scene to win. Higher difficulties use more fragments, and fewer swaps earn more points."
+      "value": "Use the reference image and swap any two pieces to restore it. New rounds choose one of four pictures. Levels change the number of pieces; each picture and level has a separate record."
     },
     {
       "name": "game_idiom_name",
@@ -2378,7 +2378,7 @@
     },
     {
       "name": "game_fishing_rules",
-      "value": "Cast and wait for the bite cue, then set the hook promptly. Hold to reel, increasing progress and tension; release to ease the line. Tension below five or above ninety-five loses the fish. Catch five to win; three missed hooks or broken lines end the trip."
+      "value": "Hook fish at the bite cue. Hold to reel and release to ease tension. Six species have different pull patterns. Read the species hint, keep tension steady for a better score, and collect species in the round. Catch five to win; three mistakes end it."
     },
     {
       "name": "art_try_again",
@@ -2450,15 +2450,15 @@
     },
     {
       "name": "module_desc",
-      "value": "LittleGames - 76 single-player games across six categories"
+      "value": "LittleGames - 64 single-player games across six categories"
     },
     {
       "name": "app_splash_subtitle",
-      "value": "76 single-player mini-games. Pick one and play."
+      "value": "64 single-player mini-games. Pick one and play."
     },
     {
       "name": "settings_about_tagline",
-      "value": "76 single-player games across six categories"
+      "value": "64 single-player games across six categories"
     },
     {
       "name": "expansion_target",
@@ -3026,7 +3026,7 @@
     },
     {
       "name": "game_whackmole_rules",
-      "value": "Tap moles before time runs out to score. Tapping an empty hole costs points. Moles appear and disappear faster at higher difficulty. Pause the timer, resume or restart in settings."
+      "value": "Every level lasts 30 seconds. Hit moles for points; empty holes cost points. Faster appearances make higher levels harder. Each level keeps its own best score."
     },
     {
       "name": "game_minesweeper_rules",
@@ -3034,7 +3034,7 @@
     },
     {
       "name": "game_sudoku_rules",
-      "value": "Select an empty cell and enter 1–9. Every row, column and 3×3 box must contain each digit once. Fixed clues cannot be changed. Use Clear to erase your entry and pinch to zoom. Settings lets you change difficulty, restart the current puzzle or generate a new one."
+      "value": "Fill 1–9 without repeats in rows, columns or boxes. New puzzles are selected by clues and solving techniques: easy uses naked singles, normal needs hidden singles, and hard needs further deduction. Givens stay fixed. Restart the current puzzle or generate a new one."
     },
     {
       "name": "game_slidepuzzle_rules",
@@ -3450,7 +3450,7 @@
     },
     {
       "name": "game_arithmetic_brief",
-      "value": "Solve ten quick sums"
+      "value": "Five math modes"
     },
     {
       "name": "game_compare_brief",
@@ -3518,7 +3518,7 @@
     },
     {
       "name": "game_runner_brief",
-      "value": "Dodge the obstacles"
+      "value": "Dodge obstacles"
     },
     {
       "name": "game_blackhole_brief",
@@ -3634,7 +3634,7 @@
     },
     {
       "name": "game_pingpong_brief",
-      "value": "Return the table ball"
+      "value": "Move and return"
     },
     {
       "name": "game_bowling_brief",
@@ -3723,6 +3723,154 @@
     {
       "name": "toy_screw_slot_color",
       "value": "Holding slot %d, color %d screw"
+    },
+    {
+      "name": "toy_blackhole_edible",
+      "value": "Green rings: %d objects you can swallow"
+    },
+    {
+      "name": "toy_blackhole_board",
+      "value": "Toy black hole arena. Tap or drag to move; swallow green-ring objects and grow."
+    },
+    {
+      "name": "toy_drift_hint",
+      "value": "Watch the bends ahead; tap Drift to reverse your sideways motion."
+    },
+    {
+      "name": "toy_drift_car",
+      "value": "Toy drift car"
+    },
+    {
+      "name": "mode_arithmetic",
+      "value": "Arithmetic"
+    },
+    {
+      "name": "mode_rhythm",
+      "value": "Four lanes"
+    },
+    {
+      "name": "mode_change_title",
+      "value": "Change game mode"
+    },
+    {
+      "name": "mode_best",
+      "value": "Best for this mode and level: %d"
+    },
+    {
+      "name": "mode_archived_best",
+      "value": "Historical best (including earlier versions): %d"
+    },
+    {
+      "name": "mode_2048_rules",
+      "value": "Chance of a new 4 tile"
+    },
+    {
+      "name": "mode_2048_5",
+      "value": "5%"
+    },
+    {
+      "name": "mode_2048_10",
+      "value": "10%"
+    },
+    {
+      "name": "mode_2048_20",
+      "value": "20%"
+    },
+    {
+      "name": "record_elapsed",
+      "value": "Time %s s · Best %s s"
+    },
+    {
+      "name": "record_mode_score",
+      "value": "Best at this level: %d"
+    },
+    {
+      "name": "nonogram_fill",
+      "value": "Fill"
+    },
+    {
+      "name": "nonogram_mark",
+      "value": "Mark empty"
+    },
+    {
+      "name": "nonogram_logic",
+      "value": "Puzzle checked with row and column deduction"
+    },
+    {
+      "name": "hanoi_goal",
+      "value": "Target peg %d · Minimum %d moves"
+    },
+    {
+      "name": "replay_image",
+      "value": "Picture %d"
+    },
+    {
+      "name": "survival_upgrade",
+      "value": "Upgrade points: %d"
+    },
+    {
+      "name": "survival_power",
+      "value": "Attack +1 (20)"
+    },
+    {
+      "name": "survival_rate",
+      "value": "Fire rate (20)"
+    },
+    {
+      "name": "survival_heal",
+      "value": "Heal (20)"
+    },
+    {
+      "name": "fishing_species_1",
+      "value": "Drifter: steady reeling"
+    },
+    {
+      "name": "fishing_species_2",
+      "value": "Sprinter: watch tension"
+    },
+    {
+      "name": "fishing_species_3",
+      "value": "Endurer: slower progress"
+    },
+    {
+      "name": "fishing_species_4",
+      "value": "Darter: changing tension"
+    },
+    {
+      "name": "fishing_species_5",
+      "value": "Sinker: release in time"
+    },
+    {
+      "name": "fishing_species_6",
+      "value": "Skipper: reel in short bursts"
+    },
+    {
+      "name": "fishing_log",
+      "value": "Species caught this round: %d / 6"
+    },
+    {
+      "name": "sudoku_rating_0",
+      "value": "Technique: naked singles suffice"
+    },
+    {
+      "name": "sudoku_rating_1",
+      "value": "Technique: hidden singles required"
+    },
+    {
+      "name": "sudoku_rating_2",
+      "value": "Technique: further deduction required"
+    },
+    {
+      "name": "record_rule_best",
+      "value": "Best for this rule"
+    },
+    {
+      "name": "hanoi_goal_only",
+      "value": "Target peg %d"
+    },
+    {
+      "name": "whack_legacy_round",
+      "value": "Continuing an earlier round; new rounds last 30 seconds"
     }
   ]
 }

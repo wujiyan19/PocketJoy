@@ -26,6 +26,13 @@ export struct GameSettingsPanel {
   @Param onClose: () => void = () => {};
   @Local showRules: boolean = false;
   @Local sound: GameSound = gameSound;
+  difficultyLabel(diff: GameDifficulty): Resource {
+    if (this.gameId === '2048') {
+      return diff === GameDifficulty.EASY ? $r('app.string.mode_2048_5') :
+        diff === GameDifficulty.HARD ? $r('app.string.mode_2048_20') : $r('app.string.mode_2048_10');
+    }
+    return getDifficultyLabel(diff);
+  }
   private confirming: boolean = false;
 
   confirmAction(title: Resource, message: Resource, button: Resource, action: () => void): void {
@@ -98,15 +105,15 @@ export struct GameSettingsPanel {
           .width('100%').textAlign(TextAlign.Start)
         if (this.showDifficulty) {
           Column({ space: SpacingTokens.md }) {
-            Text($r('app.string.game_settings_difficulty')).fontFamily(FontTokens.family)
+            Text(this.gameId === '2048' ? $r('app.string.mode_2048_rules') : $r('app.string.game_settings_difficulty')).fontFamily(FontTokens.family)
               .fontSize(FontTokens.sizeBodyLarge).fontWeight(FontTokens.weightMedium)
               .fontColor(SemanticColors.textPrimary)
             Row({ space: SpacingTokens.sm }) {
-              SettingsChoice({ label: getDifficultyLabel(GameDifficulty.EASY), selected: this.difficulty === GameDifficulty.EASY,
+              SettingsChoice({ label: this.difficultyLabel(GameDifficulty.EASY), selected: this.difficulty === GameDifficulty.EASY,
                 onChoose: () => { this.chooseDifficulty(GameDifficulty.EASY); } })
-              SettingsChoice({ label: getDifficultyLabel(GameDifficulty.NORMAL), selected: this.difficulty === GameDifficulty.NORMAL,
+              SettingsChoice({ label: this.difficultyLabel(GameDifficulty.NORMAL), selected: this.difficulty === GameDifficulty.NORMAL,
                 onChoose: () => { this.chooseDifficulty(GameDifficulty.NORMAL); } })
-              SettingsChoice({ label: getDifficultyLabel(GameDifficulty.HARD), selected: this.difficulty === GameDifficulty.HARD,
+              SettingsChoice({ label: this.difficultyLabel(GameDifficulty.HARD), selected: this.difficulty === GameDifficulty.HARD,
                 onChoose: () => { this.chooseDifficulty(GameDifficulty.HARD); } })
             }.width('100%')
             Text($r('app.string.game_settings_difficulty_desc')).fontFamily(FontTokens.family)

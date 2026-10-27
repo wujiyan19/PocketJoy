@@ -55,17 +55,17 @@ function audioFixture(options = {}) {
   return { f, sound, E, player, pools, opened, closed, requested };
 }
 
-test('all 76 available games have sounds and the thirteen withdrawn games retain their resources', () => {
+test('all 64 available games have sounds and withdrawn and merged games retain their resources', () => {
   const f = fixture();
   const withdrawnWithSounds = ['hiddenobjects', 'farm', 'decorate', 'characters', 'idiom',
     'wordtower', 'backpack', 'differences', 'onestroke', 'golf',
-    'billiards', 'basketball', 'penalty'];
+    'billiards', 'basketball', 'penalty', 'jumpjump', 'slotpair', 'missing', 'sand', 'linerescue', 'bowling', 'pipes', 'compare', 'sequence', 'binary', 'targetsum', 'beatjump'];
   assert.equal(manifest.games.length, 89);
   const ids = new Set(manifest.games.map(game => game.id));
   assert.equal(ids.size, 89);
   for (const game of f.data().getAllGames()) { assert(ids.has(game.id), game.id); }
   const availableIds = f.data().getAllGames().map(game => game.id);
-  assert.equal(availableIds.length, 76);
+  assert.equal(availableIds.length, 64);
   assert.deepEqual([...ids].sort(), availableIds.concat(withdrawnWithSounds).sort());
   assert.equal(fs.readdirSync('entry/src/main/resources/rawfile/sounds').length, 182);
   const available = f.load(base + 'common/GameAvailability.ets').isGameAvailable;

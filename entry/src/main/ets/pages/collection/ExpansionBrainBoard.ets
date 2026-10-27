@@ -37,6 +37,11 @@ export struct ExpansionBrainBoard {
   }
   aboutToDisappear(): void { if (this.gameId === 'melody') { this.vm.setToneCallbacks((note: number): void => {}, (): void => {}); this.tones.dispose(); } }
   arenaScale(): number { return this.arenaWidth / 360; }
+  pictureArt(): Resource {
+    const images: Resource[] = [$r('app.media.expansion_puzzle_scene'), $r('app.media.exp_board_fishing'),
+      $r('app.media.exp_board_farm'), $r('app.media.exp_board_decorate')];
+    return images[this.vm.state.variant ?? 0];
+  }
   measure(area: Area): void { const width: number = Number(area.width); if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; } }
   point(node: number): number[] { return [(60 + node % 3 * 120) * this.arenaScale(), (100 + Math.floor(node / 3) * 120) * this.arenaScale()]; }
   color(index: number): Resource { return [$r('app.color.expansion_color_1'), $r('app.color.expansion_color_2'), $r('app.color.expansion_color_3'), $r('app.color.expansion_color_4')][index % 4]; }
@@ -115,13 +120,13 @@ export struct ExpansionBrainBoard {
   @Builder
   Picture() {
     Column({ space: SpacingTokens.sm }) {
-      Image($r('app.media.expansion_puzzle_scene')).width('35%').aspectRatio(1).objectFit(ImageFit.Fill).borderRadius(RadiusTokens.sm)
+      Image(this.pictureArt()).width('35%').aspectRatio(1).objectFit(ImageFit.Fill).borderRadius(RadiusTokens.sm)
       Column({ space: 0 }) {
         ForEach(range(this.vm.state.rows), (row: number) => {
           Row({ space: 0 }) {
             ForEach(range(this.vm.state.cols), (col: number) => {
               Stack({ alignContent: Alignment.TopStart }) {
-                Image($r('app.media.expansion_puzzle_scene')).width(this.arenaWidth).height(this.arenaWidth).objectFit(ImageFit.Fill)
+                Image(this.pictureArt()).width(this.arenaWidth).height(this.arenaWidth).objectFit(ImageFit.Fill)
                   .translate({ x: -(this.vm.state.board[row * this.vm.state.cols + col] % this.vm.state.cols) * this.arenaWidth / this.vm.state.cols,
                     y: -Math.floor(this.vm.state.board[row * this.vm.state.cols + col] / this.vm.state.cols) * this.arenaWidth / this.vm.state.cols }).hitTestBehavior(HitTestMode.None)
               }.width(this.arenaWidth / this.vm.state.cols).height(this.arenaWidth / this.vm.state.cols).clip(true)

@@ -1,4 +1,4 @@
-/* Publication boundaries for the 76-game single-player collection.
+/* Publication boundaries for the 64-game single-player collection.
  * Uses real data, route and continuation modules with controlled native services. */
 const assert = require('node:assert/strict');
 const { fixture, Frames } = require('./test-performance.cjs');
@@ -7,9 +7,9 @@ const retired = ['tictactoe', 'gomoku', 'reversi', 'fourline', 'nim', 'dots', 't
   'doudizhu', 'guandan', 'mahjong', 'ludo',
   'hiddenobjects', 'farm', 'decorate', 'characters', 'idiom',
   'wordtower', 'backpack', 'differences', 'onestroke', 'golf',
-  'billiards', 'basketball', 'penalty'];
+  'billiards', 'basketball', 'penalty', 'jumpjump', 'slotpair', 'missing', 'sand', 'linerescue', 'bowling', 'pipes'];
 const collectionRetired = retired.slice(0, 5);
-const oldRoute = id => (collectionRetired.includes(id) ? 'Collection_' : 'Expansion_') + id;
+const oldRoute = id => id === 'jumpjump' ? 'JumpJumpPage' : (collectionRetired.includes(id) || id === 'missing' ? 'Collection_' : 'Expansion_') + id;
 const tests = [];
 const test = (name, run) => tests.push({ name, run });
 const historyIds = data => data.getPlayHistory().map(record => record.game.id);
@@ -19,14 +19,14 @@ const restoredFixture = f => {
   return next;
 };
 
-test('published catalog contains 76 unique games and the approved six-category counts', () => {
+test('published catalog contains 64 unique games and the approved six-category counts', () => {
   const f = fixture(), data = f.data();
   const categories = f.load(base + 'common/GameConstants.ets').GameCategory;
   const games = data.getAllGames();
-  assert.equal(games.length, 76);
-  assert.equal(new Set(games.map(game => game.id)).size, 76);
-  for (const [category, count] of [['CLASSIC', 17], ['PUZZLE', 28], ['BOARD', 5],
-    ['NUMBER', 8], ['MEMORY', 5], ['REACTION', 13]]) {
+  assert.equal(games.length, 64);
+  assert.equal(new Set(games.map(game => game.id)).size, 64);
+  for (const [category, count] of [['CLASSIC', 16], ['PUZZLE', 24], ['BOARD', 5],
+    ['NUMBER', 4], ['MEMORY', 4], ['REACTION', 11]]) {
     assert.equal(data.getGamesByCategory(categories[category]).length, count, category);
   }
   for (const id of retired) { assert.equal(data.getGameById(id), undefined, id); }
@@ -43,13 +43,13 @@ test('withdrawal does not remove archived catalogs or playable model implementat
   const expansionIds = f.rules('Expansion').PLAYABLE_EXPANSION_IDS;
   assert.equal(collections.length, 20);
   assert.equal(expansions.length, 67);
-  for (const id of retired) {
+  for (const id of retired.filter(id => id !== 'jumpjump')) {
     assert.ok(collectionIds.includes(id) || expansionIds.includes(id), id);
     assert.ok(collections.concat(expansions).some(game => game.id === id), id);
   }
 });
 
-test('direct and reverse routes reject all 24 withdrawn games and invalid identifiers', () => {
+test('direct and reverse routes reject all 31 withdrawn games and invalid identifiers', () => {
   const f = fixture(), routes = f.load(base + 'router/GameRouteRegistry.ets').GameRoutes;
   for (const id of retired) {
     assert.equal(routes.routeName(id), '', id);
@@ -67,11 +67,11 @@ test('direct and reverse routes reject all 24 withdrawn games and invalid identi
   }
 });
 
-test('generated routes contain exactly the 76 published games with reversible navigation', () => {
+test('generated routes contain exactly the 64 published games with reversible navigation', () => {
   const f = fixture(), routes = f.load(base + 'router/GameRouteRegistry.ets').GameRoutes;
   const generated = routes.getAllGameRoutes();
-  assert.equal(generated.length, 76);
-  assert.equal(new Set(generated).size, 76);
+  assert.equal(generated.length, 64);
+  assert.equal(new Set(generated).size, 64);
   assert.deepEqual(generated.map(route => routes.gameIdForRoute(route)).sort(),
     f.data().getAllGames().map(game => game.id).sort());
   for (const game of f.data().getAllGames()) {
@@ -226,6 +226,7 @@ for (const id of ['xiangqi', 'chess']) {
       if (id === 'chess') { vm.tap(52); vm.tap(36); }
       else { vm.tap(54); vm.tap(45); }
       assert.equal(vm.computerThinking, true);
+      vm.finishChessAnimation(vm.chessAnimationSerial);
       const waiting = JSON.stringify(vm.state);
       f.clock.advance(499); assert.equal(JSON.stringify(vm.state), waiting);
       f.clock.advance(1); assert.notEqual(JSON.stringify(vm.state), waiting);

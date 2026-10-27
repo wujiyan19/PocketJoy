@@ -103,9 +103,20 @@ export class ExpansionSorting {
     for (let i: number = 1; i < count; i++) { s.board.push(0, i, i, i === count - 1 ? 1 : i + 1); }
   }
   private startKnots(s: ExpansionState): void {
-    s.cols = 6 + s.level; s.rows = 1; this.knotGraph(s); s.target = [180, 230];
-    for (let i: number = 0; i < s.cols - 1; i++) {
-      const angle: number = i * Math.PI * 2 / (s.cols - 1) - Math.PI / 2;
+    s.variant = 1; s.cols = 6 + s.level; s.rows = 1; s.target = [];
+    for (let i: number = 0; i < s.cols; i++) { s.board.push(i, (i + 1) % s.cols); }
+    // Random triangulation of a convex polygon is planar. Removing diagonals keeps it planar.
+    const ranges: number[] = [0, s.cols - 1];
+    while (ranges.length > 0) {
+      const hi: number = ranges.pop() ?? 0; const lo: number = ranges.pop() ?? 0;
+      if (hi - lo < 2) { continue; }
+      const mid: number = lo + 1 + this.pick(hi - lo - 1);
+      if (mid - lo > 1 && this.pick(3) !== 0) { s.board.push(lo, mid); }
+      if (hi - mid > 1 && this.pick(3) !== 0) { s.board.push(mid, hi); }
+      ranges.push(lo, mid, mid, hi);
+    }
+    for (let i: number = 0; i < s.cols; i++) {
+      const angle: number = i * Math.PI * 2 / s.cols - Math.PI / 2;
       s.target.push(Math.round(180 + Math.cos(angle) * 130), Math.round(230 + Math.sin(angle) * 170));
     }
     const order: number[] = s.target.map((v: number, i: number) => i).filter((i: number) => i % 2 === 0); this.shuffle(order);
@@ -181,7 +192,20 @@ export class ExpansionSorting {
         s.data.every((v: number, i: number) => v + s.board.filter((color: number) => color === i + 1).length === 16);
     }
     const expected: ExpansionState = new ExpansionState(); expected.level = s.level; this.knotGraph(expected);
-    return s.id === 'untangle' && s.cols === 6 + s.level && s.rows === 1 && s.pieces.length === s.cols && s.board.join(',') === expected.board.join(',') &&
+    let graphValid: boolean = s.board.join(',') === expected.board.join(',');
+    if (s.variant === 1) {
+      const edges: Set<string> = new Set<string>(); graphValid = s.board.length >= s.cols * 2 && s.board.length <= (2 * s.cols - 3) * 2 && s.board.length % 2 === 0;
+      for (let i: number = 0; i < s.board.length; i += 2) {
+        const a: number = s.board[i]; const b: number = s.board[i + 1]; const key: string = Math.min(a, b) + ':' + Math.max(a, b);
+        if (a === b || a >= s.cols || b >= s.cols || edges.has(key)) { graphValid = false; }
+        edges.add(key);
+      }
+      for (let i: number = 0; i < s.cols; i++) {
+        const next: number = (i + 1) % s.cols;
+        if (!edges.has(Math.min(i, next) + ':' + Math.max(i, next))) { graphValid = false; }
+      }
+    }
+    return s.id === 'untangle' && graphValid && s.cols === 6 + s.level && s.rows === 1 && s.pieces.length === s.cols &&
       s.tray.length === 0 && V.numbers(s.target, s.cols * 2, 22, 438) && s.selected < s.cols && V.numbers(s.data, 1, 0, 200) &&
       s.pieces.every((p: ExpansionPiece, i: number) => p.id === i && p.kind === 23 && p.alive && p.x >= 22 && p.x <= 338 && p.y >= 22 && p.y <= 438 &&
         !s.pieces.some((q: ExpansionPiece) => p.id !== q.id && Math.hypot(p.x - q.x, p.y - q.y) < 36)) && s.data[0] === this.crossings(s);

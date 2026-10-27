@@ -1,4 +1,6 @@
 import { GameColorCue } from '../../common/GameColorCue';
+import { modesForGame, hasDifficultyRules } from '../../common/GameModes';
+import { GameModePicker } from '../../components/GameModePicker';
 import { PageDestination } from '../../components/PageDestination';
 import { GameInfo, GameDifficulty } from '../../common/GameConstants';
 import { SemanticColors, FontTokens, RadiusTokens, SpacingTokens } from '../../common/DesignTokens';
@@ -13,6 +15,7 @@ import { BILLIARDS_FOUL_LIMIT } from '../../model/game/ExpansionSports';
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
 import { ExpansionRenderPiece } from '../../viewmodel/ExpansionRenderPiece';
 import { GameHeader } from '../../components/GameHeader';
+import { ControlPad } from '../../components/ControlPad';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ComputerOpponentPanel } from '../../components/ComputerOpponentPanel';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
@@ -37,6 +40,8 @@ import { ExpansionArt } from '../../common/ExpansionArt';
 import { GameArtTile } from '../../components/GameArtTile';
 import { ExpansionFeedback } from '../../components/ExpansionFeedback';
 import { ToyPuzzleBoard } from '../../components/ToyPuzzleBoard';
+import { ToyBlackholeStage } from '../../components/ToyBlackholeStage';
+import { BlackholeLevels } from '../../model/game/ToyLevelRules';
 
 @ComponentV2
 export struct ExpansionPage {
@@ -48,6 +53,7 @@ export struct ExpansionPage {
   @Local contentHeight: number = 720;
   private screwControlsReserve: number = 228;
   private screwBoardMinHeight: number = 260;
+  private chaseControlsReserve: number = 190;
 
   @Monitor('vm.isFinished', 'vm.confirmExit', 'vm.paused')
   playTimeStateChanged(): void { GameLifecycleBus.updatePlayTime(this.vm); }
@@ -57,6 +63,7 @@ export struct ExpansionPage {
     if (host) {
       this.screwControlsReserve = host.resourceManager.getNumber($r('app.float.toy_screw_controls_reserve').id);
       this.screwBoardMinHeight = host.resourceManager.getNumber($r('app.float.toy_screw_board_min_height').id);
+      this.chaseControlsReserve = host.resourceManager.getNumber($r('app.float.toy_chase_controls_reserve').id);
     }
     this.game = GameDataManager.getGameById(this.gameId);
     this.vm.init(this.gameId, new DisplayFrameLoop(this.getUIContext())); GameLifecycleBus.attach(this.vm);
@@ -147,7 +154,7 @@ export struct ExpansionPage {
   @Builder
   PageHeader() {
     GameHeader({ gameId: this.gameId, pathStack: this.pathStack, hasProgress: (): boolean => this.vm.hasProgress(), gameTitle: this.game?.name ?? '', showScore: true, scoreValue: this.vm.state.score,
-          highScoreValue: this.game?.highScore ?? 0, showPause: this.vm.realtime() || this.vm.hasComputerOpponent(), isPaused: this.vm.paused, showDifficulty: true,
+          highScoreValue: this.vm.modeHighScore, showPause: this.vm.realtime() || this.vm.hasComputerOpponent(), isPaused: this.vm.paused, showDifficulty: hasDifficultyRules(this.vm.modeId),
           difficulty: this.vm.difficulty, onDifficultyChange: (d: GameDifficulty) => { this.vm.changeDifficulty(d); },
           onPauseToggle: () => { this.vm.togglePause(); }, onBack: () => { this.requestExit(); }, onRestart: () => { this.vm.startGame(); } })
   }
@@ -159,16 +166,21 @@ export struct ExpansionPage {
 
         Scroll() {
           Column({ space: SpacingTokens.base }) {
+            GameModePicker({ modes: modesForGame(this.gameId), selected: this.vm.modeId, best: this.vm.modeHighScore,
+              hasProgress: this.vm.hasProgress(), onChange: (mode: string) => { this.vm.changeMode(mode); } })
             if (this.vm.hasComputerOpponent() && this.vm.state.outcome === 0) {
               ComputerOpponentPanel({ gameId: this.gameId, thinking: this.vm.computerThinking,
                 player: this.vm.computerPlayer, difficulty: this.vm.difficulty,
                 reaction: this.gameId === 'mahjong' && this.vm.state.data[0] === 1 })
             }
             this.Status()
-            if (BRAIN_IDS.includes(this.gameId)) { ExpansionBrainBoard({ gameId: this.gameId, vm: this.vm }) }
+            if (BRAIN_IDS.includes(this.vm.modeId)) { ExpansionBrainBoard({ gameId: this.vm.modeId, vm: this.vm }) }
             if (LIFE_IDS.includes(this.gameId)) { ExpansionLifeBoard({ gameId: this.gameId, vm: this.vm }) }
             if (CHESS_IDS.includes(this.gameId) || POKER_IDS.includes(this.gameId) || CARD_IDS.includes(this.gameId)) { ExpansionCardBoard({ gameId: this.gameId, vm: this.vm }) }
-            if (ACTION_IDS.includes(this.gameId) || SPORTS_IDS.includes(this.gameId)) { ExpansionWorldBoard({ gameId: this.gameId, vm: this.vm }) }
+            if (ACTION_IDS.includes(this.gameId) || SPORTS_IDS.includes(this.gameId)) {
+              ExpansionWorldBoard({ gameId: this.gameId, vm: this.vm,
+                heightLimit: Math.max(this.screwBoardMinHeight, this.contentHeight - this.chaseControlsReserve) })
+            }
             if (MATCHING_IDS.includes(this.gameId)) { ExpansionMatchingBoard({ gameId: this.gameId, vm: this.vm }) }
             if (SORTING_IDS.includes(this.gameId)) { ExpansionSortingBoard({ gameId: this.gameId, vm: this.vm }) }
             if (['blockfit', 'tilestack', 'arrowclear', 'sokoban', 'pipes'].includes(this.gameId)) { this.GridBoard() }
@@ -180,12 +192,15 @@ export struct ExpansionPage {
             if (this.gameId === 'screwout') {
               ToyPuzzleBoard({ vm: this.vm, boardHeightLimit: Math.max(this.screwBoardMinHeight, this.contentHeight - this.screwControlsReserve) })
             }
-            if (this.vm.realtime() && this.gameId !== 'restaurant' && !ACTION_IDS.includes(this.gameId) && !SPORTS_IDS.includes(this.gameId) && !BRAIN_IDS.includes(this.gameId) && !LIFE_IDS.includes(this.gameId)) { this.Arena() }
-            if (['roomdefense', 'basketball', 'rhythm', 'restaurant', 'runner'].includes(this.gameId) && this.vm.state.phase === 0) {
+            if (this.gameId === 'blackhole') {
+              ToyBlackholeStage({ vm: this.vm, heightLimit: Math.max(this.screwBoardMinHeight, this.contentHeight - this.chaseControlsReserve) })
+            }
+            if (this.vm.realtime() && this.gameId !== 'restaurant' && this.gameId !== 'blackhole' && !ACTION_IDS.includes(this.gameId) && !SPORTS_IDS.includes(this.gameId) && !BRAIN_IDS.includes(this.vm.modeId) && !LIFE_IDS.includes(this.gameId)) { this.Arena() }
+            if (['roomdefense', 'basketball', 'rhythm', 'restaurant', 'runner'].includes(this.vm.modeId) && this.vm.state.phase === 0) {
               Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); })
             }
-            if (['solitaire', 'characters', 'restaurant', 'roomdefense', 'rhythm'].includes(this.gameId)) {
-              ExpansionExtras({ gameId: this.gameId, vm: this.vm })
+            if (['solitaire', 'characters', 'restaurant', 'roomdefense', 'rhythm'].includes(this.vm.modeId)) {
+              ExpansionExtras({ gameId: this.vm.modeId, vm: this.vm })
             }
             if (this.gameId === 'runner') {
               Row({ space: SpacingTokens.base }) {
@@ -193,21 +208,25 @@ export struct ExpansionPage {
                 Button($r('app.string.expansion_right')).layoutWeight(1).height($r('app.float.expansion_control_height')).onClick(() => { this.vm.tap(1); })
               }.width('100%')
             }
-            if (this.gameId === 'sokoban') {
-              Row({ space: SpacingTokens.sm }) {
-                ForEach(range(4), (d: number) => {
-                  Button(this.arrow(d)).layoutWeight(1).height($r('app.float.expansion_control_height'))
-                    .accessibilityText($r('app.string.expansion_move', this.arrow(d))).onClick(() => { this.vm.tap(d); })
-                }, (d: number) => d.toString())
-              }.width('100%')
-            }
-            if (!this.vm.realtime() && this.gameId !== 'backpack') {
+            if (!this.vm.realtime() && this.gameId !== 'backpack' && this.gameId !== 'sokoban') {
               Button($r('app.string.expansion_undo')).enabled(this.vm.canUndo).height($r('app.float.expansion_control_height'))
                 .onClick(() => { this.vm.undo(); })
             }
           }.width('100%').constraintSize({ maxWidth: $r('app.float.expansion_board_max') })
             .padding({ left: SpacingTokens.base, right: SpacingTokens.base, bottom: SpacingTokens.xl })
         }.layoutWeight(1).width('100%').scrollBar(BarState.Off).enableScrollInteraction(!this.vm.dragging)
+        if (this.gameId === 'sokoban') {
+          Column({ space: SpacingTokens.sm }) {
+            ControlPad({
+              onUp: () => { this.vm.tap(0); },
+              onRight: () => { this.vm.tap(1); },
+              onDown: () => { this.vm.tap(2); },
+              onLeft: () => { this.vm.tap(3); }
+            })
+            Button($r('app.string.expansion_undo')).enabled(this.vm.canUndo).height($r('app.float.expansion_control_height'))
+              .onClick(() => { this.vm.undo(); })
+          }.width('100%').padding({ top: SpacingTokens.sm, bottom: SpacingTokens.base })
+        }
       }.width('100%').height('100%').padding({ bottom: SafeAreaInsets.bottom })
       Column() {
         ExpansionFeedback({ vm: this.vm })
@@ -218,7 +237,7 @@ export struct ExpansionPage {
           Text($r('app.string.game_settings_paused_hint')).fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textSecondary)
         }.padding(SpacingTokens.xl).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.xl)
       }
-      if (this.vm.state.outcome !== 0) {
+      if (this.vm.state.outcome !== 0 && !this.vm.chessAnimating) {
         GameResultDialog({ shareGameId: this.gameId, title: this.resultTitle(),
           detail: $r('app.string.collection_score_result', this.vm.state.score), showDetail: true,
           primaryText: $r('app.string.result_play_again'), onPrimary: () => { this.vm.startGame(); },
@@ -267,7 +286,7 @@ export struct ExpansionPage {
       } else if (['blackhole', 'fisheat', 'differences', 'characters', 'rhythm', 'restaurant', 'roomdefense', 'basketball'].includes(this.gameId)) {
         Text($r('app.string.expansion_progress', this.gameId === 'basketball' ? this.vm.state.data[0] : this.gameId === 'differences' ? this.vm.state.tray.length : this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
         if (this.gameId === 'blackhole') {
-          Text($r('app.string.expansion_time', Math.max(0, Math.ceil(120 - 20 * this.vm.state.level - this.vm.state.time)))).fontColor(SemanticColors.textSecondary)
+          Text($r('app.string.expansion_time', Math.max(0, Math.ceil(BlackholeLevels.limit(this.vm.state) - this.vm.state.time)))).fontColor(SemanticColors.textSecondary)
         }
       } else if (this.gameId === 'bubbleshooter') {
         Row({ space: SpacingTokens.md }) {

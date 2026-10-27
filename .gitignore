@@ -48,3 +48,14 @@ package-lock.json
 !/docs/device-acceptance/screwout-difficulty-2026-10-19-emulator/verification.json
 !/docs/device-acceptance/screwout-difficulty-2026-10-19-emulator/*-ready.jpeg
 !/docs/device-acceptance/screwout-difficulty-2026-10-19-emulator/*-result.jpeg
+/docs/device-acceptance/toy-chase-2026-10-21-emulator/*
+!/docs/device-acceptance/toy-chase-2026-10-21-emulator/README.md
+!/docs/device-acceptance/toy-chase-2026-10-21-emulator/verification.json
+!/docs/device-acceptance/toy-chase-2026-10-21-emulator/*-ready.jpeg
+!/docs/device-acceptance/toy-chase-2026-10-21-emulator/*-result.jpeg
+!/docs/device-acceptance/toy-chase-2026-10-21-emulator/*-dark.jpeg
+
+# 本轮审阅原始回归输出保留本地，提交汇总与构建结论
+/docs/game-retention-audit-2026-10-27/*.log
+/docs/game-retention-audit-2026-10-27/implementation/regressions/
+/docs/game-retention-audit-2026-10-27/implementation/verified-regressions/*.log

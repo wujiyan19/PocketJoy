@@ -16,19 +16,44 @@ export class ExpansionAction {
     if (s.id === 'backpack') { s.cols = 4; s.rows = 4; s.board = new Array<number>(16).fill(0); s.tray = [1, 2, 3, 4]; s.selected = 0; s.data = [12, 100]; s.goal = 5; return; }
     const player: ExpansionPiece = this.piece(s, s.id === 'rollingball' ? 32 : 24, 180, 400); player.color = 1;
     if (s.id === 'platformer' || s.id === 'grapple') {
+      s.variant = 1;
       player.x = 50; player.y = 344; s.goal = s.id === 'platformer' ? 900 + s.level * 240 : 900 + s.level * 180;
-      for (let i: number = 0; i < Math.ceil(s.goal / 155) + 1; i++) {
-        const ground: ExpansionPiece = this.piece(s, 25, i * 155, 360 - (s.id === 'platformer' ? i % 3 * 10 : 0), 0); ground.w = 85; ground.h = 18;
-        if (s.id === 'grapple') { this.piece(s, 28, 130 + i * 155, 120 + i % 2 * 20, 8); }
+      let position: number = 0;
+      for (let i: number = 0; position <= s.goal + 120; i++) {
+        const ground: ExpansionPiece = this.piece(s, 25, position, i === 0 ? 360 : 340 + this.pick(3) * 10, 0);
+        ground.w = 100 + this.pick(31) - s.level * 5; ground.h = 18;
+        if (s.id === 'grapple') { this.piece(s, 28, position + 100 + this.pick(21), 110 + this.pick(61), 8); }
+        position += ground.w + 35 + this.pick(16 + s.level * 7);
       }
       this.piece(s, 27, s.goal, 300, 18);
     } else if (s.id === 'flappy') { player.x = 80; player.y = 230; s.goal = 8 + s.level * 4; this.gate(s, 400); }
     else if (s.id === 'fruitslice') { s.pieces = []; s.goal = 20 + s.level * 10; }
     else if (s.id === 'rollingball') {
-      player.x = 40; player.y = 410; this.piece(s, 27, 320, 45, 22); s.goal = 1;
-      for (let i: number = 0; i < 3; i++) { const wall: ExpansionPiece = this.piece(s, 26, i % 2 === 0 ? 0 : 120, 120 + i * 100, 0); wall.w = 240; wall.h = 16; }
-      for (let i: number = 0; i < s.level + 1; i++) { this.piece(s, 31, 290 - i * 70, 330 - i * 100, 12); }
-    } else { s.goal = s.id === 'survival' ? 24 + s.level * 8 : 18 + s.level * 6; if (s.id === 'fortress') { s.data = [100, 0]; } }
+      s.variant = 1; player.x = 40; player.y = 410;
+      const goal: ExpansionPiece = this.piece(s, 27, 55 + this.pick(251), 45, 22); s.goal = 1;
+      for (let i: number = 0; i < 3; i++) {
+        const wall: ExpansionPiece = this.piece(s, 26, this.pick(2) * 120, 110 + i * 100 + this.pick(21), 0); wall.w = 240; wall.h = 16;
+      }
+      // A route through each open end is saved with the deal, not rerolled on restore.
+      for (let i: number = 2; i >= 0; i--) {
+        const wall: ExpansionPiece = s.pieces[2 + i]; const x: number = wall.x === 0 ? 300 : 60;
+        s.target.push(x, i === 2 ? 410 : s.pieces[3 + i].y - 35, x, wall.y - 35);
+      }
+      s.target.push(goal.x, 45);
+      for (let i: number = 0; i < s.level + 1; i++) {
+        const wall: ExpansionPiece = s.pieces[2 + i]; this.piece(s, 31, wall.x + 120, wall.y + 40, 12);
+      }
+    } else {
+      s.goal = s.id === 'survival' ? 24 + s.level * 8 : 18 + s.level * 6;
+      if (s.id === 'fortress') { s.data = [100, 0]; }
+      if (s.id === 'survival') { s.variant = 1; s.board = [0, 0]; }
+      if (s.id === 'tanks') {
+        s.variant = 1;
+        for (let i: number = 0; i < 3; i++) {
+          const wall: ExpansionPiece = this.piece(s, 26, 55 + this.pick(2) * 175, 135 + i * 85, 0); wall.w = 55; wall.h = 25;
+        }
+      }
+    }
   }
   activate(s: ExpansionState): void { if (this.realtime(s.id)) { s.phase = 1; } }
   private gate(s: ExpansionState, x: number): void {
@@ -45,6 +70,11 @@ export class ExpansionAction {
     if (s.id === 'backpack') { this.pack(s, index); return; }
     if (s.phase === 0) { return; }
     const p: ExpansionPiece | undefined = s.pieces[0];
+    if (s.id === 'survival' && s.variant === 1 && index < 3 && s.data[1] >= 20) {
+      if (index === 2) { if (s.data[0] >= 3) { return; } s.data[0]++; }
+      else { if (s.board[index] >= 3) { return; } s.board[index]++; if (index === 0) { s.next++; } }
+      s.data[1] -= 20; return;
+    }
     if (s.id === 'platformer' && p) {
       if (index === 0 || index === 1) { p.vx = index === 0 ? -130 : 130; }
       if (index === 2 && p.vy === 0) { p.vy = -330; s.moves++; } if (index === 3) { p.vx = 0; }
@@ -92,7 +122,11 @@ export class ExpansionAction {
     if (s.id === 'rollingball') { p.vx = Math.max(-150, Math.min(150, (x - p.x) * 1.6)); p.vy = Math.max(-150, Math.min(150, (y - p.y) * 1.6)); }
     else if (s.id === 'fortress') {
       if (s.cooldown > 0) { return; } const angle: number = Math.atan2(y - p.y, x - p.x); this.shoot(s, p.x, p.y, Math.cos(angle) * 300, Math.sin(angle) * 300); s.cooldown = 0.3;
-    } else if (['shooter', 'tanks', 'survival'].includes(s.id)) { p.x = Math.max(18, Math.min(342, x)); p.y = Math.max(s.id === 'shooter' ? 260 : 18, Math.min(442, y)); }
+    } else if (['shooter', 'tanks', 'survival'].includes(s.id)) {
+      const nx: number = Math.max(18, Math.min(342, x)); const ny: number = Math.max(s.id === 'shooter' ? 260 : 18, Math.min(442, y));
+      if (s.id === 'tanks' && s.pieces.some((wall: ExpansionPiece) => wall.kind === 26 && nx + p.r > wall.x && nx - p.r < wall.x + wall.w && ny + p.r > wall.y && ny - p.r < wall.y + wall.h)) { return; }
+      p.x = nx; p.y = ny;
+    }
   }
   release(s: ExpansionState): void { if (s.id === 'fruitslice') { s.target = []; } if (s.id === 'platformer' && s.pieces.length > 0) { s.pieces[0].vx = 0; } }
   private platform(s: ExpansionState, dt: number): void {
@@ -146,7 +180,9 @@ export class ExpansionAction {
   private combat(s: ExpansionState, dt: number): void {
     const player: ExpansionPiece = s.pieces[0]; s.cooldown = Math.max(0, s.cooldown - dt); player.age = Math.max(0, player.age - dt);
     if (s.cursor < s.goal && s.time >= s.cursor * (s.id === 'survival' ? 1.05 - s.level * 0.1 : 1.6)) {
-      const enemy: ExpansionPiece = this.piece(s, 33, 25 + this.pick(310), 20, 15); enemy.w = s.id === 'survival' ? 2 : 1 + Math.floor(s.level / 2); enemy.color = 2; enemy.age = 1.5; s.cursor++;
+      const enemy: ExpansionPiece = this.piece(s, 33, 25 + this.pick(310), 20, 15);
+      enemy.color = s.id === 'survival' && s.variant === 1 ? 2 + this.pick(3) : 2;
+      enemy.w = s.id === 'survival' ? (enemy.color === 4 ? 4 : 2) : 1 + Math.floor(s.level / 2); enemy.age = 1.5; s.cursor++;
     }
     if (s.id !== 'fortress' && player.age <= 0) {
       const enemies: ExpansionPiece[] = s.pieces.filter((q: ExpansionPiece) => q.kind === 33 && q.alive);
@@ -155,11 +191,22 @@ export class ExpansionAction {
         enemies.sort((a: ExpansionPiece, b: ExpansionPiece) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y));
         const enemy: ExpansionPiece = enemies[0]; const distance: number = Math.max(1, Math.hypot(enemy.x - player.x, enemy.y - player.y));
         this.shoot(s, player.x, player.y, (enemy.x - player.x) / distance * 290, (enemy.y - player.y) / distance * 290);
-      } player.age = s.id === 'shooter' ? 0.28 : 0.48;
+      } player.age = s.id === 'shooter' ? 0.28 : s.id === 'survival' && s.variant === 1 ? 0.48 * Math.pow(0.8, s.board[1]) : 0.48;
     }
     const enemies: ExpansionPiece[] = s.pieces.filter((q: ExpansionPiece) => q.kind === 33 && q.alive);
     enemies.forEach((q: ExpansionPiece) => {
-      if (s.id === 'survival' || s.id === 'tanks') { const d: number = Math.max(1, Math.hypot(player.x - q.x, player.y - q.y)); q.x += (player.x - q.x) / d * (s.id === 'tanks' ? 22 : 45) * dt; q.y += (player.y - q.y) / d * (s.id === 'tanks' ? 22 : 45) * dt; }
+      if (s.id === 'survival' || s.id === 'tanks') {
+        const d: number = Math.max(1, Math.hypot(player.x - q.x, player.y - q.y));
+        const speed: number = s.id === 'tanks' ? 22 : q.color === 3 ? 65 : q.color === 4 ? 28 : 45;
+        q.x += (player.x - q.x) / d * speed * dt; q.y += (player.y - q.y) / d * speed * dt;
+        if (s.id === 'tanks') {
+          s.pieces.filter((wall: ExpansionPiece) => wall.kind === 26).forEach((wall: ExpansionPiece) => {
+            if (q.x + q.r > wall.x && q.x - q.r < wall.x + wall.w && q.y + q.r > wall.y && q.y - q.r < wall.y + wall.h) {
+              q.x = q.x < wall.x + wall.w / 2 ? wall.x - q.r - 1 : wall.x + wall.w + q.r + 1;
+            }
+          });
+        }
+      }
       else { q.y += (32 + s.level * 7) * dt; }
       q.age = Math.max(0, q.age - dt);
       if (s.id === 'tanks' && q.age <= 0) { const angle: number = Math.atan2(player.y - q.y, player.x - q.x); this.shoot(s, q.x, q.y, Math.cos(angle) * 120, Math.sin(angle) * 120, 1); q.age = 2.5; }
@@ -167,6 +214,7 @@ export class ExpansionAction {
     });
     s.pieces.filter((q: ExpansionPiece) => q.kind === 34 && q.alive).forEach((b: ExpansionPiece) => {
       b.x += b.vx * dt; b.y += b.vy * dt;
+      if (s.id === 'tanks' && s.pieces.some((wall: ExpansionPiece) => wall.kind === 26 && b.x >= wall.x && b.x <= wall.x + wall.w && b.y >= wall.y && b.y <= wall.y + wall.h)) { b.alive = false; return; }
       if (b.owner === 1 && Math.hypot(b.x - player.x, b.y - player.y) < 20) { b.alive = false; s.data[0]--; }
       else if (b.owner === 0) {
         const hit: ExpansionPiece | undefined = enemies.find((q: ExpansionPiece) => q.alive && Math.hypot(b.x - q.x, b.y - q.y) < q.r + b.r);
@@ -189,12 +237,12 @@ export class ExpansionAction {
   valid(s: ExpansionState): boolean {
     if (!ACTION_IDS.includes(s.id) || s.cols !== (s.id === 'backpack' ? 4 : 6) || s.rows !== (s.id === 'backpack' ? 4 : 6) || s.piles.length !== 0 || s.pieces.length > 60 || !V.numbers(s.data, 2, 0, 100000)) { return false; }
     if (s.id === 'backpack') { return s.phase === 0 && s.goal === 5 && V.numbers(s.board, 16, 0, 4) && s.pieces.length === 0 && V.numbers(s.tray, 4, 1, 4) && s.selected >= 0 && s.selected < 4 && s.cursor <= 5 && s.data[1] <= 100 && s.target.length === 0; }
-    if (s.board.length !== 0 || s.tray.length !== 0 || s.pieces.some((p: ExpansionPiece) => !p.alive || p.id >= s.serial || p.kind < 24 || p.kind > 34 || p.x < -80 || p.x > 2400 || p.y < -600 || p.y > 510 || p.r < 0 || p.r > 30)) { return false; }
+    if ((s.id === 'survival' && s.variant === 1 ? !V.numbers(s.board, 2, 0, 3) || s.next !== 1 + s.board[0] : s.board.length !== 0) || s.tray.length !== 0 || s.pieces.some((p: ExpansionPiece) => !p.alive || p.id >= s.serial || p.kind < 24 || p.kind > 34 || p.x < -80 || p.x > 2400 || p.y < -600 || p.y > 510 || p.r < 0 || p.r > 30)) { return false; }
     if (s.id === 'fruitslice') { return s.goal === 20 + s.level * 10 && s.errors <= 5 && (s.target.length === 0 || V.numbers(s.target, 2, 0, 460)) && s.pieces.every((p: ExpansionPiece) => p.kind === 30 || p.kind === 31); }
-    if (s.pieces.length === 0 || s.pieces[0].kind !== (s.id === 'rollingball' ? 32 : 24) || s.target.length !== 0) { return false; }
+    if (s.pieces.length === 0 || s.pieces[0].kind !== (s.id === 'rollingball' ? 32 : 24) || (s.id === 'rollingball' && s.variant === 1 ? !V.numbers(s.target, 14, 0, 460) : s.target.length !== 0)) { return false; }
     if (s.id === 'platformer' || s.id === 'grapple') { return s.goal === (s.id === 'platformer' ? 900 + s.level * 240 : 900 + s.level * 180) && s.pieces.filter((p: ExpansionPiece) => p.kind === 27).length === 1; }
     if (s.id === 'flappy') { return s.goal === 8 + s.level * 4 && s.cursor <= s.goal && s.pieces.slice(1).every((p: ExpansionPiece) => p.kind === 29 && p.w === 52 && p.h === 160 - s.level * 12 && p.age <= 1); }
     if (s.id === 'rollingball') { return s.goal === 1 && s.pieces.length === 6 + s.level; }
-    return s.goal === (s.id === 'survival' ? 24 + s.level * 8 : 18 + s.level * 6) && s.cursor <= s.goal && s.moves <= s.goal && s.data[0] <= (s.id === 'fortress' ? 100 : 3) && s.pieces.slice(1).every((p: ExpansionPiece) => p.kind === 33 || p.kind === 34);
+    return s.goal === (s.id === 'survival' ? 24 + s.level * 8 : 18 + s.level * 6) && s.cursor <= s.goal && s.moves <= s.goal && s.data[0] <= (s.id === 'fortress' ? 100 : 3) && s.pieces.slice(1).every((p: ExpansionPiece) => p.kind === 33 || p.kind === 34 || s.id === 'tanks' && p.kind === 26);
   }
 }

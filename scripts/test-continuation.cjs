@@ -23,14 +23,14 @@ for (const name of games) {
       const source = game(name, difficulty);
       const target = game(name, 'normal');
       const id = source.vm.continuationGameId();
-      const count = target.f.data().getGameById(id).playTimeMs;
+      const count = target.f.data().getGameById(id)?.playTimeMs ?? 0;
       const payload = source.vm.exportContinuation();
       assert.equal(target.vm.importContinuation(payload), true);
       const expected = JSON.parse(payload);
       const actual = JSON.parse(target.vm.exportContinuation());
       if (['WhackMole', 'Tetris'].includes(name)) { expected.status = 'paused'; }
       assert.deepEqual(actual, expected);
-      assert.equal(target.f.data().getGameById(id).playTimeMs, count);
+      assert.equal(target.f.data().getGameById(id)?.playTimeMs ?? 0, count);
       assert.equal(Buffer.byteLength(payload), Buffer.byteLength(source.vm.exportContinuation()));
       source.vm.dispose(); target.vm.dispose();
     });
@@ -204,6 +204,10 @@ test('Continuation: game snapshots fit Want and exporting keeps the source alive
     bus.attach(source.vm);
     const id = source.vm.continuationGameId();
     app.connect(() => ({ tab: 1, paths: [routes.routeName(id)] }), () => {});
+    if (!f.data().getGameById(id)) {
+      assert.throws(() => app.capture(), /Unsupported continuation state/);
+      app.disconnect(); source.vm.dispose(); continue;
+    }
     const count = f.clock.count(); const before = source.vm.exportContinuation(); const payload = app.capture();
     assert.ok(Buffer.byteLength(payload) < 100000); assert.equal(f.clock.count(), count);
     assert.equal(source.vm.exportContinuation(), before); assert.equal(JSON.parse(payload).gameId, id);
@@ -298,7 +302,7 @@ test('Continuation: pending state is consumed once and never restored into a dif
 });
 
 test('Continuation: preserves a higher record already saved on the target', () => {
-  for (const name of ['Snake', 'Tetris', 'Game2048', 'WhackMole', 'BrickBreaker', 'JumpJump', 'Match3']) {
+  for (const name of ['Snake', 'Tetris', 'Game2048', 'WhackMole', 'BrickBreaker', 'Match3']) {
     const source = game(name); const target = game(name);
     const id = target.vm.continuationGameId(); target.f.data().updateHighScore(id, 9999);
     assert.equal(target.vm.importContinuation(source.vm.exportContinuation()), true);

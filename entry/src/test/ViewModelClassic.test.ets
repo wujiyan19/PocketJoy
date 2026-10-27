@@ -167,7 +167,7 @@ export default function viewModelClassicTest() {
     it('game_time_by_difficulty', 0, () => {
       const vm = new WhackMoleViewModel(new SeededRandom(3));
       vm.difficulty = GameDifficulty.HARD;
-      expect(vm.getGameTime()).assertEqual(20);
+      expect(vm.getGameTime()).assertEqual(30);
       vm.dispose();
     });
   });

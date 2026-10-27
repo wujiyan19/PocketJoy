@@ -1,11 +1,13 @@
 import { ExpansionState, ExpansionPiece } from './ExpansionState';
 import { RandomSource } from './RandomSource';
+import { BlackholeLevels } from './ToyLevelRules';
 
 export class ExpansionAdventure {
   private random: RandomSource;
   constructor(random: RandomSource) { this.random = random; }
   private pick(n: number): number { return Math.min(n - 1, Math.max(0, Math.floor(this.random.next() * n))); }
   start(s: ExpansionState): void {
+    if (s.id === 'blackhole') { BlackholeLevels.start(s, this.random); return; }
     if (s.id === 'sokoban') { this.makeWarehouse(s);
     } else if (s.id === 'pipes') { this.makePipes(s);
     } else if (s.id === 'differences') {
@@ -17,15 +19,10 @@ export class ExpansionAdventure {
       s.goal = 600 + 300 * s.level; s.cursor = 1;
       const runner: ExpansionPiece = new ExpansionPiece(); runner.id = s.serial++; runner.kind = 6; runner.x = 180; runner.y = 388; runner.r = 20; s.pieces.push(runner);
     } else {
-      s.goal = s.id === 'blackhole' ? 35 + 10 * s.level : 20 + 5 * s.level;
-      const player: ExpansionPiece = new ExpansionPiece(); player.id = s.serial++; player.kind = s.id === 'blackhole' ? 8 : 10;
-      player.x = 180; player.y = 230; player.r = s.id === 'blackhole' ? 19 : 14; player.color = 1; s.pieces.push(player);
-      if (s.id === 'blackhole') {
-        for (let i: number = 0; i < s.goal; i++) {
-          const item: ExpansionPiece = new ExpansionPiece(); item.id = s.serial++; item.kind = 9; item.r = 8 + Math.floor(i / 8) * 4;
-          item.x = 20 + this.pick(320); item.y = 30 + this.pick(400); item.color = 1 + i % 6; s.pieces.push(item);
-        }
-      } else { for (let i: number = 0; i < 14; i++) { this.spawnFish(s); } }
+      s.goal = 20 + 5 * s.level;
+      const player: ExpansionPiece = new ExpansionPiece(); player.id = s.serial++; player.kind = 10;
+      player.x = 180; player.y = 230; player.r = 14; player.color = 1; s.pieces.push(player);
+      for (let i: number = 0; i < 14; i++) { this.spawnFish(s); }
     }
   }
   private neighbor(s: ExpansionState, at: number, direction: number): number {
@@ -37,6 +34,11 @@ export class ExpansionAdventure {
     s.cols = 7; s.rows = 7; s.board = new Array<number>(49).fill(0);
     for (let i: number = 0; i < 49; i++) { if (i % 7 === 0 || i % 7 === 6 || i < 7 || i >= 42) { s.board[i] = 1; } }
     const goals: number[] = s.level === 0 ? [16, 31] : s.level === 1 ? [16, 18, 31] : [16, 18, 31, 37];
+    s.variant = 1;
+    const walls: number[] = [10, 11, 12, 17, 22, 23, 25, 26, 32, 33, 38];
+    for (let i: number = 0; i < 2 + s.level; i++) {
+      const index: number = this.pick(walls.length); s.board[walls[index]] = 1; walls.splice(index, 1);
+    }
     goals.forEach((at: number, i: number) => {
       s.board[at] = 2; const box: ExpansionPiece = new ExpansionPiece(); box.id = i; box.kind = 5; box.x = at % 7; box.y = Math.floor(at / 7); s.pieces.push(box);
     }); s.cursor = 24;
@@ -121,7 +123,10 @@ export class ExpansionAdventure {
     if (s.id !== 'blackhole' && s.id !== 'fisheat') { return; }
     const p: ExpansionPiece = s.pieces[0]; p.w = x; p.h = y; s.phase = 1;
   }
-  activate(s: ExpansionState): void { if (s.id === 'runner') { s.phase = 1; } }
+  activate(s: ExpansionState): void {
+    if (s.id === 'blackhole' && s.phase === 0) { s.pieces[0].w = s.pieces[0].x; s.pieces[0].h = s.pieces[0].y; }
+    if (s.id === 'runner' || s.id === 'blackhole') { s.phase = 1; }
+  }
   private spawnFish(s: ExpansionState): void {
     const fish: ExpansionPiece = new ExpansionPiece(); fish.id = s.serial++; fish.kind = 11; fish.r = 6 + this.pick(10 + s.level * 6);
     fish.color = 1 + this.pick(6); fish.x = this.pick(2) === 0 ? -fish.r : 360 + fish.r; fish.y = 25 + this.pick(410);
@@ -154,7 +159,7 @@ export class ExpansionAdventure {
     s.pieces = s.pieces.filter((item: ExpansionPiece) => item.alive);
     if (s.id === 'fisheat') { while (s.pieces.length < 15) { this.spawnFish(s); } }
     if (s.moves >= s.goal && s.outcome === 0) { s.outcome = 1; }
-    if (s.id === 'blackhole' && s.time >= 120 - 20 * s.level) { s.outcome = 2; }
+    if (s.id === 'blackhole' && s.outcome === 0 && s.time >= BlackholeLevels.limit(s)) { s.outcome = 2; }
   }
   private runStep(s: ExpansionState, dt: number): void {
     const p: ExpansionPiece = s.pieces[0]; p.x = 60 + s.cursor * 120; s.score = Math.floor(s.time * 25) + s.moves * 50;

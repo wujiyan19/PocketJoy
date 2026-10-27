@@ -1,0 +1,782 @@
+{
+  "auditDate": "2026-10-27",
+  "head": "430624efff61f8b203b0781ac2ff6a4bde961bed",
+  "scope": "Source and desktop model audit; recommendations only; no native-device playtest",
+  "availableGames": 76,
+  "retiredGames": 24,
+  "counts": {
+    "保留": 38,
+    "整改保留": 26,
+    "暂撤": 7,
+    "合并": 5
+  },
+  "proposedIndependentEntriesAfterMergesAndRetirements": 64,
+  "checks": {
+    "suites": 8,
+    "passed": 664,
+    "total": 664
+  },
+  "sourceHashDrift": [],
+  "decisions": [
+    {
+      "number": 1,
+      "name": "贪吃蛇",
+      "id": "snake",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "移动间隔 240/180/120ms，随机食物与自身路径形成持续取舍；保留作为即时操控经典。[SN]"
+    },
+    {
+      "number": 2,
+      "name": "俄罗斯方块",
+      "id": "tetris",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "基础下落 650/500/380ms，并随关卡加速；随机块和堆叠空间产生新局面。[TE]"
+    },
+    {
+      "number": 3,
+      "name": "2048",
+      "id": "2048",
+      "difficulty": "有限",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "三档仅改出 4 概率 5%/10%/20%；参数确实生效，但不能直接等同人类难度严格递增。保留经典，优先改成明确规则模式或补难度标定，成绩按模式区分。[G2]"
+    },
+    {
+      "number": 4,
+      "name": "打地鼠",
+      "id": "whackmole",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "出现间隔 1000/800/600ms，但时长反向为 40/30/20s；更难同时更少计分时间，共用最高分不适合衡量进步。统一时长或按档记命中率、反应和成绩。[WH]"
+    },
+    {
+      "number": 5,
+      "name": "扫雷",
+      "id": "minesweeper",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "固定棋盘雷数 8/10/14，首点后布雷；不同信息局面有推理价值。未证明所有棋盘均可无猜解出，不能据普通生成测试承诺“纯推理可解”。[MI]"
+    },
+    {
+      "number": 6,
+      "name": "数独",
+      "id": "sudoku",
+      "difficulty": "有限",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "目标提示 45/29/23，唯一解有校验；本轮困难样本实际为 23–27 个提示。只按提示数不等于解题技法分级，补逻辑解法评级和过难回退。[SU]"
+    },
+    {
+      "number": 7,
+      "name": "滑动拼图",
+      "id": "slidepuzzle",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "3×3/4×4/5×5，洗牌保证可解；规模和移动规划有实际变化，重玩不会局限为三张固定题。[SL]"
+    },
+    {
+      "number": 8,
+      "name": "华容道",
+      "id": "klotski",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "当前三档各固定一图，独立求解最少单位移动 5/9/116 步；梯度真实但跨度很大。增加中间关卡和不同布局，避免只有三题。[KL]"
+    },
+    {
+      "number": 9,
+      "name": "猜数字",
+      "id": "guessnumber",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "密码长度 3/4/5、机会 8/10/12；随机不重复数字，利用历史反馈排除候选。容量与机会同时变化，实际胜率仍需用户测量。[GU]"
+    },
+    {
+      "number": 10,
+      "name": "记忆翻牌",
+      "id": "memorycard",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "配对数 6/8/12、图案及牌位打乱；位置记忆和减少尝试次数有稳定复玩基础。[ME]"
+    },
+    {
+      "number": 11,
+      "name": "跳一跳",
+      "id": "jumpjump",
+      "difficulty": "无效",
+      "replay": "弱",
+      "distinctiveness": "中",
+      "recommendation": "暂撤",
+      "reason": "几何分档被满蓄力万能策略抵消；三档各 100 次连续成功。按前述恢复条件重做。[J]"
+    },
+    {
+      "number": 12,
+      "name": "打砖块",
+      "id": "brickbreaker",
+      "difficulty": "不适用",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "页面不提供三档；通过关卡增加砖行与球速，球速有上限。固定砖阵仍有连续反弹与挡板精进，不能仅因无随机关卡撤下。[BR]"
+    },
+    {
+      "number": 13,
+      "name": "消消乐",
+      "id": "match3",
+      "difficulty": "不适用",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "页面不提供三档；8×8 随机棋盘、有限步数和连锁计分。交换决策与点击群消不同，支持独立保留。[MA]"
+    },
+    {
+      "number": 14,
+      "name": "十字熄灯",
+      "id": "lights",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "3/4/5 阶棋盘，从灭灯态合法扰动生成；交叉联动产生独立逻辑挑战。扰动次数不等于最短解，但维度变化真实。"
+    },
+    {
+      "number": 15,
+      "name": "色块归一",
+      "id": "flood",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "5/6/7 阶随机局面，步数上限基于实际可行路径再加分档余量；扩张顺序与消除类不同。"
+    },
+    {
+      "number": 16,
+      "name": "迷宫寻路",
+      "id": "maze",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "7/9/11 阶随机迷宫；本轮既有回归每档 1,000 图，最短路线范围分别 8–16/12–28/16–48 步。范围重叠正常，整体规模真实增加。"
+    },
+    {
+      "number": 17,
+      "name": "汉诺塔",
+      "id": "hanoi",
+      "difficulty": "有效",
+      "replay": "弱",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "3/4/5 盘是有效复杂度变化，但各档固定起终点，熟悉递归后反复同一路线。定位经典逻辑练习，增加不同起局任务、最优步挑战或计时记录。"
+    },
+    {
+      "number": 18,
+      "name": "跳子独留",
+      "id": "peg",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "固定十字棋盘，逆向生成 4/5/6 次跳跃的可解局面；只有少量棋子，缺少解题深度分布控制。补盘型、残局深度和更完整的关卡梯度。"
+    },
+    {
+      "number": 19,
+      "name": "数字绘格",
+      "id": "nonogram",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "4/5/6 阶随机二值目标；验收接受相同行列提示的解，不只比原图。未按人类逻辑难度筛题，补可推理解评级、标空辅助和有主题题库。"
+    },
+    {
+      "number": 20,
+      "name": "心算十题",
+      "id": "arithmetic",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "随机加减乘，第一操作数范围随档增加；作为数学挑战主入口承载其他四种模式，之后丰富题型及错题反馈。"
+    },
+    {
+      "number": 21,
+      "name": "算式比大小",
+      "id": "compare",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "合并",
+      "reason": "两个加法算式比较，第一算式范围变化，第二算式仍固定范围；独立入口价值小，保留为数学挑战的比较模式。"
+    },
+    {
+      "number": 22,
+      "name": "数列推演",
+      "id": "sequence",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "合并",
+      "reason": "基本等差数列，困难混入翻倍；没有更丰富的规律层次。作为数学挑战的规律模式保留并扩题。"
+    },
+    {
+      "number": 23,
+      "name": "二进制解码",
+      "id": "binary",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "合并",
+      "reason": "数值范围 0–15/31/47，实际有变化，但全是二转十的十题选择；作为进制模式更合适，可补反向转换。"
+    },
+    {
+      "number": 24,
+      "name": "补数求和",
+      "id": "targetsum",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "合并",
+      "reason": "三档缺项答案都只在 1–15；已知加数增大，不能说完全同题，但新推理结构没有增加。并为数学挑战补数模式。"
+    },
+    {
+      "number": 25,
+      "name": "数字寻序",
+      "id": "schulte",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "3/4/5 阶随机数字顺序搜索有效；当前成绩按点击次数，不含耗时，无法反馈搜索速度进步。增加每档完成时长、误点和最佳纪录。"
+    },
+    {
+      "number": 26,
+      "name": "顺序记忆",
+      "id": "memorysequence",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "随机序列长 4/6/8，准备后隐藏再输入，确实需要回忆。当前自定观察时间，按自测练习定位；若宣传限时记忆应另加展示时间规则。"
+    },
+    {
+      "number": 27,
+      "name": "记忆缺项",
+      "id": "missing",
+      "difficulty": "无效",
+      "replay": "弱",
+      "distinctiveness": "弱",
+      "recommendation": "暂撤",
+      "reason": "剩余数字与完整选项同时展示，目视排除即可三档满分，记忆任务未成立。"
+    },
+    {
+      "number": 28,
+      "name": "信号反应",
+      "id": "reaction",
+      "difficulty": "不适用",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "页面主动隐藏难度；随机等待 1.5–4s、抢点失败、按反应耗时计分，符合统一刺激测试。可增加多轮中位数，但不需要为凑三档制造假难度。"
+    },
+    {
+      "number": 29,
+      "name": "方块拼填",
+      "id": "blockfit",
+      "difficulty": "有限",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "棋盘 6/7/8 阶、目标 800/1200/1600，块池 7/8/9 种；扩大空间也可能降低压力，不能据目标上涨认定更难。固定面积或用块复杂度/可用空间校准分档。[P]"
+    },
+    {
+      "number": 30,
+      "name": "堆叠三消",
+      "id": "tilestack",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "60/75/90 个堆叠块、种类增加，七槽容量不变；暴露顺序、配色与槽位风险持续形成决策。[P]"
+    },
+    {
+      "number": 31,
+      "name": "泡泡龙",
+      "id": "bubbleshooter",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "初始行 4/5/6、颜色 3/4/5，发射次数预算 90/80/70；瞄准、反弹和悬空消除形成独立操作策略。[PH]"
+    },
+    {
+      "number": 32,
+      "name": "落果合成",
+      "id": "fruitmerge",
+      "difficulty": "无效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "随机小果、落点和堆积合成可复玩，但三档同物理、目标和供给。先取消假分档即可保留；若要分档，必须设计明确且可解释的规则差异。[PH]"
+    },
+    {
+      "number": 33,
+      "name": "倒水排序",
+      "id": "watersort",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "颜色 3/4/5、始终两个空瓶，逆向扰动保证可行路线；暂存和倒水顺序有真实取舍。扰动次数仍不是实际最短解评级。[P]"
+    },
+    {
+      "number": 34,
+      "name": "箭头清除",
+      "id": "arrowclear",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "5/6/7 阶生成可清除箭头，方向和阻挡链有推理价值；与挪车方向相近但操作对象和依赖结构不同，暂不强行合并。[P]"
+    },
+    {
+      "number": 35,
+      "name": "拆螺丝",
+      "id": "screwout",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "板层 5/7/9、颜色增加，困难槽位 5 而另两档 6；生成器专门排除困难档可被简单贪心清空的局面，规划约束真实。[SC]"
+    },
+    {
+      "number": 36,
+      "name": "停车场挪车",
+      "id": "parkingjam",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "棋盘 6/7/8 阶、车辆目标上限 9/13/17，车长/方向/阻挡形成不同开局。实际难度仍取决于阻挡深度，数量不保证每一局严格排序。[P]"
+    },
+    {
+      "number": 37,
+      "name": "无尽跑酷",
+      "id": "runner",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "障碍速度、生成间隔随档和时间变化，但 600/900/1200 分即获胜，不是无尽。改名为分段跑酷，或补真正无尽模式与持续变化障碍。[AD]"
+    },
+    {
+      "number": 38,
+      "name": "黑洞吞噬",
+      "id": "blackhole",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "当前未提交实现已改为随机分布与尺寸成长，目标 35/45/55，时间预算结合路线计算；不能沿用旧版本“固定场景”判断。微观吞噬先后和寻路有独立价值。[TOY]"
+    },
+    {
+      "number": 39,
+      "name": "大鱼吃小鱼",
+      "id": "fisheat",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "目标 20/25/30，鱼的尺寸上界和速度增加；吞噬成长与避开大鱼是同时存在的风险，区别于没有追捕风险的黑洞。[AD]"
+    },
+    {
+      "number": 40,
+      "name": "推箱子",
+      "id": "sokoban",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "逆向拉箱生成可解局面，箱数 2/3/4；但一直是 7×7 外墙空房、固定目标位置，没有内部墙形变化。补仓库拓扑及最少推箱步评级。[AD]"
+    },
+    {
+      "number": 41,
+      "name": "管道连通",
+      "id": "pipes",
+      "difficulty": "有限",
+      "replay": "弱",
+      "distinctiveness": "中",
+      "recommendation": "暂撤",
+      "reason": "随机旋转未改变答案结构，每档只有横/纵两种蛇形；扩路径拓扑后再恢复。[AD]"
+    },
+    {
+      "number": 42,
+      "name": "房间塔防",
+      "id": "roomdefense",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "波数、敌血、移速、生成间隔随档变化；购买/升级塔与维修争用金币，经济时序确实有选择。可后续扩敌人与塔型，但现有核心循环成立。[AR]"
+    },
+    {
+      "number": 43,
+      "name": "经典纸牌",
+      "id": "solitaire",
+      "difficulty": "无效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "发牌和规则能持续产生不同决策，但三档均是同一套单张翻牌规则。先去掉无效分档；若提供单张/三张等规则模式，应明确标名且分开成绩。[T]"
+    },
+    {
+      "number": 44,
+      "name": "节奏落键",
+      "id": "rhythm",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "四轨随机谱，音符数 32/40/48，速度和间隔变化；作为节拍类主入口。其节奏挑战成立，当前不据源码宣称已有丰富歌曲或真机音乐同步验证。[AR]"
+    },
+    {
+      "number": 45,
+      "name": "迷你餐厅",
+      "id": "restaurant",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "随机三类订单，顾客耐心 30/25/20s、到店间隔 6/5/4s、目标 10/15/20；烹饪占用、库存和优先服务形成时间管理。[AR]"
+    },
+    {
+      "number": 46,
+      "name": "连连看",
+      "id": "linktiles",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "24/36/48 格、图案种类增加，两次转弯路径约束；与记忆翻牌或相邻群消不是同一决策。[M]"
+    },
+    {
+      "number": 47,
+      "name": "麻将接龙",
+      "id": "mahjongsolitaire",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "层数随档增加，可选牌受上层与左右遮挡限制；成对选择会影响后续可达牌，支持独立保留。[M]"
+    },
+    {
+      "number": 48,
+      "name": "点击群消",
+      "id": "groupclear",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "颜色 3/4/5、目标 300/450/600，连通块大小平方计分与塌落改变后局，和三交换消除有实质差别。[M]"
+    },
+    {
+      "number": 49,
+      "name": "落槽配对消除",
+      "id": "slotpair",
+      "difficulty": "无效",
+      "replay": "弱",
+      "distinctiveness": "弱",
+      "recommendation": "暂撤",
+      "reason": "供给为连续同色对，始终同列就能清空，数量和颜色分档没有恢复规划价值。[M]"
+    },
+    {
+      "number": 50,
+      "name": "乘客上车",
+      "id": "buscolor",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "三条车道与三个候车槽形成队列约束；颜色 3/4/5，简单按三人同色成组、其他档交错，存在容量和发车顺序取舍。[S]"
+    },
+    {
+      "number": 51,
+      "name": "毛线收卷",
+      "id": "yarn",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "颜色列 4/5/6、三个容量 8 的线轴，顶部暴露和未完成线轴占位有约束；与倒水的“搬运回列”机制不同。[S]"
+    },
+    {
+      "number": 52,
+      "name": "沙画吸色",
+      "id": "sand",
+      "difficulty": "无效",
+      "replay": "弱",
+      "distinctiveness": "弱",
+      "recommendation": "暂撤",
+      "reason": "有效点击只增进度，不产生失败或作品表达；三档机械扫空即过，分数各档固定。[S]"
+    },
+    {
+      "number": 53,
+      "name": "绳结解开",
+      "id": "untangle",
+      "difficulty": "有限",
+      "replay": "弱",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "每档仅一个“中心连所有外点＋外圈”图，随机的是结点位置；本轮 30 开局各档只有一个图拓扑。补不同平面图、边密度与布局，不以位置打乱充当无限题库。[S]"
+    },
+    {
+      "number": 54,
+      "name": "横版跳跃闯关",
+      "id": "platformer",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "平台按固定 155 间距和三段高度循环，难度主要把终点推远。必须实际跳跃，但内容很快熟悉，补不同平台组合、危险和关卡节奏。[A]"
+    },
+    {
+      "number": 55,
+      "name": "钩索摆荡",
+      "id": "grapple",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "绳长和摆荡约束真实，但平台及锚点按固定模式重复，档位主要增加距离。保留摆荡操作，补随机/关卡锚点布局及不同落点挑战。[A]"
+    },
+    {
+      "number": 56,
+      "name": "飞行穿柱",
+      "id": "flappy",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "缺口高度随机，档位缩窄缺口、提高横向速度与通过目标；单键控制和连续微调确实影响成败。[A]"
+    },
+    {
+      "number": 57,
+      "name": "切水果",
+      "id": "fruitslice",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "果实/炸弹及轨迹随机，目标 20/30/40、生成更快，滑动路径有避雷代价，和点击反应类有区别。[A]"
+    },
+    {
+      "number": 58,
+      "name": "滚动球闯关",
+      "id": "rollingball",
+      "difficulty": "有限",
+      "replay": "弱",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "三条固定挡板和固定终点，难度增加 1/2/3 个静态危险点。保留滚动操控，但先补多地图和路径变化，避免三档复用一条主路线。[A]"
+    },
+    {
+      "number": 59,
+      "name": "雷电战机",
+      "id": "shooter",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "保留",
+      "reason": "自动向上射击，随机横向来敌；困难增加敌血/移速，击杀目标增加。对齐射线与规避漏敌是现有核心，后续可补敌型但不据类型朴素直接撤下。[A]"
+    },
+    {
+      "number": 60,
+      "name": "坦克对战",
+      "id": "tanks",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "整改保留",
+      "reason": "自动瞄准、敌人追踪和反向子弹存在，但没有地形、掩体或车体朝向，和生存模式接近。补坦克特有的转向/地图战术，否则应再评估并入生存模式。[A]"
+    },
+    {
+      "number": 61,
+      "name": "射击守城",
+      "id": "fortress",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "玩家手动瞄准、范围伤害、花击杀收益升级火力；基地生命与目标/敌血移速分档，核心取舍区别于移动自动射击。[A]"
+    },
+    {
+      "number": 62,
+      "name": "自动攻击生存",
+      "id": "survival",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "整改保留",
+      "reason": "追踪敌、自动射击及走位成立，档位主要增加敌数与生成速度；没有局内升级选择或构筑。补不同升级/敌潮/地图以建立特色，否则不作为重点游戏扩量。[A]"
+    },
+    {
+      "number": 63,
+      "name": "乒乓球",
+      "id": "pingpong",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "当前是上下挡板 Pong；对手跟随速度 130/165/200，有真实差异。改名“挡板对战”并按实际操作说明，避免球拍乒乓预期落差。[SP]"
+    },
+    {
+      "number": 64,
+      "name": "保龄球",
+      "id": "bowling",
+      "difficulty": "有限",
+      "replay": "弱",
+      "distinctiveness": "中",
+      "recommendation": "暂撤",
+      "reason": "同一瓶阵、同样三球可跨档满分，仅达标数变化；按前述投球控制、完整评分与持续精进条件恢复。[SP]"
+    },
+    {
+      "number": 65,
+      "name": "单键漂移",
+      "id": "drift",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "当前种子化曲折赛道，速度 78/86/94、半宽 74/68/62，按整车轮廓判出界；单键切换方向产生连续校正，值得保留当前新版。[TOY]"
+    },
+    {
+      "number": 66,
+      "name": "爬坡越野",
+      "id": "hillclimb",
+      "difficulty": "有限",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "地形恒为相同两个正弦叠加，三档只把终点设为 1200/1500/1800，其余车辆与油耗规则相同。补不同坡形与油量/速度取舍，不能只延长同一路段。[SP]"
+    },
+    {
+      "number": 67,
+      "name": "空气曲棍球",
+      "id": "airhockey",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "圆形击球器能二维移动，碰撞带动量、窄球门得分；区别于横向挡板 Pong。对手速度随档变化，固定球场并不消除实时对抗价值。[SP]"
+    },
+    {
+      "number": 68,
+      "name": "中国象棋",
+      "id": "xiangqi",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "简单从安全候选随机选，普通用局面评分，困难增加对手回应搜索；开局相同不代表难度相同。棋局决策足够丰富，AI 强弱的真实胜率仍需人类校准。[CH]"
+    },
+    {
+      "number": 69,
+      "name": "国际象棋",
+      "id": "chess",
+      "difficulty": "有效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "保留",
+      "reason": "同样按对手策略分档，已有王安全、升变、易位/吃过路兵等规则路径；与中国象棋的合法移动及战术结构不同，应独立保留。[CH]"
+    },
+    {
+      "number": 70,
+      "name": "蜘蛛纸牌",
+      "id": "spider",
+      "difficulty": "无效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "当前只按点数连续搬运/收列，三档不切换花色约束。随机牌局仍值得保留，但应明确当前规则模式；不要把无效果档位当作一/二/四花色难度。[CA]"
+    },
+    {
+      "number": 71,
+      "name": "空当接龙",
+      "id": "freecell",
+      "difficulty": "无效",
+      "replay": "强",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "四空当、空列与可搬牌数限制构成真实规划，三档均相同规则。先取消假分档，未来可按局面求解难度给牌局分级，不能拿新牌局冒充分档。[CA]"
+    },
+    {
+      "number": 72,
+      "name": "画线救援",
+      "id": "linerescue",
+      "difficulty": "无效",
+      "replay": "弱",
+      "distinctiveness": "中",
+      "recommendation": "暂撤",
+      "reason": "固定狗位置和三套蜂数/速度，通用闭合方框跨档成功，缺少第二道值得再解的题。[B]"
+    },
+    {
+      "number": 73,
+      "name": "图片拼图",
+      "id": "picturepuzzle",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "3/4/5 阶随机交换拼图，和滑动空格约束不同；但页面始终用同一张 `expansion_puzzle_scene`。扩充可选图片/主题及各图纪录。[B][BU]"
+    },
+    {
+      "number": 74,
+      "name": "节拍跳跃",
+      "id": "beatjump",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "弱",
+      "recommendation": "合并",
+      "reason": "三方向指令、固定 ±0.18s 窗口，节拍间隔 0.95/0.85/0.75s；与落键的核心时机选择重叠，保留为节奏落键模式。[B][AR]"
+    },
+    {
+      "number": 75,
+      "name": "旋律记忆",
+      "id": "melody",
+      "difficulty": "无效",
+      "replay": "中",
+      "distinctiveness": "强",
+      "recommendation": "整改保留",
+      "reason": "四音重放，序列从 3 个增长至 7 个，五轮结束；三档重放间隔和长度完全相同。保留听觉记忆特色，补分档长度/速度或移除档位；真实音频体验待设备确认。[B][BU]"
+    },
+    {
+      "number": 76,
+      "name": "休闲钓鱼",
+      "id": "fishing",
+      "difficulty": "有效",
+      "replay": "中",
+      "distinctiveness": "中",
+      "recommendation": "整改保留",
+      "reason": "咬钩窗口 1.1/0.95/0.8s、收线张力增长变化；有按住/松开的控制价值，但六种鱼只随机颜色/分值，行为相同。补鱼种行为与对应纪录，避免收益主要由运气决定。[L]"
+    }
+  ]
+}

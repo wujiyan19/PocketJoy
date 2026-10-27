@@ -7,9 +7,12 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { GameDataManager } from '../../model/GameData';
 import { CollectionViewModel } from '../../viewmodel/CollectionViewModel';
 import { GameHeader } from '../../components/GameHeader';
+import { ControlPad } from '../../components/ControlPad';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { CollectionArt } from '../../common/CollectionArt';
+import { modesForGame } from '../../common/GameModes';
+import { GameModePicker } from '../../components/GameModePicker';
 
 @ComponentV2
 export struct CollectionPage {
@@ -51,6 +54,7 @@ export struct CollectionPage {
     const value: number = this.vm.state.board[index];
     if (this.gameId === 'schulte' || this.gameId === 'memorysequence') { return value.toString(); }
     if (this.gameId === 'flood') { return (value + 1).toString(); }
+    if (this.gameId === 'nonogram' && value === 2) { return '×'; }
     return this.vm.legal(index) ? '·' : '';
   }
   cellDescription(index: number): string {
@@ -88,7 +92,7 @@ export struct CollectionPage {
   }
   choiceText(index: number): string {
     const value: number = this.vm.state.choices[index];
-    if (this.gameId === 'compare') { return value === -1 ? '＜' : value === 0 ? '＝' : '＞'; }
+    if (this.vm.modeId === 'compare') { return value === -1 ? '＜' : value === 0 ? '＝' : '＞'; }
     return (this.gameId === 'flood' ? value + 1 : value).toString();
   }
   reactionText(): Resource {
@@ -122,6 +126,8 @@ export struct CollectionPage {
 
         Scroll() {
           Column({ space: SpacingTokens.base }) {
+            GameModePicker({ modes: modesForGame(this.gameId), selected: this.vm.modeId, best: this.vm.modeHighScore,
+              hasProgress: this.vm.hasProgress(), onChange: (mode: string) => { this.vm.changeMode(mode); } })
             this.StatusLine()
             if (this.vm.isQuiz() && this.vm.feedback.length > 0) {
               Text(this.vm.lastCorrect ? $r('app.string.collection_correct', this.vm.feedback) : $r('app.string.collection_wrong', this.vm.feedback))
@@ -129,6 +135,11 @@ export struct CollectionPage {
             }
             if (this.gameId === 'nonogram') {
               Column({ space: SpacingTokens.sm }) {
+                if (this.vm.state.variant === 1) { Text($r('app.string.nonogram_logic')).fontColor(SemanticColors.textSecondary) }
+                Row({ space: SpacingTokens.sm }) {
+                  Button($r('app.string.nonogram_fill')).onClick(() => { this.vm.setMarkEmpty(false); })
+                  Button($r('app.string.nonogram_mark')).onClick(() => { this.vm.setMarkEmpty(true); })
+                }
                 Text($r('app.string.collection_columns')).fontWeight(FontWeight.Bold).fontColor(SemanticColors.textPrimary)
                 Text(this.vm.clues(true)).fontColor(SemanticColors.textPrimary)
                 Text($r('app.string.collection_rows')).fontWeight(FontWeight.Bold).fontColor(SemanticColors.textPrimary)
@@ -151,14 +162,6 @@ export struct CollectionPage {
                 .borderRadius(RadiusTokens.xl).backgroundColor(SemanticColors.surface)
                 .accessibilityText(this.reactionText())
                 .onClick(() => { this.vm.tap(0); })
-            }
-            if (this.gameId === 'maze') {
-              Row({ space: SpacingTokens.sm }) {
-                ForEach(['↑', '→', '↓', '←'], (label: string, direction: number) => {
-                  Button(label).layoutWeight(1).height($r('app.float.collection_control_height'))
-                    .onClick(() => { this.vm.move(direction); })
-                })
-              }.width('100%')
             }
             if (this.vm.state.choices.length > 0 && this.gameId !== 'hanoi' && !(this.gameId === 'missing' && this.vm.state.phase === 0)) {
               Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
@@ -189,6 +192,14 @@ export struct CollectionPage {
           }.width('100%').constraintSize({ maxWidth: $r('app.float.collection_board_max') })
             .padding({ left: SpacingTokens.base, right: SpacingTokens.base, bottom: SpacingTokens.xl })
         }.layoutWeight(1).width('100%').scrollBar(BarState.Off)
+        if (this.gameId === 'maze') {
+          ControlPad({
+            onUp: () => { this.vm.move(0); },
+            onRight: () => { this.vm.move(1); },
+            onDown: () => { this.vm.move(2); },
+            onLeft: () => { this.vm.move(3); }
+          }).width('100%').padding({ top: SpacingTokens.sm, bottom: SpacingTokens.base })
+        }
       }.width('100%').height('100%').padding({ bottom: SafeAreaInsets.bottom })
       if (this.vm.state.outcome !== 0) {
         GameResultDialog({ shareGameId: this.gameId, title: this.resultTitle(), detail: this.resultDetail(), showDetail: true,
@@ -209,6 +220,14 @@ export struct CollectionPage {
   @Builder
   StatusLine() {
     Column({ space: SpacingTokens.sm }) {
+      if (this.gameId === 'schulte' || this.gameId === 'hanoi') {
+        Text($r('app.string.record_elapsed', (this.vm.state.elapsedMs / 1000).toFixed(1),
+          (GameDataManager.getModeTime(this.vm.modeId, this.vm.difficulty) / 1000).toFixed(1))).fontColor(SemanticColors.textSecondary)
+      }
+      if (this.gameId === 'hanoi') {
+        Text(this.vm.state.minimumMoves > 0 ? $r('app.string.hanoi_goal', this.vm.state.goalPost + 1, this.vm.state.minimumMoves) :
+          $r('app.string.hanoi_goal_only', this.vm.state.goalPost + 1)).fontColor(SemanticColors.textPrimary)
+      }
       if (this.vm.isDuel()) {
         Row({ space: SpacingTokens.sm }) {
           Image(CollectionArt.piece(this.gameId, this.vm.state.player)).width($r('app.float.collection_art_turn')).aspectRatio(1)

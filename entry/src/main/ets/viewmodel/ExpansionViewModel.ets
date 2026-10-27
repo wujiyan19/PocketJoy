@@ -6,8 +6,10 @@ import { ExpansionModel } from '../model/game/ExpansionModel';
 import { ExpansionPiece, ExpansionState } from '../model/game/ExpansionState';
 import { CHESS_IDS } from '../model/game/ExpansionChess';
 import { ExpansionRenderPiece } from './ExpansionRenderPiece';
+import { ChessPieceMove, chessMovesBetween } from './ChessPieceMove';
 import { COMPUTER_GAME_IDS, COMPUTER_TURN_DELAY_MS } from '../common/ComputerOpponent';
 import { GameSoundEvent, gameSound } from '../common/GameSound';
+import { modesForGame, hasDifficultyRules } from '../common/GameModes';
 
 interface ExpansionSnapshot { version: number; state: ExpansionState; recorded: boolean; paused: boolean; }
 
@@ -28,6 +30,12 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   @Trace effectsEnabled: boolean = true;
   @Trace computerThinking: boolean = false;
   @Trace computerPlayer: number = 1;
+  @Trace chessMoves: ChessPieceMove[] = [];
+  @Trace chessBoardBefore: number[] = [];
+  @Trace chessAnimationSerial: number = 0;
+  @Trace chessAnimating: boolean = false;
+  @Trace modeId: string = '';
+  @Trace modeHighScore: number = 0;
   private model: ExpansionModel = new ExpansionModel();
   private frame: FrameLoop | null = null;
   private id: string = '';
@@ -44,16 +52,23 @@ export class ExpansionViewModel implements GameLifecycleObserver {
 
   init(id: string, frame: FrameLoop | null = null): void {
     this.id = id; this.frame = frame; this.difficulty = GameDataManager.getInitialDifficulty(id);
+    const mode: string = GameDataManager.getTextSetting('mode_' + id, id);
+    this.modeId = modesForGame(id).includes(mode) ? mode : id;
     this.model.deferComputerTurns = true;
+  }
+  changeMode(mode: string): void {
+    if (!modesForGame(this.id).includes(mode) || mode === this.modeId) { return; }
+    this.modeId = mode; GameDataManager.setTextSetting('mode_' + this.id, mode); this.startGame();
   }
   setToneCallbacks(play: (note: number) => void, stop: () => void): void { this.tone = play; this.toneStop = stop; this.toneSerial = 0; }
   startGame(): void {
     gameSound.stop(this.id);
+    this.resetChessAnimation();
     this.stop(); this.paused = false; this.confirmExit = false; this.recorded = false; this.dragging = false;
     this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++;
     const level: number = this.difficulty === GameDifficulty.EASY ? 0 : this.difficulty === GameDifficulty.HARD ? 2 : 1;
     this.effectsEnabled = this.visible && !this.confirmExit;
-    this.model.start(this.id, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
+    this.model.start(this.modeId, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
     this.initialProgress = JSON.stringify(this.state);
   }
   changeDifficulty(d: GameDifficulty): void {
@@ -63,8 +78,11 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   private sync(feedback: boolean = true, interaction: boolean = false): void {
     const previous: ExpansionState = this.state;
     this.state = JSON.parse(JSON.stringify(this.model.state)) as ExpansionState; this.canUndo = this.model.canUndo();
+    this.syncChessAnimation(previous, feedback);
     this.syncWorldPieces();
     this.isFinished = this.state.outcome !== 0;
+    const recordId: string = this.modeId === 'picturepuzzle' ? this.modeId + '_' + (this.state.variant ?? 0) : this.modeId;
+    this.modeHighScore = GameDataManager.getModeScore(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard');
     if (feedback && this.effectsEnabled && previous.id === this.state.id && previous.outcome === 0) {
       const gain: number = this.state.score - previous.score;
       const hurt: boolean = ['shooter', 'tanks', 'fortress', 'survival', 'roomdefense'].includes(this.id) &&
@@ -91,6 +109,8 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     }
     if (this.state.outcome !== 0 && !this.recorded) {
       this.recorded = true; this.stop(); GameDataManager.updateHighScore(this.id, this.state.score);
+      GameDataManager.recordMode(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard', this.state.score);
+      this.modeHighScore = GameDataManager.getModeScore(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard');
     }
     if (this.state.outcome !== 0) { this.effectsEnabled = false; }
     this.refreshComputerTurn();
@@ -109,14 +129,30 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     });
     this.worldPieces = next;
   }
+  private syncChessAnimation(previous: ExpansionState, feedback: boolean): void {
+    if (!CHESS_IDS.includes(this.id)) { return; }
+    if (!feedback || this.blocked()) { this.resetChessAnimation(); return; }
+    if (this.state.moves === previous.moves) { return; }
+    this.resetChessAnimation();
+    const moves: ChessPieceMove[] = chessMovesBetween(previous, this.state);
+    if (moves.length === 0) { return; }
+    this.chessBoardBefore = previous.board.slice(); this.chessMoves = moves; this.chessAnimating = true;
+  }
+  private resetChessAnimation(): void {
+    this.chessAnimationSerial++; this.chessAnimating = false; this.chessMoves = []; this.chessBoardBefore = [];
+  }
+  finishChessAnimation(serial: number): void {
+    if (serial !== this.chessAnimationSerial || !this.chessAnimating) { return; }
+    this.resetChessAnimation(); this.refreshComputerTurn();
+  }
   tap(index: number): void {
-    if (this.computerThinking || this.blocked()) { return; }
+    if (this.chessAnimating || this.computerThinking || this.blocked()) { return; }
     if (this.state.id === 'melody' && this.state.phase === 0 && this.state.outcome === 0 && index >= 0 && index < 4) { this.tone(index); }
     this.model.tap(index); this.sync(true, true); this.run();
   }
   activate(): void { if (this.blocked()) { return; } this.model.activate(); this.sync(true, true); this.run(); }
   action(): void { if (this.blocked()) { return; } this.model.action(); this.sync(true, true); }
-  choose(index: number): void { if (this.computerThinking || this.blocked()) { return; } this.model.choose(index); this.sync(true, true); }
+  choose(index: number): void { if (this.chessAnimating || this.computerThinking || this.blocked()) { return; } this.model.choose(index); this.sync(true, true); }
   undo(): void { if (this.blocked()) { return; } this.cancelComputerTurn(); this.model.undo(); this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++; this.sync(false); }
   aim(x: number, y: number): void {
     if (this.blocked()) { return; } this.model.aim(x, y); this.sync(true, true); this.run();
@@ -127,7 +163,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     if (!active && this.state.id === 'untangle') { this.model.releaseNode(); this.sync(); }
     if (!active && ['platformer', 'fruitslice', 'hillclimb', 'fishing'].includes(this.state.id)) { this.model.releaseControls(); this.sync(); }
   }
-  terrain(x: number): number { return this.model.sports.terrain(x); }
+  terrain(x: number): number { return this.model.sports.terrain(x, this.model.state); }
   mahjongCan(command: number): boolean { return this.model.cards.mahjongCan(this.state, command); }
   tileFree(id: number): boolean { return this.model.matching.tileFree(this.state, id); }
   crossingEdges(): number[] { return this.model.sorting.crossingEdges(this.state); }
@@ -148,19 +184,21 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   }
   private stop(): void { this.cancelComputerTurn(); this.frame?.stop(); this.accumulator = 0; this.renderElapsed = 0; this.toneStop(); }
   togglePause(): void {
+    this.resetChessAnimation();
     gameSound.stop(this.id); this.paused = !this.paused; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.setDragging(false); if (this.paused) { this.stop(); } else { this.run(); this.refreshComputerTurn(); } }
   onAppHidden(): void {
     gameSound.stop(this.id);
+    this.resetChessAnimation();
     this.visible = false; this.effectsEnabled = false; this.setDragging(false); this.stop();
   }
   onAppShown(): void { this.visible = true; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.run(); this.refreshComputerTurn(); }
   onBackRequested(): boolean { return this.requestBack(); }
   requestBack(): boolean {
     if (this.state.outcome !== 0 || !GameDataManager.getSetting('confirmExitEnabled', true)) { return false; }
-    gameSound.stop(this.id); this.confirmExit = true; this.effectsEnabled = false; this.setDragging(false); this.stop(); return true;
+    gameSound.stop(this.id); this.resetChessAnimation(); this.confirmExit = true; this.effectsEnabled = false; this.setDragging(false); this.stop(); return true;
   }
   dismissExitConfirm(): void { this.confirmExit = false; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.run(); this.refreshComputerTurn(); }
-  dispose(): void { this.visible = false; this.effectsEnabled = false; this.stop(); this.setDragging(false); this.frame?.dispose(); }
+  dispose(): void { this.visible = false; this.effectsEnabled = false; this.resetChessAnimation(); this.stop(); this.setDragging(false); this.frame?.dispose(); }
   isPlayTimeActive(): boolean {
     return this.state.id.length > 0 && this.state.outcome === 0 && !this.paused && !this.confirmExit;
   }
@@ -176,7 +214,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     this.computerThinking = this.model.needsComputerTurn();
     this.computerPlayer = this.model.computerPlayer();
     if (!this.computerThinking) { this.cancelComputerTurn(); return; }
-    if (this.computerTimer >= 0 || this.blocked() || !GameLifecycleBus.isAppForeground()) { return; }
+    if (this.chessAnimating || this.computerTimer >= 0 || this.blocked() || !GameLifecycleBus.isAppForeground()) { return; }
     const generation: number = this.computerGeneration;
     this.computerTimer = setTimeout(() => {
       if (generation !== this.computerGeneration) { return; }
@@ -197,8 +235,10 @@ export class ExpansionViewModel implements GameLifecycleObserver {
       if (payload.length > 65536) { return false; }
       const snapshot: ExpansionSnapshot = JSON.parse(payload) as ExpansionSnapshot;
       if (snapshot === null || snapshot.version !== 1 || typeof snapshot.recorded !== 'boolean' || typeof snapshot.paused !== 'boolean') { return false; }
-      const expected: ExpansionModel = new ExpansionModel(); expected.start(this.id, 1);
-      if (snapshot.state === null || snapshot.state.id !== this.id || !expected.valid(snapshot.state)) { return false; }
+      if (snapshot.state === null || !modesForGame(this.id).includes(snapshot.state.id)) { return false; }
+      const expected: ExpansionModel = new ExpansionModel(); expected.start(snapshot.state.id, 1);
+      if (!expected.valid(snapshot.state)) { return false; }
+      this.modeId = snapshot.state.id;
       this.stop(); this.model.restore(snapshot.state); this.recorded = snapshot.recorded || snapshot.state.outcome !== 0;
       this.difficulty = snapshot.state.level === 0 ? GameDifficulty.EASY : snapshot.state.level === 2 ? GameDifficulty.HARD : GameDifficulty.NORMAL;
       this.paused = snapshot.paused || (this.model.realtime() && snapshot.state.phase !== 0);

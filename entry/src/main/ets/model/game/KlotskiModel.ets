@@ -4,6 +4,7 @@
  * 棋子数据 + 布局 + 移动规则 + 胜利判定。grid 由棋子推导，移动/应用返回新棋子数组。
  */
 import { GameDifficulty } from '../../common/GameConstants';
+import { RandomSource } from './RandomSource';
 
 export class KlotskiBlock {
   id: string;
@@ -72,6 +73,28 @@ export class KlotskiRules {
   }
 
   /** 由棋子推导占用网格：格内为棋子 id，空为 null */
+  deal(difficulty: GameDifficulty, random: RandomSource): KlotskiBlock[] {
+    let blocks: KlotskiBlock[] = this.layout(difficulty);
+    const seen: Set<string> = new Set<string>();
+    const steps: number = difficulty === GameDifficulty.HARD ? 24 : difficulty === GameDifficulty.NORMAL ? 20 : 12;
+    for (let step: number = 0; step < steps; step++) {
+      seen.add(blocks.map((b: KlotskiBlock) => b.id + ':' + b.x + ':' + b.y).join(','));
+      const choices: KlotskiBlock[][] = []; const grid: (string | null)[][] = this.buildGrid(blocks);
+      for (let i: number = 0; i < blocks.length; i++) {
+        for (let direction: number = 0; direction < 4; direction++) {
+          const dx: number = [0, 1, 0, -1][direction]; const dy: number = [-1, 0, 1, 0][direction];
+          if (!this.canMove(blocks, grid, blocks[i].id, dx, dy)) { continue; }
+          const next: KlotskiBlock[] = this.apply(blocks, blocks[i].id, dx, dy);
+          if (next.some((b: KlotskiBlock) => this.isWin(b))) { continue; }
+          if (!seen.has(next.map((b: KlotskiBlock) => b.id + ':' + b.x + ':' + b.y).join(','))) { choices.push(next); }
+        }
+      }
+      if (choices.length === 0) { break; }
+      blocks = choices[Math.floor(random.next() * choices.length)];
+    }
+    return blocks;
+  }
+
   buildGrid(blocks: KlotskiBlock[]): (string | null)[][] {
     const arr: (string | null)[][] = [];
     for (let i = 0; i < this.bh; i++) {

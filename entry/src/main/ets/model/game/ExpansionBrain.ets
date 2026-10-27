@@ -31,6 +31,7 @@ export class ExpansionBrain {
       s.target.forEach((v: number, i: number) => { s.board[i * 6 + i] = v; }); return;
     }
     if (s.id === 'picturepuzzle') {
+      s.variant = this.pick(4);
       s.cols = 3 + s.level; s.rows = s.cols; s.goal = s.cols * s.cols; s.board = new Array<number>(s.goal).fill(0).map((v: number, i: number) => i); this.shuffle(s.board);
       if (s.board.every((v: number, i: number) => v === i)) { s.board.reverse(); } return;
     }
@@ -157,7 +158,7 @@ export class ExpansionBrain {
     if (['onestroke', 'hiddenobjects', 'picturepuzzle', 'linerescue'].includes(s.id) && s.data.length !== 0) { return false; }
     if (s.id === 'onestroke') { const expected: number = 10 + s.level * 3; return s.cols === 3 && s.rows === 3 && s.goal === expected && V.numbers(s.board, expected * 2, 0, 8) && V.numbers(s.target, expected + 1, 0, 8) && s.pieces.length === 0 && s.phase === 0 && s.selected < 9 && V.numbers(s.tray, s.tray.length, 0, expected - 1) && new Set<number>(s.tray).size === s.tray.length; }
     if (s.id === 'hiddenobjects') { return s.cols === 6 && s.rows === 6 && s.goal === 6 && V.numbers(s.board, 36, 1, 9) && V.numbers(s.target, 6, 1, 9) && new Set<number>(s.target).size === 6 && s.tray.every((v: number) => s.target.includes(v)) && new Set<number>(s.tray).size === s.tray.length && s.errors <= 3 && s.phase === 0 && s.pieces.length === 0; }
-    if (s.id === 'picturepuzzle') { return s.cols === 3 + s.level && s.rows === s.cols && s.goal === s.cols * s.cols && V.numbers(s.board, s.goal, 0, s.goal - 1) && new Set<number>(s.board).size === s.goal && s.selected < s.goal && s.target.length === 0 && s.tray.length === 0 && s.phase === 0 && s.pieces.length === 0; }
+    if (s.id === 'picturepuzzle') { return V.integer(s.variant ?? 0, 0, 3) && s.cols === 3 + s.level && s.rows === s.cols && s.goal === s.cols * s.cols && V.numbers(s.board, s.goal, 0, s.goal - 1) && new Set<number>(s.board).size === s.goal && s.selected < s.goal && s.target.length === 0 && s.tray.length === 0 && s.phase === 0 && s.pieces.length === 0; }
     if (s.id === 'idiom') { return s.cols === 4 && s.rows === 1 && s.goal === 8 && s.moves <= 8 && s.errors <= 3 && V.numbers(s.data, 2, 0, IDIOMS.length - 1) && s.data[1] < 4 && V.numbers(s.board, 4, 0, IDIOM_PARTS.length - 1) && V.numbers(s.target, 4, 0, IDIOM_PARTS.length - 1) && V.numbers(s.tray, IDIOMS.length, 0, IDIOMS.length - 1) && new Set<number>(s.tray).size === IDIOMS.length && s.pieces.length === 0 && s.phase === 0; }
     if (s.cols !== 6 || s.rows !== 6 || s.pieces.some((p: ExpansionPiece) => p.id >= s.serial || !p.alive || p.kind < 55 || p.kind > 58 || p.x < -20 || p.x > 380 || p.y < -20 || p.y > 460)) { return false; }
     if (s.id === 'linerescue') { return s.goal === 10 && s.board.length === 0 && s.tray.length === 0 && s.target.length <= RESCUE_MAX_COORDINATES && s.target.length % 2 === 0 && V.numbers(s.target, s.target.length, 0, 460) && s.pieces.length === 5 + s.level && s.pieces[0].kind === 55; }

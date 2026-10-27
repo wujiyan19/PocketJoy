@@ -415,6 +415,42 @@
     {
       "name": "toy_screw_board_min_height",
       "value": "260"
+    },
+    {
+      "name": "toy_chase_controls_reserve",
+      "value": "190"
+    },
+    {
+      "name": "chess_board_gap",
+      "value": "1"
+    },
+    {
+      "name": "chess_move_lift_scale",
+      "value": "1.16"
+    },
+    {
+      "name": "chess_move_lift_offset",
+      "value": "-5"
+    },
+    {
+      "name": "chess_move_pickup_duration",
+      "value": "90"
+    },
+    {
+      "name": "chess_move_travel_duration",
+      "value": "260"
+    },
+    {
+      "name": "chess_move_travel_per_cell",
+      "value": "24"
+    },
+    {
+      "name": "chess_move_max_travel_duration",
+      "value": "420"
+    },
+    {
+      "name": "chess_move_landing_duration",
+      "value": "130"
     }
   ]
 }

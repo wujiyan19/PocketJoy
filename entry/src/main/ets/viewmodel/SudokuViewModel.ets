@@ -43,6 +43,7 @@ export class SudokuViewModel implements GameLifecycleObserver {
   @Trace generationFailed: boolean = false;
   @Trace resumePending: boolean = false;
   @Trace saveRestoreFailed: boolean = false;
+  @Trace logicRating: number = 0;
   private savedGameRevision: number = GameDataManager.getSavedGameRevision();
   private generation: number = 0;
   private generationTask: taskpool.Task | null = null;
@@ -126,6 +127,7 @@ export class SudokuViewModel implements GameLifecycleObserver {
   }
 
   private startGame(puzzle: number[]): void {
+    this.logicRating = this.rules.logicRating(puzzle);
     this.resumePending = false;
     this.confirmExit = false;
     GameDataManager.recordGameStarted(GAME_ID);
@@ -318,6 +320,7 @@ export class SudokuViewModel implements GameLifecycleObserver {
       this.board = s.board;
       this.fixed = s.fixed;
       this.puzzle = s.puzzle;
+      this.logicRating = this.rules.logicRating(s.puzzle);
       this.previousKey = s.previousKey;
       this.selectedRow = s.selectedRow;
       this.selectedCol = s.selectedCol;

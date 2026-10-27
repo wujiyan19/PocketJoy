@@ -1,0 +1,36 @@
+{
+  "originalGeometry": true,
+  "noRuntimeBrowserOrThreeJS": true,
+  "assets": [
+    {
+      "name": "toy/blackhole.glb",
+      "bytes": 525796,
+      "packaged": true,
+      "meshes": 24,
+      "nodes": 461
+    },
+    {
+      "name": "toy/blackhole_dark.glb",
+      "bytes": 525796,
+      "packaged": true,
+      "meshes": 24,
+      "nodes": 461
+    },
+    {
+      "name": "blackhole_preview.png",
+      "bytes": 190866,
+      "packaged": false
+    },
+    {
+      "name": "blackhole_preview_dark.png",
+      "bytes": 193629,
+      "packaged": false
+    },
+    {
+      "name": "toy_drift_car.png",
+      "bytes": 3507,
+      "packaged": true
+    }
+  ],
+  "totalBytes": 1055099
+}

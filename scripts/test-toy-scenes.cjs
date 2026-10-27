@@ -32,6 +32,13 @@ async function main() {
     c.dispose();pending.resolve(s);assert.equal(await loading,false);assert.equal(s.destroyed,1);
     assert.equal(c.options,undefined);assert.equal(c.scene,null);assert.equal(c.failed,false);
   });
+  await test('pooled scene lookup traverses native child handles only once',async()=>{
+    const s=scene();let reads=0;const get=s.root.children.get;
+    s.root.children.get=i=>{reads++;return get(i);};
+    const c=setup(async()=>s);assert(await c.load('pooled',background));
+    for(let i=0;i<166;i++)c.node('pooled'+i);
+    assert.equal(reads,2);assert(c.node('world'));c.dispose();assert.equal(c.node('world'),null);
+  });
   await test('a stale load never replaces the newer scene',async()=>{
     const a=deferred(),b=deferred(),first=scene(),second=scene();let calls=0;
     const c=setup(()=>++calls===1?a.promise:b.promise),old=c.load('old',background),current=c.load('new',background);
@@ -47,7 +54,7 @@ async function main() {
     const s=scene();s.root.children.count=()=>0;const c=setup(async()=>s);
     assert.equal(await c.load('bad',background),false);assert(c.failed);assert.equal(s.destroyed,1);assert.equal(c.scene,null);
   });
-  for(const name of ['jump','jump_dark','rolling','rolling_dark']) await test(name+' GLB buffers, camera and texture-free material are valid',()=>{
+  for(const name of ['jump','jump_dark','rolling','rolling_dark','blackhole','blackhole_dark']) await test(name+' GLB buffers, camera and texture-free material are valid',()=>{
     const data=fs.readFileSync(`entry/src/main/resources/rawfile/toy/${name}.glb`);
     assert.equal(data.readUInt32LE(0),0x46546c67);assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);
     const length=data.readUInt32LE(12),g=JSON.parse(data.subarray(20,20+length).toString());
@@ -57,8 +64,10 @@ async function main() {
     for(const view of g.bufferViews)assert(view.byteOffset+view.byteLength<=g.buffers[0].byteLength);
     for(const accessor of g.accessors){const width=accessor.type==='VEC3'?3:1,bytes=accessor.componentType===5126?4:2;assert(accessor.count*width*bytes<=g.bufferViews[accessor.bufferView].byteLength);}
     const names=new Set(g.nodes.map(n=>n.name));assert(names.has('ToyCamera'));
-    for(const node of name.startsWith('jump')?['player','shadow',...Array.from({length:14},(_,i)=>'platform'+i)]:['ball','goal','wall0','wall1','wall2','hole0','hole1','hole2'])assert(names.has(node),node);
-    assert(data.length<500000,'per-scene mobile resource budget');
+    const required=name.startsWith('jump')?['player','shadow',...Array.from({length:14},(_,i)=>'platform'+i)]:name.startsWith('blackhole')?
+      ['hole',...Array.from({length:55},(_,i)=>['prop'+i,'shadow'+i,'edible'+i]).flat()]:['ball','goal','wall0','wall1','wall2','hole0','hole1','hole2'];
+    for(const node of required)assert(names.has(node),node);
+    assert(data.length<(name.startsWith('blackhole')?600000:500000),'per-scene mobile resource budget');
   });
   console.log(`${count}/${count} toy scene checks passed`);
 }

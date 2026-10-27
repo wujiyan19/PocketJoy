@@ -23,6 +23,11 @@ export class CollectionState {
   outcome: number = 0;
   prompt: string = '';
   signalAt: number = 0;
+  elapsedMs: number = 0;
+  goalPost: number = 2;
+  minimumMoves: number = 0;
+  markEmpty: boolean = false;
+  variant: number = 0;
 }
 
 export class CollectionModel {
@@ -75,17 +80,33 @@ export class CollectionModel {
       s.cols = 7 + level * 2; this.makeMaze();
     } else if (id === 'hanoi') {
       s.board = new Array<number>(3 + level).fill(0); s.choices = [0, 1, 2];
+      s.goalPost = this.random(2) + 1;
+      for (let i: number = 0; i < s.board.length - 1; i++) { s.board[i] = this.random(3); }
+      if (s.board.every((v: number) => v === s.goalPost)) { s.board[0] = 0; }
+      // Exact distance for the three-peg puzzle, from the largest disc down.
+      let destination: number = s.goalPost;
+      for (let i: number = s.board.length - 1; i >= 0; i--) {
+        if (s.board[i] !== destination) { s.minimumMoves += Math.pow(2, i); destination = 3 - s.board[i] - destination; }
+      }
     } else if (id === 'peg') {
+      s.variant = 1;
       s.cols = 5; s.board = new Array<number>(25).fill(-1);
       // Reverse legal jumps from a single peg guarantees at least one solution.
       for (let r = 0; r < 5; r++) {
-        for (let c = 0; c < 5; c++) { if (r === 2 || c === 2) { s.board[r * 5 + c] = 0; } }
+        for (let c = 0; c < 5; c++) { if ((r >= 1 && r <= 3) || (c >= 1 && c <= 3)) { s.board[r * 5 + c] = 0; } }
       }
       s.board[12] = 1;
-      this.expandPeg(4 + level, new Set<string>());
+      this.expandPeg(4 + level * 3, new Set<string>());
     } else if (id === 'nonogram') {
+      s.variant = 1;
       s.cols = 4 + level; s.board = new Array<number>(s.cols * s.cols).fill(0);
-      s.target = s.board.map(() => this.random(2)); s.target[0] = 1;
+      for (let attempt: number = 0; attempt < 80; attempt++) {
+        s.target = s.board.map(() => this.random(5) < 3 ? 1 : 0);
+        if (s.target.includes(1) && this.deducibleNonogram()) { break; }
+      }
+      if (!this.deducibleNonogram()) {
+        s.target = s.board.map((value: number, i: number) => Math.floor(i / s.cols) === 0 || i % s.cols === 0 ? 1 : 0);
+      }
     } else if (id === 'schulte') {
       s.cols = 3 + level; s.board = this.shuffle(new Array<number>(s.cols * s.cols).fill(0).map((v: number, i: number) => i + 1));
       s.answer = 1;
@@ -242,7 +263,7 @@ export class CollectionModel {
       if (![0, 1, 2, 3].some((d: number) => this.neighbor(s.cursor, d) === index)) { return; }
       s.cursor = index; s.moves++; if (index === s.answer) { this.finish(true); }
     } else if (s.id === 'peg') { this.peg(index); }
-    else if (s.id === 'nonogram') { s.board[index] = 1 - s.board[index]; s.moves++; }
+    else if (s.id === 'nonogram') { const value: number = s.markEmpty ? 2 : 1; s.board[index] = s.board[index] === value ? 0 : value; s.moves++; }
     else if (s.id === 'schulte') {
       s.moves++; if (s.board[index] === s.answer) { s.answer++; }
       if (s.answer > s.board.length) { this.finish(true); }
@@ -284,7 +305,7 @@ export class CollectionModel {
       const disc: number = s.board.indexOf(s.selected);
       if (s.selected === value) { s.selected = -1; return; }
       if (top < 0 || disc < top) { s.board[disc] = value; s.moves++; s.selected = -1; }
-      if (s.board.every((v: number) => v === 2)) { this.finish(true); }
+      if (s.board.every((v: number) => v === s.goalPost)) { this.finish(true); }
     } else if (s.id === 'flood') {
       const old: number = s.board[0]; if (old === value) { return; }
       this.fill(s.board, value);
@@ -317,6 +338,37 @@ export class CollectionModel {
       if (value === 1) { count++; } else if (count > 0) { groups.push(count); count = 0; }
     }
     return groups.length > 0 ? groups.join(' ') : '0';
+  }
+  /** Propagate only cells shared by every remaining row/column pattern; no guessing. */
+  deducibleNonogram(): boolean {
+    const s: CollectionState = this.state; const known: number[] = new Array<number>(s.cols * s.cols).fill(-1);
+    for (let pass: number = 0; pass < s.cols * s.cols; pass++) {
+      let changed: boolean = false;
+      for (let axis: number = 0; axis < 2; axis++) {
+        for (let line: number = 0; line < s.cols; line++) {
+          const candidates: number[][] = [];
+          for (let mask: number = 0; mask < Math.pow(2, s.cols); mask++) {
+            const bits: number[] = []; const board: number[] = new Array<number>(s.cols * s.cols).fill(0);
+            let compatible: boolean = true;
+            for (let i: number = 0; i < s.cols; i++) {
+              const at: number = axis === 1 ? i * s.cols + line : line * s.cols + i;
+              const value: number = (mask >> i) & 1; bits.push(value); board[at] = value;
+              if (known[at] >= 0 && known[at] !== value) { compatible = false; }
+            }
+            if (compatible && this.clue(board, line, axis === 1) === this.clue(s.target, line, axis === 1)) { candidates.push(bits); }
+          }
+          if (candidates.length === 0) { return false; }
+          for (let i: number = 0; i < s.cols; i++) {
+            const at: number = axis === 1 ? i * s.cols + line : line * s.cols + i;
+            const value: number = candidates[0][i];
+            if (known[at] < 0 && candidates.every((bits: number[]) => bits[i] === value)) { known[at] = value; changed = true; }
+          }
+        }
+      }
+      if (known.every((value: number) => value >= 0)) { return true; }
+      if (!changed) { return false; }
+    }
+    return false;
   }
   private question(): void {
     const s: CollectionState = this.state; const a: number = this.random(10 + s.level * 15) + 1;

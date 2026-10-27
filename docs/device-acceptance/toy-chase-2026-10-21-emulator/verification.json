@@ -1,0 +1,412 @@
+{
+  "date": "2026-10-21",
+  "scope": "Two toy-style games; desktop logic, native builds and isolated emulator evidence are separate.",
+  "physicalPhone": {
+    "connected": false,
+    "tested": false
+  },
+  "emulator": {
+    "name": "LittleGamesToyArt",
+    "target": "127.0.0.1:5555",
+    "api": 26,
+    "abi": "x86_64",
+    "themeRestored": true
+  },
+  "builds": [
+    {
+      "mode": "debug",
+      "passed": true,
+      "path": ".local-tools/toy-chase/entry-debug.hap",
+      "bytes": 13256694,
+      "sha256": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5"
+    },
+    {
+      "mode": "release",
+      "passed": true,
+      "path": ".local-tools/toy-chase/entry-release.hap",
+      "bytes": 10366634,
+      "sha256": "1a5bd02586b26bac2126da4ba98eac8529afc99028f895542d443a3c173d8498"
+    }
+  ],
+  "regressions": {
+    "suites": 30,
+    "passed": 1370,
+    "total": 1370,
+    "complete": true,
+    "results": [
+      {
+        "script": "test-card-ai",
+        "exitCode": 0,
+        "passed": 29,
+        "total": 29,
+        "error": null
+      },
+      {
+        "script": "test-chess-ai",
+        "exitCode": 0,
+        "passed": 21,
+        "total": 21,
+        "error": null
+      },
+      {
+        "script": "test-classic-logic-audit",
+        "exitCode": 0,
+        "passed": 32,
+        "total": 32,
+        "error": null
+      },
+      {
+        "script": "test-collection",
+        "exitCode": 0,
+        "passed": 67,
+        "total": 67,
+        "error": null
+      },
+      {
+        "script": "test-computer-opponents",
+        "exitCode": 0,
+        "passed": 54,
+        "total": 54,
+        "error": null
+      },
+      {
+        "script": "test-continuation",
+        "exitCode": 0,
+        "passed": 83,
+        "total": 83,
+        "error": null
+      },
+      {
+        "script": "test-expansion",
+        "exitCode": 0,
+        "passed": 318,
+        "total": 318,
+        "error": null
+      },
+      {
+        "script": "test-expansion-art",
+        "exitCode": 0,
+        "passed": 7,
+        "total": 7,
+        "error": null
+      },
+      {
+        "script": "test-expansion-completion",
+        "exitCode": 0,
+        "passed": 191,
+        "total": 191,
+        "error": null
+      },
+      {
+        "script": "test-expansion-gameplay-audit",
+        "exitCode": 0,
+        "passed": 159,
+        "total": 159,
+        "error": null
+      },
+      {
+        "script": "test-expansion-render-audit",
+        "exitCode": 0,
+        "passed": 14,
+        "total": 14,
+        "error": null
+      },
+      {
+        "script": "test-game-settings",
+        "exitCode": 0,
+        "passed": 12,
+        "total": 12,
+        "error": null
+      },
+      {
+        "script": "test-generation-logic",
+        "exitCode": 0,
+        "passed": 26,
+        "total": 26,
+        "error": null
+      },
+      {
+        "script": "test-klotski-ui-state",
+        "exitCode": 0,
+        "passed": 3,
+        "total": 3,
+        "error": null
+      },
+      {
+        "script": "test-performance",
+        "exitCode": 0,
+        "passed": 165,
+        "total": 165,
+        "error": null
+      },
+      {
+        "script": "test-play-history",
+        "exitCode": 0,
+        "passed": 10,
+        "total": 10,
+        "error": null
+      },
+      {
+        "script": "test-play-time",
+        "exitCode": 0,
+        "passed": 34,
+        "total": 34,
+        "error": null
+      },
+      {
+        "script": "test-poker-ai",
+        "exitCode": 0,
+        "passed": 11,
+        "total": 11,
+        "error": null
+      },
+      {
+        "script": "test-single-player-catalog",
+        "exitCode": 0,
+        "passed": 17,
+        "total": 17,
+        "error": null
+      },
+      {
+        "script": "test-window-sizing",
+        "exitCode": 0,
+        "passed": 8,
+        "total": 8,
+        "error": null
+      },
+      {
+        "script": "test-world-piece-refresh",
+        "exitCode": 0,
+        "passed": 8,
+        "total": 8,
+        "error": null
+      },
+      {
+        "script": "test-local-game-saves",
+        "exitCode": 0,
+        "passed": 20,
+        "total": 20,
+        "error": null
+      },
+      {
+        "script": "test-daily-featured",
+        "exitCode": 0,
+        "passed": 11,
+        "total": 11,
+        "error": null
+      },
+      {
+        "script": "test-line-rescue",
+        "exitCode": 0,
+        "passed": 9,
+        "total": 9,
+        "error": null
+      },
+      {
+        "script": "test-game-sounds",
+        "exitCode": 0,
+        "passed": 15,
+        "total": 15,
+        "error": null
+      },
+      {
+        "script": "test-data-recovery",
+        "exitCode": 0,
+        "passed": 3,
+        "total": 3,
+        "error": null
+      },
+      {
+        "script": "test-ui-iteration",
+        "exitCode": 0,
+        "passed": 7,
+        "total": 7,
+        "error": null
+      },
+      {
+        "script": "test-screwout",
+        "exitCode": 0,
+        "passed": 12,
+        "total": 12,
+        "error": null
+      },
+      {
+        "script": "test-toy-scenes",
+        "exitCode": 0,
+        "passed": 12,
+        "total": 12,
+        "error": null
+      },
+      {
+        "script": "test-toy-chase",
+        "exitCode": 0,
+        "passed": 12,
+        "total": 12,
+        "error": null
+      }
+    ]
+  },
+  "randomControlChecks": {
+    "seedsPerGameAndDifficulty": 1000,
+    "difficulties": 3,
+    "games": 2,
+    "rounds": 6000,
+    "allWon": true,
+    "blackholeControlCadenceMs": 300,
+    "driftControlCadenceMs": 200,
+    "blackholeMaxSeconds": 19.032,
+    "driftMaxSampledCenterError": [
+      30.281724,
+      31.906279,
+      33.546879
+    ],
+    "newAndLegacyContinuation": true,
+    "corruptionRejected": true,
+    "pauseAndBackground": true
+  },
+  "native": {
+    "blackhole": {
+      "fullWin": true,
+      "level": "easy",
+      "collected": 35,
+      "goal": 35,
+      "secondsRemaining": 54,
+      "score": 5200,
+      "capture": {
+        "at": "2026-10-21T08:33:01.623Z",
+        "target": "127.0.0.1:5555",
+        "action": "capture",
+        "tag": "blackhole-result",
+        "text": [
+          "黑洞吞噬",
+          "得分 5200 · 最高 7280",
+          "进度 35 / 35",
+          "剩余时间 54 秒",
+          "绿圈可吞噬：0 件，先吃小物体长大",
+          "+240",
+          "黑洞吞噬",
+          "挑战完成",
+          "本局得分：5200",
+          "再来一局",
+          "退出"
+        ],
+        "images": 18,
+        "localHapFileAtCaptureSha256": "27bc6a8ce2245f21b66fc6ee1018458629586b493e2d1187cfc8e13c7dc57018",
+        "installedHapSha256": "27bc6a8ce2245f21b66fc6ee1018458629586b493e2d1187cfc8e13c7dc57018"
+      }
+    },
+    "drift": {
+      "turnsObserved": 12,
+      "outOfRoadLossObserved": true,
+      "fullWin": false,
+      "scope": "Source-level wins are verified separately; screenshot-assisted emulator runs did not finish a win.",
+      "capture": {
+        "at": "2026-10-21T08:40:12.914Z",
+        "target": "127.0.0.1:5555",
+        "action": "capture",
+        "tag": "drift-result",
+        "text": [
+          "单键漂移",
+          "得分 467 · 最高 467",
+          "剩余时间 21 秒",
+          "观察前方弯道，点击漂移切换左右滑行方向",
+          "+1",
+          "单键漂移",
+          "本局结束",
+          "本局得分：467",
+          "再来一局",
+          "退出"
+        ],
+        "images": 8,
+        "localHapFileAtCaptureSha256": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5",
+        "installedHapSha256": "27bc6a8ce2245f21b66fc6ee1018458629586b493e2d1187cfc8e13c7dc57018"
+      }
+    },
+    "finalFronts": [
+      {
+        "at": "2026-10-21T08:42:22.402Z",
+        "target": "127.0.0.1:5555",
+        "packageHash": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5",
+        "action": "capture",
+        "tag": "drift-light-ready",
+        "text": [
+          "单键漂移",
+          "得分 0 · 最高 467",
+          "剩余时间 40 秒",
+          "观察前方弯道，点击漂移切换左右滑行方向"
+        ],
+        "images": 2
+      },
+      {
+        "at": "2026-10-21T08:42:45.760Z",
+        "target": "127.0.0.1:5555",
+        "packageHash": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5",
+        "action": "capture",
+        "tag": "blackhole-dark",
+        "text": [
+          "黑洞吞噬",
+          "得分 0 · 最高 7280",
+          "进度 0 / 45",
+          "剩余时间 100 秒",
+          "绿圈可吞噬：24 件，先吃小物体长大"
+        ],
+        "images": 1
+      },
+      {
+        "at": "2026-10-21T08:43:00.418Z",
+        "target": "127.0.0.1:5555",
+        "packageHash": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5",
+        "action": "capture",
+        "tag": "drift-dark",
+        "text": [
+          "单键漂移",
+          "得分 0 · 最高 467",
+          "剩余时间 40 秒",
+          "观察前方弯道，点击漂移切换左右滑行方向"
+        ],
+        "images": 2
+      }
+    ],
+    "blackholeWinPrecedesRulesCopyOnlyChange": true,
+    "interactionInstalledHapSha256": "27bc6a8ce2245f21b66fc6ee1018458629586b493e2d1187cfc8e13c7dc57018",
+    "finalFrontInstalledHapSha256": "93a6ce4111e164beeb1b61e93c2a0d046bc7ae5e4d008debbe7bbed5bd6b00f5"
+  },
+  "assets": {
+    "originalGeometry": true,
+    "noRuntimeBrowserOrThreeJS": true,
+    "assets": [
+      {
+        "name": "toy/blackhole.glb",
+        "bytes": 525796,
+        "packaged": true,
+        "meshes": 24,
+        "nodes": 461
+      },
+      {
+        "name": "toy/blackhole_dark.glb",
+        "bytes": 525796,
+        "packaged": true,
+        "meshes": 24,
+        "nodes": 461
+      },
+      {
+        "name": "blackhole_preview.png",
+        "bytes": 190866,
+        "packaged": false
+      },
+      {
+        "name": "blackhole_preview_dark.png",
+        "bytes": 193629,
+        "packaged": false
+      },
+      {
+        "name": "toy_drift_car.png",
+        "bytes": 3507,
+        "packaged": true
+      }
+    ],
+    "totalBytes": 1055099
+  },
+  "sourceChangesCommitted": false,
+  "sourceChangesPushed": false
+}

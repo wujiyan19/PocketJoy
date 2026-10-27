@@ -1,0 +1,35 @@
+{
+  "createdAt": "2026-10-27T08:47:51.089Z",
+  "results": [
+    {
+      "mode": "debug",
+      "exitCode": 0,
+      "error": null,
+      "haps": [
+        {
+          "file": "entry/build/default/outputs/default/entry-default-signed.hap",
+          "sha256": "b99a923d87589c5a06a2060811a63aba7c331466bebb6be3fcd2a5ee787a051c"
+        },
+        {
+          "file": "entry/build/default/outputs/default/entry-default-unsigned.hap",
+          "sha256": "89e105300b383433111ae373fffb9ce08eabd2615a5e6d1a01db77bb5eb3e403"
+        }
+      ]
+    },
+    {
+      "mode": "release",
+      "exitCode": 0,
+      "error": null,
+      "haps": [
+        {
+          "file": "entry/build/default/outputs/default/entry-default-signed.hap",
+          "sha256": "6356ca11d327f25820a3f198ff155762b58949010554bec6b7c37e67cc686bb2"
+        },
+        {
+          "file": "entry/build/default/outputs/default/entry-default-unsigned.hap",
+          "sha256": "24c09171e62d317738056ddb2331fcc63ad17d8c4e70499c49113a0cd5d96de2"
+        }
+      ]
+    }
+  ]
+}

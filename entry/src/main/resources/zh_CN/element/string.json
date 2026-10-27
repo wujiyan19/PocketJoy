@@ -1382,7 +1382,7 @@
     },
     {
       "name": "game_hanoi_rules",
-      "value": "先点来源柱，再点目标柱，每次只能移动最上方最小的圆盘。小盘可放在大盘上，反之不可。将所有圆盘移至第 3 柱。数字越小盘越小。"
+      "value": "先点来源柱，再点目标柱，每次只能移动最上方圆盘，大盘不能放在小盘上。本局会给出不同起局和目标柱，按画面提示将全部圆盘移至目标柱。可挑战显示的最少步数和完成时间。"
     },
     {
       "name": "game_peg_name",
@@ -1406,19 +1406,19 @@
     },
     {
       "name": "game_nonogram_rules",
-      "value": "行列线索描述连续实心格的组长，例如 2 1 表示连续两格、至少一格空白、再一格。点击切换填色。完成后点检查；任何满足全部线索的解都有效。"
+      "value": "行列数字表示连续填色格的组长。题面已通过行列逻辑筛选，无需猜格。可选择填格或标空，再点击格子；完成后点检查。旧版存档仍可继续。"
     },
     {
       "name": "game_arithmetic_name",
-      "value": "心算十题"
+      "value": "数学挑战"
     },
     {
       "name": "game_arithmetic_desc",
-      "value": "加减乘十题练习，挑战心算准确率。"
+      "value": "心算、比较、数列、进制与补数，按模式挑战并保留各自成绩。"
     },
     {
       "name": "game_arithmetic_rules",
-      "value": "选择每道算式的正确答案，共 10 题。答对获得难度对应分数，答错不得分，完成后结算总分。"
+      "value": "先选择心算、比大小、数列、二进制或补数模式。每局十题，答对计分；每种模式按难度分别记录成绩，原有最高分保留。"
     },
     {
       "name": "game_compare_name",
@@ -1674,7 +1674,7 @@
     },
     {
       "name": "game_runner_name",
-      "value": "无尽跑酷"
+      "value": "跑酷闯关"
     },
     {
       "name": "game_runner_desc",
@@ -1694,7 +1694,7 @@
     },
     {
       "name": "game_blackhole_rules",
-      "value": "点击或拖动地面引导黑洞，吞下比自己小的物体并逐渐长大。倒计时内吞下所有物体即可获胜，大物体需要先吃小物体才能吞下。"
+      "value": "点击或拖动引导黑洞，先吞下带绿圈的小物体长大，再收集更大的玩具。倒计时结束前吞下全部物体即可获胜。每局玩具的位置都会变化，续玩保留当前局面。"
     },
     {
       "name": "game_fisheat_name",
@@ -1798,11 +1798,11 @@
     },
     {
       "name": "game_rhythm_desc",
-      "value": "点击开始后，音符沿四条轨道落下"
+      "value": "四轨落键与三键跳跃两种节拍模式。"
     },
     {
       "name": "game_rhythm_rules",
-      "value": "点击开始后，音符沿四条轨道落下。当音符到达横线时点击对应琴键，越接近横线得分越高。完成整段节奏获胜，漏按或误按累计五次结束。"
+      "value": "可选择四轨落键或三键节拍跳跃。落键模式在音符到达横线时点击对应轨道；跳跃模式按提示方向在节拍窗口内点击。误按或漏按累计五次结束，两种模式分别记录成绩。"
     },
     {
       "name": "game_restaurant_name",
@@ -1994,7 +1994,7 @@
     },
     {
       "name": "game_tanks_rules",
-      "value": "拖动坦克移动，炮台会自动瞄准最近的敌军。躲避敌军追击和炮弹，清空全部进攻坦克获胜，三点生命耗尽失败。"
+      "value": "拖动坦克避开障碍、追击和炮弹，炮台自动瞄准最近敌军。掩体会挡住双方炮弹，绕过或借助掩体选择射线，清完敌军获胜。"
     },
     {
       "name": "game_fortress_name",
@@ -2018,7 +2018,7 @@
     },
     {
       "name": "game_survival_rules",
-      "value": "拖动角色躲避追击，武器自动瞄准最近敌人。消灭全部连续波次获胜，敌人接触扣一点生命，生命耗尽失败。"
+      "value": "拖动躲避不同速度与耐力的敌人，武器自动攻击。击败敌人得到升级点，可选择增加攻击、提高射速或恢复生命。清完敌潮获胜，生命耗尽结束。"
     },
     {
       "name": "game_backpack_name",
@@ -2058,7 +2058,7 @@
     },
     {
       "name": "game_pingpong_name",
-      "value": "乒乓球"
+      "value": "挡板对战"
     },
     {
       "name": "game_pingpong_desc",
@@ -2102,7 +2102,7 @@
     },
     {
       "name": "game_drift_rules",
-      "value": "点击开始后汽车持续横向滑行，点击漂移按钮切换左右方向，保持车身在弯曲赛道内。坚持到倒计时结束获胜，驶出道路失败。"
+      "value": "每局都会生成不同的平滑赛道。点击开始后汽车自动横向滑行，点击漂移切换左右方向。保持整辆车在道路内，坚持到倒计时结束获胜，驶出道路失败。重新开局更换赛道，续玩保留当前赛道。"
     },
     {
       "name": "game_hillclimb_name",
@@ -2294,7 +2294,7 @@
     },
     {
       "name": "game_picturepuzzle_rules",
-      "value": "参考上方完整图片，依次点击两块碎片交换位置。所有碎片可以任意互换，将场景还原获胜。难度越高，碎片越多，完成所用步数越少得分越高。"
+      "value": "参考完整图片，点击两块碎片交换，还原场景。新局随机选择四种画面，难度改变碎片数；每幅图按难度分别记录成绩。"
     },
     {
       "name": "game_idiom_name",
@@ -2378,7 +2378,7 @@
     },
     {
       "name": "game_fishing_rules",
-      "value": "抛竿后等待咬钩提示，及时提竿。按住收线增加进度与张力，松开可以缓解张力。张力低于五或高于九十五会跑鱼，累计钓到五条获胜，漏钩或断线三次结束。"
+      "value": "等待咬钩后及时提竿，按住收线、松开缓解张力。六种鱼有不同的挣扎与收线节奏，留意鱼种提示；稳住张力可得更高分，并记录本局鱼种。钓到五条获胜，失误三次结束。"
     },
     {
       "name": "art_try_again",
@@ -2450,15 +2450,15 @@
     },
     {
       "name": "module_desc",
-      "value": "玩趣盒 - 六大分类，76 款单人小游戏"
+      "value": "玩趣盒 - 六大分类，64 款单人小游戏"
     },
     {
       "name": "app_splash_subtitle",
-      "value": "76 款单人小游戏，随手开一局。"
+      "value": "64 款单人小游戏，随手开一局。"
     },
     {
       "name": "settings_about_tagline",
-      "value": "六大分类，76 款单人小游戏"
+      "value": "六大分类，64 款单人小游戏"
     },
     {
       "name": "expansion_target",
@@ -3026,7 +3026,7 @@
     },
     {
       "name": "game_whackmole_rules",
-      "value": "在倒计时结束前点击冒出的地鼠得分，点击空洞会扣分。难度越高，地鼠出现和消失越快。可在设置中暂停倒计时、继续或重新开始。"
+      "value": "每档均挑战30秒。点击地鼠得分，点空洞扣分；难度越高出现与消失越快，每档分别记录最高分。"
     },
     {
       "name": "game_minesweeper_rules",
@@ -3034,7 +3034,7 @@
     },
     {
       "name": "game_sudoku_rules",
-      "value": "选中空格后用数字按钮填入1至9，让每行、每列和每个3×3宫都不重复。固定数字不能修改，可用清除按钮删除填写的数字。支持双指缩放棋盘。在设置中可调整难度、重新开始当前题目或生成新游戏。"
+      "value": "填入1至9，让每行、每列和每个3×3宫都不重复。新题同时按提示量与解题技法筛选：简单可用显性唯一数，普通需隐性唯一数，困难需进一步推理。固定数字不能修改；可重新开始当前题目或生成新题。"
     },
     {
       "name": "game_slidepuzzle_rules",
@@ -3450,7 +3450,7 @@
     },
     {
       "name": "game_arithmetic_brief",
-      "value": "快速完成算式"
+      "value": "五种数学题型"
     },
     {
       "name": "game_compare_brief",
@@ -3518,7 +3518,7 @@
     },
     {
       "name": "game_runner_brief",
-      "value": "闪避路上的障碍"
+      "value": "换道躲障碍"
     },
     {
       "name": "game_blackhole_brief",
@@ -3634,7 +3634,7 @@
     },
     {
       "name": "game_pingpong_brief",
-      "value": "接球反击得分"
+      "value": "移动挡板接球"
     },
     {
       "name": "game_bowling_brief",
@@ -3723,6 +3723,154 @@
     {
       "name": "toy_screw_slot_color",
       "value": "暂存孔 %d，%d 号色螺丝"
+    },
+    {
+      "name": "toy_blackhole_edible",
+      "value": "绿圈可吞噬：%d 件，先吃小物体长大"
+    },
+    {
+      "name": "toy_blackhole_board",
+      "value": "玩具黑洞棋盘，点击或拖动移动，吞下绿圈物体长大"
+    },
+    {
+      "name": "toy_drift_hint",
+      "value": "观察前方弯道，点击漂移切换左右滑行方向"
+    },
+    {
+      "name": "toy_drift_car",
+      "value": "漂移玩具车"
+    },
+    {
+      "name": "mode_arithmetic",
+      "value": "心算"
+    },
+    {
+      "name": "mode_rhythm",
+      "value": "四轨落键"
+    },
+    {
+      "name": "mode_change_title",
+      "value": "切换玩法模式"
+    },
+    {
+      "name": "mode_best",
+      "value": "本模式本档最佳：%d"
+    },
+    {
+      "name": "mode_archived_best",
+      "value": "历史最高分（含旧版）：%d"
+    },
+    {
+      "name": "mode_2048_rules",
+      "value": "新方块出现 4 的概率"
+    },
+    {
+      "name": "mode_2048_5",
+      "value": "5%"
+    },
+    {
+      "name": "mode_2048_10",
+      "value": "10%"
+    },
+    {
+      "name": "mode_2048_20",
+      "value": "20%"
+    },
+    {
+      "name": "record_elapsed",
+      "value": "用时 %s 秒 · 最佳 %s 秒"
+    },
+    {
+      "name": "record_mode_score",
+      "value": "本档最佳：%d"
+    },
+    {
+      "name": "nonogram_fill",
+      "value": "填格"
+    },
+    {
+      "name": "nonogram_mark",
+      "value": "标空"
+    },
+    {
+      "name": "nonogram_logic",
+      "value": "题目已通过行列逻辑校验"
+    },
+    {
+      "name": "hanoi_goal",
+      "value": "目标柱 %d · 最少 %d 步"
+    },
+    {
+      "name": "replay_image",
+      "value": "画面 %d"
+    },
+    {
+      "name": "survival_upgrade",
+      "value": "升级点：%d"
+    },
+    {
+      "name": "survival_power",
+      "value": "攻击 +1（20）"
+    },
+    {
+      "name": "survival_rate",
+      "value": "射速提升（20）"
+    },
+    {
+      "name": "survival_heal",
+      "value": "恢复生命（20）"
+    },
+    {
+      "name": "fishing_species_1",
+      "value": "悠游鱼：平稳收线"
+    },
+    {
+      "name": "fishing_species_2",
+      "value": "急游鱼：留意张力"
+    },
+    {
+      "name": "fishing_species_3",
+      "value": "耐力鱼：缓慢回收"
+    },
+    {
+      "name": "fishing_species_4",
+      "value": "跃动鱼：张力起伏"
+    },
+    {
+      "name": "fishing_species_5",
+      "value": "沉游鱼：及时松线"
+    },
+    {
+      "name": "fishing_species_6",
+      "value": "疾跃鱼：短按收线"
+    },
+    {
+      "name": "fishing_log",
+      "value": "本局已钓鱼种：%d / 6"
+    },
+    {
+      "name": "sudoku_rating_0",
+      "value": "解题提示：可用显性唯一数完成"
+    },
+    {
+      "name": "sudoku_rating_1",
+      "value": "解题提示：需要隐性唯一数"
+    },
+    {
+      "name": "sudoku_rating_2",
+      "value": "解题提示：需要进一步推理"
+    },
+    {
+      "name": "record_rule_best",
+      "value": "当前规则最佳"
+    },
+    {
+      "name": "hanoi_goal_only",
+      "value": "目标柱 %d"
+    },
+    {
+      "name": "whack_legacy_round",
+      "value": "继续旧版对局；下局统一为30秒"
     }
   ]
 }

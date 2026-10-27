@@ -1,0 +1,70 @@
+{
+  "createdAt": "2026-10-27T07:40:41.743Z",
+  "scope": "Existing relevant desktop model and catalog suites; no native/device claims",
+  "results": [
+    {
+      "script": "test-single-player-catalog",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "17/17 single-player catalog regressions passed."
+      ]
+    },
+    {
+      "script": "test-generation-logic",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "26/26 generation/difficulty regressions passed."
+      ]
+    },
+    {
+      "script": "test-collection",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "67/67 collection regressions passed."
+      ]
+    },
+    {
+      "script": "test-expansion",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "318/318 expansion checks passed"
+      ]
+    },
+    {
+      "script": "test-expansion-completion",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "191/191 completion checks passed"
+      ]
+    },
+    {
+      "script": "test-chess-ai",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "21/21 chess AI regressions passed."
+      ]
+    },
+    {
+      "script": "test-screwout",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "12/12 screw puzzle checks passed"
+      ]
+    },
+    {
+      "script": "test-toy-chase",
+      "exitCode": 0,
+      "error": null,
+      "summary": [
+        "12/12 toy chase checks passed"
+      ]
+    }
+  ]
+}

@@ -223,10 +223,10 @@ for (let level = 0; level < 3; level++) {
   });
   test(`peg/${difficulties[level]}: 300 seeds have the requested move depth`, () => {
     for (let seed = 1; seed <= 300; seed++) {
-      const m = create('peg', level, seed); assert.equal(m.state.board.filter(v => v === 1).length, 5 + level); solvePeg(m);
+      const m = create('peg', level, seed); assert.equal(m.state.board.filter(v => v === 1).length, 5 + level * 3); solvePeg(m);
     }
     for (const value of [0, 0.5, 0.999999]) {
-      const m = new CollectionModel(bounded(value)); m.start('peg', level); assert.equal(m.state.board.filter(v => v === 1).length, 5 + level); solvePeg(m);
+      const m = new CollectionModel(bounded(value)); m.start('peg', level); assert.equal(m.state.board.filter(v => v === 1).length, 5 + level * 3); solvePeg(m);
     }
   });
   test(`lights and flood/${difficulties[level]}: 300 seeds and repeated random sources finish within their rules`, () => {

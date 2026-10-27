@@ -3,22 +3,25 @@ const { fixture } = require('./test-performance.cjs');
 const tests = [];
 const test = (name, fn) => tests.push({name, fn});
 test('moves and selection update retained pieces, including the new hit coordinates', () => {
-  const vm = fixture().vm('KlotskiViewModel'); vm.startGame();
-  const soldier = vm.piecesForView().find(p => p.x === 0 && p.y === 3);
-  vm.selectBlockAt(3, 0); assert.equal(soldier.selected, true);
-  vm.moveBlock(1, 0); assert.equal(soldier.x, 1); assert.equal(soldier.y, 3);
+  const f=fixture(),vm = f.vm('KlotskiViewModel',f.rng(3)); vm.startGame();
+  const rules=new(f.rules('Klotski').KlotskiRules)(4,5),blocks=JSON.parse(vm.exportContinuation()).blocks;
+  const move=blocks.flatMap(p=>[[0,-1],[1,0],[0,1],[-1,0]].map(([dx,dy])=>({p,dx,dy})))
+    .find(({p,dx,dy})=>rules.canMove(blocks,rules.buildGrid(blocks),p.id,dx,dy));
+  assert(move);const soldier=vm.piecesForView().find(p=>p.id===move.p.id),x=soldier.x,y=soldier.y;
+  vm.selectBlockAt(y,x); assert.equal(soldier.selected, true);
+  vm.moveBlock(move.dx,move.dy); assert.equal(soldier.x,x+move.dx); assert.equal(soldier.y,y+move.dy);
   assert.equal(vm.stepCount, 1);
   vm.selectBlockAt(soldier.y, soldier.x); assert.equal(soldier.selected, false);
-  vm.selectBlockAt(soldier.y, soldier.x); vm.moveBlock(0, 1);
-  assert.equal(soldier.y, 4); assert.equal(vm.stepCount, 2);
-  vm.moveBlock(0, 1); assert.equal(soldier.y, 4); assert.equal(vm.stepCount, 2);
+  vm.selectBlockAt(soldier.y, soldier.x); vm.moveBlock(-move.dx,-move.dy);
+  assert.equal(soldier.x,x);assert.equal(soldier.y,y);assert.equal(vm.stepCount,2);
+  vm.moveBlock(2,0);assert.equal(soldier.x,x);assert.equal(vm.stepCount,2);
   assert.equal(vm.piecesForView().find(p => p.id === soldier.id), soldier);
 });
-test('restart restores positions and clears retained selection', () => {
-  const vm = fixture().vm('KlotskiViewModel'); vm.startGame();
-  const soldier = vm.piecesForView().find(p => p.x === 0 && p.y === 3);
-  vm.selectBlockAt(3, 0); vm.moveBlock(1, 0); vm.startGame();
-  assert.equal(soldier.x, 0); assert.equal(soldier.y, 3);
+test('a new deal updates retained positions and clears selection', () => {
+  const f=fixture(),vm = f.vm('KlotskiViewModel',f.rng(7)); vm.startGame();
+  const soldier=vm.piecesForView()[0];vm.selectBlockAt(soldier.y,soldier.x);vm.startGame();
+  const original=JSON.parse(vm.exportContinuation()).blocks.find(p=>p.id===soldier.id);
+  assert.equal(soldier.x,original.x);assert.equal(soldier.y,original.y);
   assert.equal(soldier.selected, false); assert.equal(vm.stepCount, 0);
 });
 test('all difficulties and continuation restore expose current pieces', () => {

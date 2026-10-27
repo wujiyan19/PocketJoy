@@ -140,8 +140,9 @@ export struct SudokuPage {
         .linearGradient({ angle: 180, colors: [[SemanticColors.gradientScreen[0], 0], [SemanticColors.gradientScreen[1], 0.5], [SemanticColors.gradientScreen[2], 1]] })
 
       Column() {
-
-
+        Text(this.viewModel.logicRating === 0 ? $r('app.string.sudoku_rating_0') : this.viewModel.logicRating === 1 ?
+          $r('app.string.sudoku_rating_1') : $r('app.string.sudoku_rating_2'))
+          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
         if (this.viewModel.saveRestoreFailed) {
           Text($r('app.string.save_restore_failed'))
             .fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textSecondary)

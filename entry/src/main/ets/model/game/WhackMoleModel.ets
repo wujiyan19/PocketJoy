@@ -19,8 +19,6 @@ export class WhackResult {
 
 export class WhackMoleRules {
   getGameTime(difficulty: GameDifficulty): number {
-    if (difficulty === GameDifficulty.EASY) { return 40; }
-    if (difficulty === GameDifficulty.HARD) { return 20; }
     return 30;
   }
 

@@ -298,11 +298,13 @@ export struct Game2048Page {
           .alignItems(HorizontalAlign.Center).margin({ left: 16 })
 
           Column() {
-            Text($r('app.string.high_score_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text('' + this.viewModel.highScore).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.textPrimary)
+            Text($r('app.string.record_rule_best')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
+            Text('' + this.viewModel.modeBest()).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.textPrimary)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.lg)
           .alignItems(HorizontalAlign.Center).margin({ left: 8, right: 16 })
         }.margin({ top: 12, bottom: 12 })
+        Text($r('app.string.mode_archived_best', this.viewModel.highScore))
+          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
 
         Column() {
           Column() {

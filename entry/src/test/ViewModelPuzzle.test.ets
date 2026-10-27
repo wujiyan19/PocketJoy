@@ -9,6 +9,16 @@ import { MemoryCardViewModel } from '../main/ets/viewmodel/MemoryCardViewModel';
 import { SudokuViewModel } from '../main/ets/viewmodel/SudokuViewModel';
 import { SeededRandom } from '../main/ets/model/game/RandomSource';
 import { GameDifficulty, GameStatus } from '../main/ets/common/GameConstants';
+import { KlotskiBlock, KlotskiRules } from '../main/ets/model/game/KlotskiModel';
+
+interface KlotskiFixture {
+  version: number;
+  blocks: KlotskiBlock[];
+  selId: string;
+  stepCount: number;
+  status: GameStatus;
+  difficulty: GameDifficulty;
+}
 
 export default function viewModelPuzzleTest() {
 
@@ -103,6 +113,9 @@ export default function viewModelPuzzleTest() {
       const vm = new KlotskiViewModel();
       vm.difficulty = GameDifficulty.EASY;
       vm.startGame();
+      const saved: KlotskiFixture = { version: 1, blocks: new KlotskiRules(4, 5).layout(GameDifficulty.EASY),
+        selId: '', stepCount: 0, status: GameStatus.PLAYING, difficulty: GameDifficulty.EASY };
+      expect(vm.importContinuation(JSON.stringify(saved))).assertTrue();
       // EASY 布局：b1 在 (行2,列1)，下方 (行3,列1) 空
       vm.selectBlockAt(2, 1);
       expect(vm.isSelected(2, 1)).assertTrue();
@@ -123,6 +136,9 @@ export default function viewModelPuzzleTest() {
       const vm = new KlotskiViewModel();
       vm.difficulty = GameDifficulty.EASY;
       vm.startGame();
+      const saved: KlotskiFixture = { version: 1, blocks: new KlotskiRules(4, 5).layout(GameDifficulty.EASY),
+        selId: '', stepCount: 0, status: GameStatus.PLAYING, difficulty: GameDifficulty.EASY };
+      expect(vm.importContinuation(JSON.stringify(saved))).assertTrue();
       // 曹操 2x2 在 (1,0)，下方被 b1/b2 挡住，不能下移
       vm.selectBlockAt(0, 1);
       vm.moveBlock(0, 1);

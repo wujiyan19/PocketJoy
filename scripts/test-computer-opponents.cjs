@@ -39,6 +39,8 @@ function humanTurn(vm) {
     }
   }
   assert.equal(vm.computerThinking, true, `${vm.state.id} hands the turn to a computer`);
+  // The rendered board acknowledges landing before the opponent delay starts.
+  vm.finishChessAnimation(vm.chessAnimationSerial);
 }
 
 function computerRound(f, vm) {

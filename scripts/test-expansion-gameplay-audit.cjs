@@ -198,7 +198,7 @@ test('fisheat: a terminal 8 ms frame publishes growth and loss before the frame 
 for (const level of [0, 1, 2]) test(`hillclimb/${level}: crossing the finish during a fatal landing keeps the loss`, () => {
   const f = fixture(); const { ExpansionModel } = f.rules('Expansion');
   const m = new ExpansionModel(f.rng(8)); m.start('hillclimb', level); m.activate(); m.tap(0);
-  const car = m.state.pieces[0]; car.x = m.state.goal - 0.1; car.y = m.sports.terrain(car.x) - 18; car.vx = 100; car.vy = 400;
+  const car = m.state.pieces[0]; car.x = m.state.goal - 0.1; car.y = m.sports.terrain(car.x, m.state) - 18; car.vx = 100; car.vy = 400;
   assert(m.valid(m.state));
   m.step(0.008);
   assert(car.x >= m.state.goal); assert.equal(car.vy, 0); assert.equal(m.state.outcome, 2); assert.equal(m.state.score, Math.floor(car.x)); assert(m.valid(m.state));

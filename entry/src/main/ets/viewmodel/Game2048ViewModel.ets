@@ -61,11 +61,13 @@ export class Game2048ViewModel implements GameLifecycleObserver {
     if (this.difficulty === GameDifficulty.HARD) { return 0.2; }
     return 0.1;
   }
+  modeBest(): number { return Math.max(this.score, GameDataManager.getModeScore(GAME_ID, this.difficulty)); }
 
   changeDifficulty(d: GameDifficulty): void {
     if (this.resumePending) { return; }
     GameDataManager.rememberGameDifficulty(GAME_ID, d);
     if (this.difficulty === d) { return; }
+    this.settleCurrentScore(); this.score = 0;
     this.difficulty = d;
     this.startGame();
   }
@@ -121,7 +123,7 @@ export class Game2048ViewModel implements GameLifecycleObserver {
     if (this.rules.isGameOver(this.board)) {
       gameSound.play(GAME_ID, GameSoundEvent.LOSE);
       this.status = GameStatus.OVER;
-      GameDataManager.updateHighScore(GAME_ID, this.score);
+      GameDataManager.updateHighScore(GAME_ID, this.score); GameDataManager.recordMode(GAME_ID, this.difficulty, this.score);
     }
     this.saveCurrentGame();
     return true;
@@ -139,7 +141,7 @@ export class Game2048ViewModel implements GameLifecycleObserver {
    */
   private settleCurrentScore(): void {
     if (this.resumePending || this.savedGameRevision !== GameDataManager.getSavedGameRevision()) { return; }
-    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); }
+    if (this.score > 0) { GameDataManager.updateHighScore(GAME_ID, this.score); GameDataManager.recordMode(GAME_ID, this.difficulty, this.score); }
   }
 
   /** 切后台（GameLifecycleBus）：结算当前分。无定时器，无需暂停 */

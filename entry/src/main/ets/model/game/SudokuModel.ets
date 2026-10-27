@@ -58,6 +58,40 @@ export class SudokuRules {
     return 29;
   }
 
+  /** 0: naked singles; 1: hidden singles; 2: neither technique completes the puzzle. */
+  logicRating(input: number[]): number {
+    const board: number[] = input.slice(); let rating: number = 0;
+    for (let step: number = 0; step < 81; step++) {
+      const masks: number[] = new Array<number>(81).fill(0); let changed: boolean = false;
+      for (let at: number = 0; at < 81; at++) {
+        if (board[at] !== 0) { continue; }
+        const row: number = Math.floor(at / 9); const col: number = at % 9; let used: number = 0;
+        for (let i: number = 0; i < 9; i++) {
+          const values: number[] = [board[row * 9 + i], board[i * 9 + col],
+            board[Math.floor(row / 3) * 27 + Math.floor(col / 3) * 3 + Math.floor(i / 3) * 9 + i % 3]];
+          values.forEach((value: number) => { if (value > 0) { used |= 1 << (value - 1); } });
+        }
+        masks[at] = 511 & ~used;
+        if (this.popCount[masks[at]] === 1) { board[at] = this.bitToVal[masks[at]]; changed = true; }
+      }
+      if (!board.includes(0)) { return rating; }
+      if (changed) { continue; }
+      for (let unit: number = 0; unit < 27 && !changed; unit++) {
+        for (let digit: number = 1; digit <= 9 && !changed; digit++) {
+          let found: number = -1; let count: number = 0;
+          for (let i: number = 0; i < 9; i++) {
+            const at: number = unit < 9 ? unit * 9 + i : unit < 18 ? i * 9 + unit - 9 :
+              Math.floor((unit - 18) / 3) * 27 + (unit - 18) % 3 * 3 + Math.floor(i / 3) * 9 + i % 3;
+            if (board[at] === 0 && (masks[at] & (1 << (digit - 1))) !== 0) { found = at; count++; }
+          }
+          if (count === 1) { board[found] = digit; rating = 1; changed = true; }
+        }
+      }
+      if (!changed) { return 2; }
+    }
+    return 2;
+  }
+
   private shuffled9(rng: RandomSource): number[] {
     const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     for (let i = 8; i > 0; i--) {
@@ -205,6 +239,7 @@ export class SudokuRules {
    */
   generatePuzzle(difficulty: GameDifficulty, previousKey: string, rng: RandomSource): PuzzleResult {
     const targetClues = this.targetClues(difficulty);
+    const rating: number = difficulty === GameDifficulty.EASY ? 0 : difficulty === GameDifficulty.HARD ? 2 : 1;
     for (let attempt = 0; attempt < 30; attempt++) {
       const solution = this.generateSolution(rng);
       const candidate = this.copyGrid(solution);
@@ -228,11 +263,12 @@ export class SudokuRules {
         }
       }
       const key = this.boardKey(candidate);
-      if (key !== previousKey) {
+      if (key !== previousKey && this.logicRating(candidate) === rating) {
         return new PuzzleResult(candidate, key);
       }
     }
-    const fb = this.fallbackPuzzle(difficulty);
+    let fb: number[] = this.fallbackPuzzle(difficulty);
+    if (this.boardKey(fb) === previousKey) { fb = fb.map((value: number) => value === 0 ? 0 : value % 9 + 1); }
     return new PuzzleResult(fb, this.boardKey(fb));
   }
 
@@ -241,7 +277,7 @@ export class SudokuRules {
    * 原实现硬编码的困难题面解不唯一（单测已抓出），硬编码再漂亮也不如由求解器兜底可靠。
    */
   fallbackPuzzle(difficulty: GameDifficulty): number[] {
-    const rng: RandomSource = new SeededRandom(20240912);
+    const rng: RandomSource = new SeededRandom(difficulty === GameDifficulty.NORMAL ? 3 : 1);
     const solution = this.generateSolution(rng);
     const candidate = this.copyGrid(solution);
     const cells: number[] = [];

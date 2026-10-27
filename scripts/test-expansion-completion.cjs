@@ -1,9 +1,11 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const {fixture} = require('./test-performance.cjs');
+const {steerTank}=require('./retention-game-controls.cjs');
 const f=fixture(), {ExpansionModel,PLAYABLE_EXPANSION_IDS}=f.rules('Expansion');
 const {PokerPattern}=f.load('entry/src/main/ets/model/game/ExpansionPoker.ets');
 const {ExpansionPiece}=f.load('entry/src/main/ets/model/game/ExpansionState.ets');
+const {DriftLevels}=f.load('entry/src/main/ets/model/game/ToyLevelRules.ets');
 const finalIds=require('./expansion-completion-catalog.cjs').games.map(g=>g[0]);
 const cases=[], test=(name,run)=>cases.push({name,run});
 const create=(id,level=1,seed=19)=>{const m=new ExpansionModel(f.rng(seed));m.start(id,level);return m;};
@@ -14,8 +16,8 @@ const card=(rank,suit=0,deck=0)=>rank>=16?52+rank-16+deck*54:(rank===14?0:rank-1
 const cards=ranks=>ranks.map((r,i)=>card(r,i%4));
 const tiles=types=>{const counts=new Array(34).fill(0);return types.map(t=>t*4+counts[t]++);};
 
-test('the available catalog contains exactly 76 unique games with complete retained themed resources',()=>{
-  assert.equal(finalIds.length,39);assert.equal(PLAYABLE_EXPANSION_IDS.length,67);const games=f.data().getAllGames();assert.equal(games.length,76);assert.equal(new Set(games.map(g=>g.id)).size,76);
+test('the available catalog contains exactly 64 unique games with complete retained themed resources',()=>{
+  assert.equal(finalIds.length,39);assert.equal(PLAYABLE_EXPANSION_IDS.length,67);const games=f.data().getAllGames();assert.equal(games.length,64);assert.equal(new Set(games.map(g=>g.id)).size,64);
   for(const locale of ['base','zh_CN','en_US']){
     const entries=JSON.parse(fs.readFileSync(`entry/src/main/resources/${locale}/element/string.json`)).string;assert.equal(new Set(entries.map(e=>e.name)).size,entries.length);
     for(const id of PLAYABLE_EXPANSION_IDS)for(const suffix of ['name','desc','rules'])assert(entries.find(e=>e.name===`game_${id}_${suffix}`)?.value.length>0,`${locale}/${id}/${suffix}`);
@@ -65,9 +67,9 @@ test('fruit slicing follows a segment, awards fruit, fails on bombs and forgets 
   fruit.alive=true;fruit.kind=31;m.state.pieces=[fruit];m.aim(180,230);assert.equal(m.state.outcome,2);assert.equal(m.state.pieces.length,0);assert(m.valid(m.state));
 });
 test('rolling ball has wall response, hole loss and a reachable goal',()=>{
-  const m=create('rollingball');m.activate();m.state.pieces[0].x=100;m.state.pieces[0].y=110;m.state.pieces[0].vy=100;m.step(.008);assert(m.state.pieces[0].vy<0);
+  const m=create('rollingball');m.activate();const wall=m.state.pieces.find(p=>p.kind===26);m.state.pieces[0].x=wall.x+100;m.state.pieces[0].y=wall.y-16.5;m.state.pieces[0].vy=100;m.step(.008);assert(m.state.pieces[0].vy<0);
   const hole=m.state.pieces.find(p=>p.kind===31);m.state.pieces[0].x=hole.x;m.state.pieces[0].y=hole.y;m.step(.008);assert.equal(m.state.outcome,2);
-  const win=create('rollingball');win.activate();const p=win.state.pieces[0];p.x=320;p.y=46;win.step(.008);assert.equal(win.state.outcome,1);
+  const win=create('rollingball');win.activate();const p=win.state.pieces[0];const goal=win.state.pieces.find(p=>p.kind===27);p.x=goal.x;p.y=goal.y;win.step(.008);assert.equal(win.state.outcome,1);
 });
 test('combat bullets damage enemies, enemies damage the defense, and upgrade spends earned coins',()=>{
   for(const id of ['shooter','tanks','fortress','survival']){
@@ -119,7 +121,7 @@ test('golf cup needs a slow approach; stationary ball accepts another stroke',()
 });
 test('drift and hill climb can finish all difficulties through their actual controls',()=>{
   for(const level of [0,1,2]){
-    const drift=create('drift',level);drift.activate();run(drift,55,m=>{const p=m.state.pieces[0],c=180+Math.sin(m.state.time*.65)*90;if((p.x>c+8&&p.vx>0)||(p.x<c-8&&p.vx<0))m.tap(0);});assert.equal(drift.state.outcome,1);
+    const drift=create('drift',level);drift.activate();run(drift,55,m=>{const p=m.state.pieces[0],c=DriftLevels.center(m.state,m.state.time);if((p.x>c+8&&p.vx>0)||(p.x<c-8&&p.vx<0))m.tap(0);});assert.equal(drift.state.outcome,1);
     const hill=create('hillclimb',level);hill.activate();hill.tap(0);run(hill,40);assert.equal(hill.state.outcome,1);hill.releaseControls();assert.equal(hill.state.selected,-1);
   }
 });
@@ -205,14 +207,14 @@ test('fishing reacts to bites, manages tension, lands five fish and loses on thr
 
 for(const id of ['flappy','rollingball','shooter','tanks','fortress','survival'])test(`${id}: actual controls clear complete courses at every difficulty`,()=>{
   for(const level of [0,1,2]){
-    const m=create(id,level);m.activate();let waypoint=0;const path=[[265,410],[265,270],[90,270],[90,180],[265,180],[265,60],[320,45]];
+    const m=create(id,level);m.activate();let waypoint=0;const path=id==='rollingball'?Array.from({length:m.state.target.length/2},(_,i)=>m.state.target.slice(i*2,i*2+2)):[];
     run(m,120,(m,i)=>{
       const p=m.state.pieces[0],enemies=m.state.pieces.filter(q=>q.kind===33),t=i*.008;
       if(id==='flappy'){const g=m.state.pieces.filter(q=>q.kind===29&&q.x+q.w/2>p.x-p.r).sort((a,b)=>a.x-b.x)[0];if(g&&p.y>g.y+18&&p.vy>0)m.tap(0);}
       if(id==='rollingball'){const w=path[Math.min(waypoint,path.length-1)];if(Math.hypot(p.x-w[0],p.y-w[1])<12)waypoint++;m.aim(w[0],w[1]);}
       if(id==='shooter'&&enemies.length)m.aim(enemies[0].x,420);
-      if(id==='tanks')m.aim(180+Math.sin(t*.4)*145,230+Math.cos(t*.4)*180);
-      if(id==='survival')m.aim(180+Math.sin(t*.6)*145,370+Math.cos(t*.6)*50);
+      if(id==='tanks'&&i%12===0)steerTank(m);
+      if(id==='survival'){m.aim(180+Math.sin(t*.6)*145,370+Math.cos(t*.6)*50);if(m.state.data[1]>=20)m.tap(m.state.data[0]<2?2:m.state.board[0]<2?0:1);}
       if(id==='fortress'&&enemies.length){const e=enemies[0],distance=Math.hypot(e.x-p.x,e.y-p.y);m.aim(e.x,e.y+distance/300*(32+level*7));if(m.state.data[1]>=20)m.tap(0);}
     });assert.equal(m.state.outcome,1,`${id}/${level}`);
   }

@@ -2,6 +2,7 @@ import { ExpansionState, ExpansionPiece, ExpansionPile } from './ExpansionState'
 import { ExpansionPuzzle } from './ExpansionPuzzle';
 import { ExpansionScrews } from './ExpansionScrews';
 import { ExpansionPhysics } from './ExpansionPhysics';
+import { BlackholeLevels } from './ToyLevelRules';
 import { ExpansionAdventure } from './ExpansionAdventure';
 import { ExpansionTable, CHARACTER_PARTS, CHARACTER_RECIPES } from './ExpansionTable';
 import { ExpansionArcade } from './ExpansionArcade';
@@ -94,7 +95,7 @@ export class ExpansionModel {
     if (this.state.outcome !== 0) { return; }
     if (BRAIN_IDS.includes(this.state.id)) { this.brain.activate(this.state); } else if (LIFE_IDS.includes(this.state.id)) { this.life.activate(this.state);
     } else if (ACTION_IDS.includes(this.state.id)) { this.actionGames.activate(this.state); } else if (SPORTS_IDS.includes(this.state.id)) { this.sports.activate(this.state);
-    } else if (this.isArcade()) { this.arcade.activate(this.state); } else if (this.state.id === 'runner') { this.adventure.activate(this.state); }
+    } else if (this.isArcade()) { this.arcade.activate(this.state); } else if (this.state.id === 'runner' || this.state.id === 'blackhole') { this.adventure.activate(this.state); }
   }
   aim(x: number, y: number): void {
     if ((!this.realtime() && this.state.id !== 'untangle') || this.state.outcome !== 0 || !V.finite(x) || !V.finite(y) || x < 0 || x > 360 || y < 0 || y > 460) { return; }
@@ -140,6 +141,7 @@ export class ExpansionModel {
   }
 
   valid(s: ExpansionState): boolean {
+    if (!V.integer(s.variant ?? 0, 0, 10)) { return false; }
     if (s === null || !PLAYABLE_EXPANSION_IDS.includes(s.id) || s.id !== this.state.id || !V.integer(s.level, 0, 2) ||
       !V.integer(s.cols, 1, 15) || !V.integer(s.rows, 1, 15) || !V.integer(s.score, 0, 10000000) ||
       !V.integer(s.moves, 0, 1000000) || !V.integer(s.outcome, 0, 2) || !V.integer(s.selected, -1, s.id === 'mahjong' ? 135 : 120) || !V.integer(s.cursor, 0, 180) ||
@@ -197,7 +199,7 @@ export class ExpansionModel {
       return V.numbers(s.data, 1, 0, 1000000) && V.numbers(s.board, 3, 0, 1000) && s.errors <= 5 && s.goal === 10 + s.level * 5 &&
         s.pieces.every((p: ExpansionPiece) => (p.kind === 19 || p.kind === 20) && V.integer(p.color, 0, 2) && p.age > 0 && p.age <= 30);
     }
-    if (s.id === 'blockfit') { return s.cols === 6 + s.level && s.rows === s.cols && s.board.length === s.cols * s.rows &&
+    if (s.id === 'blockfit') { return s.cols === (s.variant === 1 ? 6 : 6 + s.level) && s.rows === s.cols && s.board.length === s.cols * s.rows &&
       V.numbers(s.board, s.board.length, 0, 3) && V.numbers(s.tray, 3, -1, 9) && V.integer(s.selected, -1, 2) &&
       s.goal === 800 + s.level * 400 && s.pieces.length === 0 && s.target.length === 0; }
     if (s.id === 'tilestack') {
@@ -253,7 +255,8 @@ export class ExpansionModel {
       s.tray.every((i: number) => s.target.includes(i)) && new Set<number>(s.tray).size === s.tray.length && s.errors <= 3; }
     if (['runner', 'blackhole', 'fisheat'].includes(s.id)) {
       const kind: number = s.id === 'runner' ? 6 : s.id === 'blackhole' ? 8 : 10;
-      return s.board.length === 0 && s.tray.length === 0 && s.target.length === 0 && s.pieces.length >= 1 && s.pieces[0].kind === kind &&
+      return s.board.length === 0 && s.tray.length === 0 && s.pieces.length >= 1 && s.pieces[0].kind === kind &&
+        (s.id === 'blackhole' ? BlackholeLevels.valid(s) : s.target.length === 0) &&
         s.pieces.every((p: ExpansionPiece, i: number) => p.alive && p.id < s.serial && p.kind === (i === 0 ? kind : kind + 1) &&
           p.r >= 6 && p.r <= 70 && p.x >= -70 && p.x <= 430 && p.y >= -35 && p.y <= 500) && (s.id !== 'runner' || s.cursor <= 2);
     }

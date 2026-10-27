@@ -8,7 +8,7 @@ export class ExpansionLife {
   constructor(random: RandomSource) { this.random = random; }
   start(s: ExpansionState): void {
     s.cols = s.id === 'decorate' ? 5 : 3; s.rows = s.cols; s.goal = s.id === 'farm' ? 12 : s.id === 'decorate' ? 4 : 5; s.selected = 0;
-    if (s.id === 'fishing') { s.data = [0, 0, 50, 0]; s.selected = -1; const fish: ExpansionPiece = new ExpansionPiece(); fish.id = 0; fish.kind = 60; fish.x = 180; fish.y = 240; fish.r = 24; fish.vx = 50; s.pieces.push(fish); }
+    if (s.id === 'fishing') { s.variant = 1; s.target = [0, 0, 0, 0, 0, 0]; s.data = [0, 0, 50, 0]; s.selected = -1; const fish: ExpansionPiece = new ExpansionPiece(); fish.id = 0; fish.kind = 60; fish.x = 180; fish.y = 240; fish.r = 24; fish.vx = 50; s.pieces.push(fish); }
     else { s.board = new Array<number>(s.cols * s.rows).fill(0); s.data = [s.id === 'farm' ? 12 : 20, 0]; }
   }
   choose(s: ExpansionState, tool: number): void { if (s.id === 'farm' && tool < 3) { s.selected = tool; } if (s.id === 'decorate' && tool < 5) { s.selected = tool; } }
@@ -43,7 +43,7 @@ export class ExpansionLife {
   }
   private fishingTap(s: ExpansionState, at: number): void {
     if (at === 0 && s.data[0] === 0) { s.data[0] = 1; s.cooldown = 1.5 + this.random.next() * 2.5; s.phase = 1; s.selected = -1; s.pieces[0].color = 1 + Math.min(5, Math.max(0, Math.floor(this.random.next() * 6))); }
-    else if (at === 0 && s.data[0] === 2) { s.data[0] = 3; s.pieces[0].vx = 50; s.pieces[0].vy = 0; s.selected = -1; }
+    else if (at === 0 && s.data[0] === 2) { s.data[0] = 3; s.pieces[0].vx = 50; s.pieces[0].vy = 0; s.pieces[0].age = 0; s.selected = -1; }
     else if (at === 1 && s.data[0] === 3) { s.selected = 0; }
     else if (at === 2) { s.selected = -1; }
   }
@@ -55,15 +55,20 @@ export class ExpansionLife {
     if (s.data[0] === 1) { s.cooldown = Math.max(0, s.cooldown - dt); if (s.cooldown === 0) { s.data[0] = 2; s.cooldown = 1.1 - s.level * 0.15; } }
     else if (s.data[0] === 2) { s.cooldown = Math.max(0, s.cooldown - dt); if (s.cooldown === 0) { this.miss(s); } }
     else if (s.data[0] === 3) {
-      fish.vx += ((s.selected === 0 ? 25 + s.level * 3 : -17) + Math.sin(s.time * 3) * 8) * dt;
-      fish.vy = Math.max(0, fish.vy + (s.selected === 0 ? 22 : -3) * dt); s.data[2] = Math.max(0, Math.min(100, Math.round(fish.vx))); s.data[3] = Math.min(100, Math.round(fish.vy));
+      const species: number = s.variant === 1 ? fish.color - 1 : 0;
+      const pull: number = s.variant === 1 ? [22, 33, 25, 26, 38, 40][species] : 25;
+      const fight: number = s.variant === 1 ? [4, 7, 6, 16, 8, 15][species] : 8;
+      fish.vx += ((s.selected === 0 ? pull + s.level * 3 : -17) + Math.sin(s.time * (2 + species * 0.4)) * fight) * dt;
+      fish.vy = Math.max(0, fish.vy + (s.selected === 0 ? (species === 2 ? 18 : 22) : -3) * dt);
+      if (fish.vx < 25 || fish.vx > 75) { fish.age += dt; }
+      s.data[2] = Math.max(0, Math.min(100, Math.round(fish.vx))); s.data[3] = Math.min(100, Math.round(fish.vy));
       if (fish.vx < 5 || fish.vx > 95) { this.miss(s); }
-      else if (fish.vy >= 100) { s.cursor++; s.score += fish.color * 100; s.moves++; s.data[0] = 0; s.phase = 0; s.selected = -1; if (s.cursor === s.goal) { s.outcome = 1; } }
+      else if (fish.vy >= 100) { s.cursor++; s.score += s.variant === 1 ? Math.max(100, 500 - Math.round(fish.age * 20)) : fish.color * 100; if (s.variant === 1) { s.target[species]++; } s.moves++; s.data[0] = 0; s.phase = 0; s.selected = -1; if (s.cursor === s.goal) { s.outcome = 1; } }
     }
   }
   valid(s: ExpansionState): boolean {
     if (!LIFE_IDS.includes(s.id) || s.cols !== (s.id === 'decorate' ? 5 : 3) || s.rows !== s.cols || s.piles.length !== 0 || s.tray.length !== 0) { return false; }
-    if (s.id === 'fishing') { return s.goal === 5 && s.board.length === 0 && s.target.length === 0 && V.numbers(s.data, 4, 0, 100) && s.data[0] <= 3 && s.cursor <= 5 && s.errors <= 3 && s.selected <= 0 && s.pieces.length === 1 && s.pieces[0].kind === 60 && s.pieces[0].x >= 90 && s.pieces[0].x <= 270; }
+    if (s.id === 'fishing') { return s.goal === 5 && s.board.length === 0 && (s.variant === 1 ? V.numbers(s.target, 6, 0, 5) && s.target.reduce((sum: number, n: number) => sum + n, 0) === s.cursor : s.target.length === 0) && V.numbers(s.data, 4, 0, 100) && s.data[0] <= 3 && s.cursor <= 5 && s.errors <= 3 && s.selected <= 0 && s.pieces.length === 1 && s.pieces[0].kind === 60 && s.pieces[0].color <= 6 && (s.data[0] === 0 || s.pieces[0].color >= 1) && s.pieces[0].x >= 90 && s.pieces[0].x <= 270; }
     if (s.phase !== 0 || !V.numbers(s.data, 2, 0, 10000)) { return false; }
     if (s.id === 'farm') { return s.goal === 12 && V.numbers(s.board, 9, 0, 3) && V.integer(s.selected, 0, 2) && s.cursor <= 12 && s.pieces.length === 0 && s.target.length === 0; }
     if (s.goal !== 4 || !V.numbers(s.board, 25, 0, 4) || s.target.length !== 0 && !V.numbers(s.target, 4, 0, 1) || !V.integer(s.selected, 0, 4) || s.cursor > 4) { return false; }

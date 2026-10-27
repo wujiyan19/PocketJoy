@@ -95,8 +95,11 @@ export struct WhackMolePage {
         .linearGradient({ angle: 180, colors: [[SemanticColors.gradientScreen[0], 0], [SemanticColors.gradientScreen[1], 0.5], [SemanticColors.gradientScreen[2], 1]] })
 
       Column() {
-
-
+        Text($r('app.string.record_mode_score', this.viewModel.modeBest()))
+          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+        if (this.viewModel.isLegacyRound()) {
+          Text($r('app.string.whack_legacy_round')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+        }
         Row() {
           Column() {
             Text($r('app.string.score_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
