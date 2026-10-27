@@ -12,7 +12,8 @@
 **/.test
 /.appanalyzer
 **/.preview
-/.workbuddy
+# 本地助手记录，不纳入版本控制
+/.workbuddy/
 /AGENTS.md
 /.vscode
 .arts/
