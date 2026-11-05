@@ -3871,6 +3871,22 @@
     {
       "name": "whack_legacy_round",
       "value": "Continuing an earlier round; new rounds last 30 seconds"
+    },
+    {
+      "name": "snake_start_hint",
+      "value": "Press a direction to start"
+    },
+    {
+      "name": "a11y_tetris_rotate",
+      "value": "Rotate piece"
+    },
+    {
+      "name": "a11y_snake_board",
+      "value": "Head at row %1$d, column %2$d. Food at row %3$d, column %4$d. Snake length %5$d."
+    },
+    {
+      "name": "a11y_tetris_board",
+      "value": "Score %1$d, level %2$d. Current piece starts at row %3$d, column %4$d."
     }
   ]
 }

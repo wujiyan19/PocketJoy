@@ -1,11 +1,12 @@
 import { PageDestination } from '../../components/PageDestination';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { AppInfo } from '../../common/AppInfo';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { SettingsHeader } from '../../components/SettingsHeader';
 
 @ComponentV2
 export struct AboutPage {
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Param pathStack: NavPathStack = new NavPathStack();
   @Local version: string = AppInfo.version();
 
@@ -52,7 +53,7 @@ export struct AboutPage {
         }.width('100%')
         .constraintSize({ maxWidth: $r('app.float.home_detail_max_width') })
         .padding({ left: SpacingTokens.pageHorizontal, right: SpacingTokens.pageHorizontal,
-          bottom: SpacingTokens.xxl + SafeAreaInsets.bottom })
+          bottom: SpacingTokens.xxl + this.safeArea.bottom })
       }.layoutWeight(1).width('100%').scrollBar(BarState.Off).align(Alignment.Top)
     }.width('100%').height('100%').alignItems(HorizontalAlign.Center).backgroundColor(SemanticColors.bg)
   }

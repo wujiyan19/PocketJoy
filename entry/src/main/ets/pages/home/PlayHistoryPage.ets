@@ -3,7 +3,7 @@ import { FontTokens, RadiusTokens, SemanticColors, SpacingTokens } from '../../c
 import { HarmonyMotion } from '../../common/HarmonyMotion';
 import { resolveFormattedString, resolveString } from '../../common/I18nUtils';
 import { formatPlayTime } from '../../common/PlayTime';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { SettingsHeader } from '../../components/SettingsHeader';
 import { PageDestination } from '../../components/PageDestination';
 import { PlayedGameRecord } from '../../model/GameData';
@@ -12,6 +12,7 @@ import { GameRoutes } from '../../router/GameRouteRegistry';
 /** 完整的本地游玩记录；父页面在 NavDestination.onShown 中刷新数据。 */
 @ComponentV2
 export struct PlayHistoryPage {
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Param pathStack: NavPathStack = new NavPathStack();
   @Param records: PlayedGameRecord[] = [];
   private dateFormatter: Intl.DateTimeFormat = new Intl.DateTimeFormat(i18n.System.getSystemLocaleInstance().toString(), {
@@ -83,7 +84,7 @@ export struct PlayHistoryPage {
         .scrollBar(BarState.Auto)
         .edgeEffect(EdgeEffect.Spring)
         .padding({ left: SpacingTokens.pageHorizontal, right: SpacingTokens.pageHorizontal,
-          bottom: SpacingTokens.xxl + SafeAreaInsets.bottom })
+          bottom: SpacingTokens.xxl + this.safeArea.bottom })
       } else {
         Column({ space: SpacingTokens.md }) {
           SymbolGlyph($r('sys.symbol.clock'))

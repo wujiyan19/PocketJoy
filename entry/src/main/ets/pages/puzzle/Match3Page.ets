@@ -10,7 +10,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, ShadowTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { ScreenUtils } from '../../common/ScreenUtils';
@@ -25,7 +25,7 @@ const GAP = 3;
 @ComponentV2
 export struct Match3Page {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: Match3ViewModel = new Match3ViewModel();
   @Local cell: number = 36;
   @Local boardSize: number = 320;
@@ -188,7 +188,7 @@ export struct Match3Page {
           }
         })
 
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       // 步数用尽结算弹窗
       if (this.viewModel.status === GameStatus.OVER) {

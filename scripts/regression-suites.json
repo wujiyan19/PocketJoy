@@ -1,0 +1,45 @@
+{
+  "description": "Current desktop suites. Native build, rendering and device acceptance are separate checks.",
+  "suites": [
+    "test-card-ai",
+    "test-chess-ai",
+    "test-classic-logic-audit",
+    "test-collection",
+    "test-computer-opponents",
+    "test-continuation",
+    "test-expansion",
+    "test-expansion-art",
+    "test-expansion-completion",
+    "test-expansion-gameplay-audit",
+    "test-expansion-render-audit",
+    "test-game-settings",
+    "test-generation-logic",
+    "test-klotski-ui-state",
+    "test-performance",
+    "test-play-history",
+    "test-play-time",
+    "test-poker-ai",
+    "test-single-player-catalog",
+    "test-window-sizing",
+    "test-world-piece-refresh",
+    "test-local-game-saves",
+    "test-daily-featured",
+    "test-line-rescue",
+    "test-game-sounds",
+    "test-data-recovery",
+    "test-ui-iteration",
+    "test-screwout",
+    "test-toy-scenes",
+    "test-toy-chase",
+    "test-chess-animation",
+    "test-retention-iteration",
+    "test-review-fixes",
+    "test-lan-transport"
+  ],
+  "excludedSuites": [
+    {
+      "script": "test-lan-multiplayer",
+      "reason": "LAN adapters and UI are withdrawn; the historical integration suite requires those adapters. Transport unit tests remain included."
+    }
+  ]
+}

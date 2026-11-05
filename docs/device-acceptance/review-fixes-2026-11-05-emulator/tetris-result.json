@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "before": [
+    184,
+    185,
+    193,
+    194
+  ],
+  "after": [
+    173,
+    183,
+    184,
+    194
+  ],
+  "timings": {
+    "returnMs": 265,
+    "snapshotMs": 229,
+    "rotateMs": 250,
+    "freezeMs": 228
+  },
+  "scope": "Rendered grid cells and public touch input; no model state or app files read."
+}

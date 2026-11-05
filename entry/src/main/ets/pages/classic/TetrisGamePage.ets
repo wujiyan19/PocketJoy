@@ -9,7 +9,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, ShadowTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { ScreenUtils } from '../../common/ScreenUtils';
@@ -37,7 +37,7 @@ const SHAPE_COLORS: ResourceColor[] = [
 @ComponentV2
 export struct TetrisGamePage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: TetrisViewModel = new TetrisViewModel();
   @Local cell: number = 18;
   private rowIdx: number[] = range(ROWS);
@@ -144,6 +144,9 @@ export struct TetrisGamePage {
               }
             }, (row: number) => row.toString())
           }.width(this.cell * COLS).height(this.cell * ROWS)
+          .accessibilityGroup(true)
+          .accessibilityText($r('app.string.a11y_tetris_board', this.viewModel.score, this.viewModel.level,
+            (this.viewModel.piece?.y ?? -1) + 1, (this.viewModel.piece?.x ?? -1) + 1))
           .borderRadius(RadiusTokens.md)
           .backgroundColor($r('app.color.play_board_background'))
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
@@ -156,19 +159,22 @@ export struct TetrisGamePage {
                 .fontSize(18).fontColor([SemanticColors.textPrimary])
             }
             .layoutWeight(1).height(48).backgroundColor(SemanticColors.surface)
-            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.moveLeft())
+            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback })
+            .accessibilityText($r('app.string.a11y_direction_left')).onClick(() => this.viewModel.moveLeft())
             Button() {
               SymbolGlyph($r('sys.symbol.arrow_clockwise'))
                 .fontSize(18).fontColor([SemanticColors.textPrimary])
             }
             .layoutWeight(1).height(48).backgroundColor(SemanticColors.surface)
-            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.rotateBlock())
+            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback })
+            .accessibilityText($r('app.string.a11y_tetris_rotate')).onClick(() => this.viewModel.rotateBlock())
             Button() {
               SymbolGlyph($r('sys.symbol.arrow_right'))
                 .fontSize(18).fontColor([SemanticColors.textPrimary])
             }
             .layoutWeight(1).height(48).backgroundColor(SemanticColors.surface)
-            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.moveRight())
+            .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback })
+            .accessibilityText($r('app.string.a11y_direction_right')).onClick(() => this.viewModel.moveRight())
           }
           .width('100%').padding({ left: SpacingTokens.base, right: SpacingTokens.base })
           Button() {
@@ -183,7 +189,7 @@ export struct TetrisGamePage {
           .width('80%').height(48).backgroundColor(SemanticColors.primary)
           .borderRadius(RadiusTokens.full).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.hardDrop())
         }.padding({ bottom: SpacingTokens.lg })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {
         GameResultDialog({ shareGameId: 'tetris',

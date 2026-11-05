@@ -1,7 +1,7 @@
 import { PageDestination } from '../../components/PageDestination';
 import { GameInfo, GameDifficulty } from '../../common/GameConstants';
 import { SemanticColors, FontTokens, RadiusTokens, SpacingTokens } from '../../common/DesignTokens';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
 import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { GameDataManager } from '../../model/GameData';
@@ -16,6 +16,7 @@ import { GameModePicker } from '../../components/GameModePicker';
 
 @ComponentV2
 export struct CollectionPage {
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Param gameId: string = '';
   @Param pathStack: NavPathStack = new NavPathStack();
   @Local vm: CollectionViewModel = new CollectionViewModel();
@@ -200,7 +201,7 @@ export struct CollectionPage {
             onLeft: () => { this.vm.move(3); }
           }).width('100%').padding({ top: SpacingTokens.sm, bottom: SpacingTokens.base })
         }
-      }.width('100%').height('100%').padding({ bottom: SafeAreaInsets.bottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
       if (this.vm.state.outcome !== 0) {
         GameResultDialog({ shareGameId: this.gameId, title: this.resultTitle(), detail: this.resultDetail(), showDetail: true,
           primaryText: $r('app.string.result_play_again'), onPrimary: () => { this.vm.startGame(); },

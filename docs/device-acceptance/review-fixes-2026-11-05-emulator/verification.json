@@ -1,0 +1,126 @@
+{
+  "date": "2026-11-05",
+  "scope": "Native emulator spot checks for review fixes; not full catalog or physical-device acceptance",
+  "package": {
+    "path": "entry/build/default/outputs/default/entry-default-signed.hap",
+    "sha256": "a0cd21e177669aecbd3cae6a354997d7781129d7f4a45e6c026599d5b603a2b8",
+    "bytes": 13434603
+  },
+  "emulator": {
+    "name": "LittleGamesReviewFixes",
+    "target": "127.0.0.1:15528",
+    "api": 26,
+    "system": "emulator 7.0.0.107(SP8DEVC00E999R4P11)",
+    "abi": "x86_64",
+    "width": 1320,
+    "height": 2232,
+    "density": 480
+  },
+  "tetris": {
+    "passed": true,
+    "before": [
+      184,
+      185,
+      193,
+      194
+    ],
+    "after": [
+      173,
+      183,
+      184,
+      194
+    ],
+    "timings": {
+      "returnMs": 265,
+      "snapshotMs": 229,
+      "rotateMs": 250,
+      "freezeMs": 228
+    },
+    "scope": "Rendered grid cells and public touch input; no model state or app files read."
+  },
+  "bus": {
+    "passed": true,
+    "deadlockAfterThreeFirstLaneLaunches": true,
+    "undoRestoredTwoSlots": true,
+    "replayTexts": [
+      "得分 20 · 最高 20",
+      "进度 2 / 36",
+      "候车位 3 / 3",
+      "候车位已满，撤销后调整发车顺序",
+      "本局结束",
+      "本局得分：20"
+    ],
+    "scope": "Public widget launch navigation and rendered button actions."
+  },
+  "widgets": {
+    "dailyAdded": true,
+    "dailyIconVisible": true,
+    "dailyLaunchOpenedTetris": true,
+    "continueAdded": true,
+    "continueDetectedSaved2048": true,
+    "continuedScore": 12,
+    "captionBounds": [
+      {
+        "text": "今日推荐",
+        "bounds": "[775,277][1161,319]",
+        "height": 42
+      },
+      {
+        "text": "继续游玩",
+        "bounds": "[158,894][1161,936]",
+        "height": 42
+      }
+    ],
+    "scope": "System launcher cards, preview, desktop placement and real card tap navigation."
+  },
+  "additionalChecks": {
+    "busBest20SurvivedAppAndEmulatorRestart": true,
+    "snakeStartPromptAndFourDirectionalButtons": true,
+    "klotskiFourDirectionalButtons": true,
+    "screwoutRemovalAndUndo": {
+      "initial": 21,
+      "afterRemoval": 20,
+      "afterUndo": 21
+    },
+    "blackholeAndDriftStartupSmoke": true,
+    "rotationRoundTripPreserved2048": true,
+    "dynamicSafeAreaChangeVerified": false
+  },
+  "logs": {
+    "pid": 3092,
+    "snapshots": [
+      {
+        "file": "app-hilog.txt",
+        "nonemptyLines": 25,
+        "errorFatalLines": 0,
+        "hapticsFailures": 1
+      },
+      {
+        "file": "app-hilog-final.txt",
+        "nonemptyLines": 18,
+        "errorFatalLines": 0,
+        "hapticsFailures": 0
+      }
+    ],
+    "faultloggerListingEmpty": true,
+    "limitation": "Rolling buffer snapshots after testing, not continuous crash/ANR monitoring"
+  },
+  "preservedOldInstance": {
+    "name": "LittleGamesApi26Upgrade",
+    "upgradeRejected": "9568332 install sign info inconsistent",
+    "uninstalled": false,
+    "dataCleared": false
+  },
+  "productionCodeChangedDuringEmulatorTesting": false,
+  "notCovered": [
+    "64-game full playthrough",
+    "physical device",
+    "API 24",
+    "performance and memory",
+    "audio listening",
+    "screen reader",
+    "English and maximum font",
+    "native legacy-save upgrade",
+    "dynamic safe-area change"
+  ]
+}

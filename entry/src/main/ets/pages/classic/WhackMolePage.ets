@@ -10,7 +10,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { range } from '../../common/Range';
@@ -22,7 +22,7 @@ import { WhackMoleViewModel } from '../../viewmodel/WhackMoleViewModel';
 @ComponentV2
 export struct WhackMolePage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: WhackMoleViewModel = new WhackMoleViewModel();
   @Local holeWidth: number = 96;
   @Local holeHeight: number = 104;
@@ -132,7 +132,7 @@ export struct WhackMolePage {
           .constraintSize({ maxWidth: $r('app.float.whack_board_max') })
           .borderRadius(RadiusTokens.xl).clip(true)
           .onAreaChange((oldValue: Area, newValue: Area) => { this.updateHoleSize(newValue); })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {
         GameResultDialog({ shareGameId: 'whackmole',

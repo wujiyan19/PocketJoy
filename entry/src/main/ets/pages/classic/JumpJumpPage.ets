@@ -13,7 +13,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -33,7 +33,7 @@ const CHARGE_BAR_H = 10;
 @ComponentV2
 export struct JumpJumpPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: JumpJumpViewModel = new JumpJumpViewModel();
   /** 游戏区实测尺寸（vp） */
   @Local areaW: number = 0;
@@ -225,7 +225,7 @@ export struct JumpJumpPage {
         .justifyContent(FlexAlign.Center)
 
       }
-      .width('100%').height('100%').padding({ bottom: this.safeBottom })
+      .width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status !== GameStatus.PLAYING) {
         GameResultDialog({ shareGameId: 'jumpjump',

@@ -4,6 +4,7 @@
 import { describe, it, expect } from '@ohos/hypium';
 import { GuessNumberViewModel } from '../main/ets/viewmodel/GuessNumberViewModel';
 import { SlidePuzzleViewModel } from '../main/ets/viewmodel/SlidePuzzleViewModel';
+import { SlidePuzzleRules } from '../main/ets/model/game/SlidePuzzleModel';
 import { KlotskiViewModel } from '../main/ets/viewmodel/KlotskiViewModel';
 import { MemoryCardViewModel } from '../main/ets/viewmodel/MemoryCardViewModel';
 import { SudokuViewModel } from '../main/ets/viewmodel/SudokuViewModel';
@@ -71,6 +72,7 @@ export default function viewModelPuzzleTest() {
       vm.difficulty = GameDifficulty.EASY;
       vm.startGame();
       expect(vm.board.length).assertEqual(9);
+      expect(new SlidePuzzleRules(3).isSolvable(vm.board)).assertTrue();
       expect(vm.status).assertEqual(GameStatus.PLAYING);
     });
 

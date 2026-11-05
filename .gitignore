@@ -14,14 +14,13 @@
 **/.preview
 # 本地助手记录，不纳入版本控制
 /.workbuddy/
-/AGENTS.md
 /.vscode
 .arts/
 # 测试/调试产物
 .hypium/
 .test-screenshots/
-package.json
-package-lock.json
+/.audit/
+/signing.local.json
 
 # 安装包与本地签名材料
 *.hap
@@ -60,3 +59,30 @@ package-lock.json
 /docs/game-retention-audit-2026-10-27/*.log
 /docs/game-retention-audit-2026-10-27/implementation/regressions/
 /docs/game-retention-audit-2026-10-27/implementation/verified-regressions/*.log
+
+# 2026-11-05 模拟器：提交报告引用的证据，原始布局和调试截图保留本地
+/docs/device-acceptance/review-fixes-2026-11-05-emulator/*
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/2048-after-moves.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/2048-rotated.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/2048-rotation-restored.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/blackhole-playing.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/bus-deadlock-result.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/bus-persisted-after-restart.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/bus-replay-score.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/bus-result.json
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/bus-undo-restored.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/drift-playing.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/klotski-ready.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/screwout-removed.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/screwout-undo-restored.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/snake-ready.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/tetris-floor-after.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/tetris-floor-before.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/tetris-result.json
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/verification.json
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/widget-opened-tetris.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/widget-picker-daily.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/widget-result.json
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/widget-resumed-2048.jpeg
+!/docs/device-acceptance/review-fixes-2026-11-05-emulator/widgets-on-desktop.jpeg

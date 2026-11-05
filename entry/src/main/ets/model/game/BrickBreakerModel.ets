@@ -99,7 +99,7 @@ export class BrickBreakerRules {
   static readonly MAX_SPEED: number = 12;
 
   // 每行砖块分值（靠近顶部的行分值更高）
-  static readonly ROW_SCORES: number[] = [50, 40, 30, 20, 10, 50, 40, 30];
+  static readonly ROW_SCORES: number[] = [50, 40, 30, 20, 10, 10, 10, 10];
 
   /** 计算砖块宽度 */
   brickWidth(): number {

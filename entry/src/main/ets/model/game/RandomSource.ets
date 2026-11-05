@@ -16,14 +16,17 @@ export class RealRandom implements RandomSource {
 
 export class SeededRandom implements RandomSource {
   private seed: number;
+  private legacy: boolean;
 
-  constructor(seed: number) {
+  constructor(seed: number, legacy: boolean = false) {
     this.seed = seed;
+    this.legacy = legacy;
   }
 
   next(): number {
-    // 线性同余，够测试用；不追求统计质量
-    this.seed = (this.seed * 1103515245 + 12345) % 2147483648;
+    // imul 保留乘积低位；浮点旧算法仅用于重建已保存的 v1 玩具关卡。
+    this.seed = this.legacy ? (this.seed * 1103515245 + 12345) % 2147483648 :
+      (Math.imul(this.seed, 1103515245) + 12345) & 0x7fffffff;
     return this.seed / 2147483648;
   }
 }

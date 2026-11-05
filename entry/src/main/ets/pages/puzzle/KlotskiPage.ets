@@ -11,7 +11,7 @@ import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../c
 import { ControlPad } from '../../components/ControlPad';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -24,10 +24,9 @@ const BH = 5;
 @ComponentV2
 export struct KlotskiPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: KlotskiViewModel = new KlotskiViewModel();
   @Local cell: number = 65;
-  @Local centerLabel: string = '';
   // 无障碍字符串缓存
   @Local a11yBlockFormat: string = '';
 
@@ -44,7 +43,6 @@ export struct KlotskiPage {
     if (!GameSessionTransfer.restore(this.viewModel)) { this.viewModel.startGame(); }
     const ctx = this.getUIContext().getHostContext();
     if (ctx) {
-      this.centerLabel = resolveString($r('app.string.klotski_move'), ctx);
     }
     this.playTimeStateChanged();
   }
@@ -146,11 +144,9 @@ export struct KlotskiPage {
           onUp: () => this.viewModel.moveBlock(0, -1),
           onDown: () => this.viewModel.moveBlock(0, 1),
           onLeft: () => this.viewModel.moveBlock(-1, 0),
-          onRight: () => this.viewModel.moveBlock(1, 0),
-          onCenter: () => {},
-          centerLabel: this.centerLabel
+          onRight: () => this.viewModel.moveBlock(1, 0)
         })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {
         GameResultDialog({ shareGameId: 'klotski',

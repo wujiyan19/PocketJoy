@@ -15,9 +15,15 @@
 import { display, window } from '@kit.ArkUI';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 
+@ObservedV2
+export class SafeAreaState {
+  @Trace bottom: number = 0;
+}
+
 export class SafeAreaInsets {
   /** 底部需要额外避让的高度（vp） */
-  static bottom: number = 0;
+  static readonly state: SafeAreaState = new SafeAreaState();
+  static get bottom(): number { return SafeAreaInsets.state.bottom; }
 
   /**
    * px → vp 换算系数。获取失败时退化为 1（即不换算，按原值处理）。
@@ -42,10 +48,10 @@ export class SafeAreaInsets {
     try {
       const area: window.AvoidArea =
         win.getWindowAvoidArea(window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR);
-      SafeAreaInsets.bottom = area.bottomRect.height / SafeAreaInsets.density();
+      SafeAreaInsets.state.bottom = area.bottomRect.height / SafeAreaInsets.density();
     } catch (e) {
       hilog.error(0x0000, 'LittleGames', 'getWindowAvoidArea failed, bottom=0');
-      SafeAreaInsets.bottom = 0;
+      SafeAreaInsets.state.bottom = 0;
     }
   }
 }

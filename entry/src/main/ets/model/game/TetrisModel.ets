@@ -105,10 +105,14 @@ export class TetrisRules {
     const count = SHAPES[piece.idx].length;
     if (count <= 1) { return piece; }
     const nextRot = (piece.rot + 1) % count;
-    const offsets = [0, -1, 1, -2, 2];
-    for (let k = 0; k < offsets.length; k++) {
-      const kicked = new ActivePiece(piece.idx, nextRot, piece.x + offsets[k], piece.y);
-      if (this.canPlace(board, kicked, 0, 0)) { return kicked; }
+    const offsets = piece.idx === 0 ? [0, -1, 1, -2, 2, -3, 3] : [0, -1, 1, -2, 2];
+    // 紧凑形状的旋转会增加包围盒高度，只上移补足的行数，避免越过堆叠障碍。
+    const lift = Math.max(0, SHAPES[piece.idx][nextRot].length - SHAPES[piece.idx][piece.rot].length);
+    for (let dy = 0; dy <= lift; dy++) {
+      for (let k = 0; k < offsets.length; k++) {
+        const kicked = new ActivePiece(piece.idx, nextRot, piece.x + offsets[k], piece.y - dy);
+        if (this.canPlace(board, kicked, 0, 0)) { return kicked; }
+      }
     }
     return piece;
   }

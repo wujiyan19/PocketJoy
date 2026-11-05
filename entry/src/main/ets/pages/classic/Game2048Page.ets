@@ -15,7 +15,7 @@ import { widgetLaunch } from '../../widgets/WidgetLaunch';
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { ScreenUtils } from '../../common/ScreenUtils';
@@ -54,7 +54,7 @@ class TileData {
 @ComponentV2
 export struct Game2048Page {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: Game2048ViewModel = new Game2048ViewModel();
   // 方块列表（稳定 id），非按格存储——这样移动时组件身份不变，translate 才会被插值
   @Local tiles: TileData[] = [];
@@ -332,14 +332,13 @@ export struct Game2048Page {
                   .fontSize(Math.max(18, this.cell * 0.36)).fontWeight(FontWeight.Bold)
                   .fontColor(this.getTileFontColor(tile.value))
               }
-              .width(this.cell).height(this.cell)
-              .borderRadius(RadiusTokens.md)
-              .backgroundColor(this.getCellBg(tile.value))
               .translate({ x: tile.col * this.step() + 3, y: tile.row * this.step() + 3 })
               .scale({ x: tile.scale, y: tile.scale })
               .accessibilityText(this.a11yTileFormat.replace('%1$d', '' + (tile.row + 1)).replace('%2$d', '' + (tile.col + 1)).replace('%3$d', '' + tile.value))
-              // 放在最后：对它之前的 translate/scale/backgroundColor 做隐式插值
               .animation(this.getTileAnimation())
+              .width(this.cell).height(this.cell)
+              .borderRadius(RadiusTokens.md)
+              .backgroundColor(this.getCellBg(tile.value))
             }, (tile: TileData) => tile.id.toString())
             }
             .width(this.innerSize()).height(this.innerSize())
@@ -363,7 +362,7 @@ export struct Game2048Page {
         .width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
         .onAreaChange((oldValue: Area, newValue: Area) => { this.updateBoardSize(newValue); })
 
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.resumePending) {
         ExitConfirmDialog({

@@ -1,0 +1,21 @@
+{
+  "dailyAdded": true,
+  "dailyIconVisible": true,
+  "dailyLaunchOpenedTetris": true,
+  "continueAdded": true,
+  "continueDetectedSaved2048": true,
+  "continuedScore": 12,
+  "captionBounds": [
+    {
+      "text": "今日推荐",
+      "bounds": "[775,277][1161,319]",
+      "height": 42
+    },
+    {
+      "text": "继续游玩",
+      "bounds": "[158,894][1161,936]",
+      "height": 42
+    }
+  ],
+  "scope": "System launcher cards, preview, desktop placement and real card tap navigation."
+}

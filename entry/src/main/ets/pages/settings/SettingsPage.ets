@@ -7,7 +7,7 @@ import { GameDataManager } from '../../model/GameData';
 import { AppTheme } from '../../common/AppTheme';
 import { AppInfo } from '../../common/AppInfo';
 import { Haptics } from '../../common/Haptics';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { SettingsHeader } from '../../components/SettingsHeader';
 import { SettingsChoice } from '../../components/SettingsChoice';
 import { SettingsSwitchRow } from '../../components/SettingsSwitchRow';
@@ -16,6 +16,7 @@ import { SettingsVolumeRow } from '../../components/SettingsVolumeRow';
 
 @ComponentV2
 export struct SettingsPage {
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Param pathStack: NavPathStack = new NavPathStack();
   @Param onDataChanged: () => void = () => {};
   @Local themeMode: string = GameDataManager.getThemeMode();
@@ -211,7 +212,7 @@ export struct SettingsPage {
           }.width('100%').padding(SpacingTokens.base)
         }.width('100%').constraintSize({ maxWidth: $r('app.float.home_detail_max_width') })
         .padding({ left: SpacingTokens.pageHorizontal, right: SpacingTokens.pageHorizontal,
-          bottom: SpacingTokens.xxl + SafeAreaInsets.bottom })
+          bottom: SpacingTokens.xxl + this.safeArea.bottom })
       }.layoutWeight(1).width('100%').align(Alignment.Top)
         .scrollBar(BarState.Off).edgeEffect(EdgeEffect.Spring)
     }.width('100%').height('100%').backgroundColor(SemanticColors.bg)

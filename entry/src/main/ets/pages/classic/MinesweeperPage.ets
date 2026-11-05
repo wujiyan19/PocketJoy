@@ -10,7 +10,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -24,7 +24,7 @@ const COLS = 9;
 @ComponentV2
 export struct MinesweeperPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: MinesweeperViewModel = new MinesweeperViewModel();
   @Local cellSize: number = 32;
   private idx9: number[] = range(COLS);
@@ -227,7 +227,7 @@ export struct MinesweeperPage {
           .fontFamily(FontTokens.family)
           .fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textTertiary)
           .padding({ bottom: SpacingTokens.lg, top: SpacingTokens.xs })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status !== GameStatus.PLAYING) {
         GameResultDialog({ shareGameId: 'minesweeper',

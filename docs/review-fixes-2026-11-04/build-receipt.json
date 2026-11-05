@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-04",
+  "mode": "debug",
+  "api": 26,
+  "signed": true,
+  "artifact": "entry/build/default/outputs/default/entry-default-signed.hap",
+  "bytes": 13434603,
+  "sha256": "a0cd21e177669aecbd3cae6a354997d7781129d7f4a45e6c026599d5b603a2b8",
+  "buildSucceeded": true,
+  "arktsWarnings": 11,
+  "sharedSigningProfileChanged": false,
+  "deviceInstalled": false,
+  "deviceVerified": false,
+  "deviceBlocker": "HDC client reported Connect server failed."
+}

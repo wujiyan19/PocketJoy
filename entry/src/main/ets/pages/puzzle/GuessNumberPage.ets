@@ -10,7 +10,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
 import { SemanticColors, RadiusTokens, FontTokens, ShadowTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -20,7 +20,7 @@ import { GuessNumberViewModel, GuessRecord } from '../../viewmodel/GuessNumberVi
 @ComponentV2
 export struct GuessNumberPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: GuessNumberViewModel = new GuessNumberViewModel();
 
   @Monitor('viewModel.status', 'viewModel.confirmExit')
@@ -187,7 +187,7 @@ export struct GuessNumberPage {
         }.padding({ bottom: SpacingTokens.lg })
         }.width('100%').height('100%').constraintSize({ minHeight: $r('app.float.guess_content_min_height') })
         }.width('100%').layoutWeight(1).id('guess-content-scroll')
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.isWin) {
         GameResultDialog({ shareGameId: 'guessnumber',

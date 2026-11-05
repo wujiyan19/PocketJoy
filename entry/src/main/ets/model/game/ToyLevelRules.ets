@@ -8,10 +8,10 @@ export class ToyLevelRandom {
 
 /** The seed describes the whole deal, so saving does not reroll geometry or colors. */
 export class BlackholeLevels {
-  static start(s: ExpansionState, random: RandomSource): void { BlackholeLevels.build(s, ToyLevelRandom.seed(random)); }
-  private static build(s: ExpansionState, seed: number): void {
-    const random: SeededRandom = new SeededRandom(seed);
-    s.goal = 35 + s.level * 10; s.data = [1, seed];
+  static start(s: ExpansionState, random: RandomSource): void { BlackholeLevels.build(s, ToyLevelRandom.seed(random), 2); }
+  private static build(s: ExpansionState, seed: number, version: number): void {
+    const random: SeededRandom = new SeededRandom(seed, version === 1);
+    s.goal = 35 + s.level * 10; s.data = [version, seed];
     const player: ExpansionPiece = new ExpansionPiece(); player.id = s.serial++; player.kind = 8;
     player.x = 180; player.y = 230; player.w = player.x; player.h = player.y; player.r = 19; player.color = 1; s.pieces.push(player);
     const cells: number[] = [];
@@ -46,8 +46,8 @@ export class BlackholeLevels {
   static limit(s: ExpansionState): number { return s.data.length === 3 ? s.data[2] : 120 - s.level * 20; }
   static valid(s: ExpansionState): boolean {
     if (s.data.length === 0) { return s.target.length === 0; } // already saved legacy round
-    if (s.data.length !== 3 || s.data[0] !== 1 || !Number.isInteger(s.data[1]) || s.data[1] < 1 || s.data[1] > 999999) { return false; }
-    const expected: ExpansionState = new ExpansionState(); expected.level = s.level; BlackholeLevels.build(expected, s.data[1]);
+    if (s.data.length !== 3 || (s.data[0] !== 1 && s.data[0] !== 2) || !Number.isInteger(s.data[1]) || s.data[1] < 1 || s.data[1] > 999999) { return false; }
+    const expected: ExpansionState = new ExpansionState(); expected.level = s.level; BlackholeLevels.build(expected, s.data[1], s.data[0]);
     if (s.goal !== expected.goal || s.serial !== expected.serial || s.data[2] !== expected.data[2] ||
       s.target.join(',') !== expected.target.join(',') || s.pieces.length + s.moves !== s.goal + 1) { return false; }
     const player: ExpansionPiece = s.pieces[0];
@@ -62,7 +62,7 @@ export class BlackholeLevels {
 
 /** Smooth random bends whose lateral speed stays below the car's available steering speed. */
 export class DriftLevels {
-  static modern(s: ExpansionState): boolean { return s.data.length === 5 && s.data[3] === 1; }
+  static modern(s: ExpansionState): boolean { return s.data.length === 5 && (s.data[3] === 1 || s.data[3] === 2); }
   static speed(s: ExpansionState): number { return DriftLevels.modern(s) ? 78 + s.level * 8 : 85; }
   static halfWidth(s: ExpansionState): number { return DriftLevels.modern(s) ? 74 - s.level * 6 : 65; }
   static center(s: ExpansionState, time: number): number {
@@ -71,10 +71,10 @@ export class DriftLevels {
     const part: number = Math.min(1, (t - index * 4) / 4); const smooth: number = part * part * (3 - 2 * part);
     return s.board[index] + (s.board[index + 1] - s.board[index]) * smooth;
   }
-  static start(s: ExpansionState, random: RandomSource): void { DriftLevels.build(s, ToyLevelRandom.seed(random)); }
-  private static build(s: ExpansionState, seed: number): void {
-    const random: SeededRandom = new SeededRandom(seed);
-    s.goal = 30 + s.level * 10; s.data = [0, 0, 180, 1, seed]; s.board = [];
+  static start(s: ExpansionState, random: RandomSource): void { DriftLevels.build(s, ToyLevelRandom.seed(random), 2); }
+  private static build(s: ExpansionState, seed: number, version: number): void {
+    const random: SeededRandom = new SeededRandom(seed, version === 1);
+    s.goal = 30 + s.level * 10; s.data = [0, 0, 180, version, seed]; s.board = [];
     let x: number = 145 + ToyLevelRandom.pick(random, 71); s.board.push(x, x);
     for (let i: number = 2; i < Math.ceil((s.goal + 6) / 4) + 1; i++) {
       let delta: number = (36 + ToyLevelRandom.pick(random, 29)) * (random.next() < 0.5 ? -1 : 1);
@@ -97,7 +97,7 @@ export class DriftLevels {
     if (!DriftLevels.modern(s)) { return s.data.length === 3 && s.board.length === 0; }
     if (!Number.isInteger(s.data[4]) || s.data[4] < 1 || s.data[4] > 999999) { return false; }
     const expected: ExpansionState = new ExpansionState(); expected.level = s.level; expected.pieces.push(new ExpansionPiece());
-    DriftLevels.build(expected, s.data[4]);
+    DriftLevels.build(expected, s.data[4], s.data[3]);
     return s.board.join(',') === expected.board.join(',') && s.pieces[0].r === 20 &&
       Math.abs(s.pieces[0].vx) === DriftLevels.speed(s) && Math.abs(s.data[2] - DriftLevels.center(s, s.time)) <= 1;
   }

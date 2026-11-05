@@ -11,7 +11,7 @@ import { GameHeader } from '../../components/GameHeader';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
 import { Haptics } from '../../common/Haptics';
 import { BrickBreakerViewModel, BrickViewData } from '../../viewmodel/BrickBreakerViewModel';
@@ -20,7 +20,7 @@ import { DisplayFrameLoop } from '../../common/DisplayFrameLoop';
 @ComponentV2
 export struct BrickBreakerPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: BrickBreakerViewModel = new BrickBreakerViewModel();
   @Local boardScale: number = 1;
   private dragStartPaddleX: number = 0;
@@ -138,10 +138,6 @@ export struct BrickBreakerPage {
                   .height(this.boardLength(this.viewModel.brickHeight()))
                   .objectFit(ImageFit.Fill)
               }
-                .width(this.boardLength(this.viewModel.brickWidth()))
-                .height(this.boardLength(this.viewModel.brickHeight()))
-                .backgroundColor(this.getBrickColor(brick.row))
-                .borderRadius(RadiusTokens.xs)
                 .translate({
                   x: this.boardLength(this.viewModel.sidePadding() + brick.col * (this.viewModel.brickWidth() + this.viewModel.brickGap())),
                   y: this.boardLength(this.viewModel.topPadding() + brick.row * (this.viewModel.brickHeight() + this.viewModel.brickGap()))
@@ -149,6 +145,10 @@ export struct BrickBreakerPage {
                 .opacity(brick.alive ? 1 : 0)
                 .scale({ x: brick.alive ? 1 : 0, y: brick.alive ? 1 : 0 })
                 .animation({ duration: 200, curve: Curve.EaseOut, playMode: PlayMode.Normal })
+                .width(this.boardLength(this.viewModel.brickWidth()))
+                .height(this.boardLength(this.viewModel.brickHeight()))
+                .backgroundColor(this.getBrickColor(brick.row))
+                .borderRadius(RadiusTokens.xs)
             }, (brick: BrickViewData) => brick.id.toString())
 
             // 挡板
@@ -254,7 +254,7 @@ export struct BrickBreakerPage {
         }
         .justifyContent(FlexAlign.Center)
         .margin({ top: SpacingTokens.md, bottom: SpacingTokens.md })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       // 游戏结束结算弹窗
       if (this.viewModel.status === GameStatus.OVER) {

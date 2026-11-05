@@ -4,7 +4,7 @@ import { GameModePicker } from '../../components/GameModePicker';
 import { PageDestination } from '../../components/PageDestination';
 import { GameInfo, GameDifficulty } from '../../common/GameConstants';
 import { SemanticColors, FontTokens, RadiusTokens, SpacingTokens } from '../../common/DesignTokens';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { DisplayFrameLoop } from '../../common/DisplayFrameLoop';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
 import { GameSessionTransfer } from '../../common/GameSessionTransfer';
@@ -45,6 +45,7 @@ import { BlackholeLevels } from '../../model/game/ToyLevelRules';
 
 @ComponentV2
 export struct ExpansionPage {
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Param gameId: string = '';
   @Param pathStack: NavPathStack = new NavPathStack();
   @Local vm: ExpansionViewModel = new ExpansionViewModel();
@@ -227,7 +228,7 @@ export struct ExpansionPage {
               .onClick(() => { this.vm.undo(); })
           }.width('100%').padding({ top: SpacingTokens.sm, bottom: SpacingTokens.base })
         }
-      }.width('100%').height('100%').padding({ bottom: SafeAreaInsets.bottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
       Column() {
         ExpansionFeedback({ vm: this.vm })
       }.width('100%').height('100%').padding({ top: $r('app.float.art_feedback_top') }).hitTestBehavior(HitTestMode.None)
@@ -241,7 +242,9 @@ export struct ExpansionPage {
         GameResultDialog({ shareGameId: this.gameId, title: this.resultTitle(),
           detail: $r('app.string.collection_score_result', this.vm.state.score), showDetail: true,
           primaryText: $r('app.string.result_play_again'), onPrimary: () => { this.vm.startGame(); },
-          showSecondary: true, secondaryText: $r('app.string.exit_confirm_leave'), onSecondary: () => { this.pathStack.pop(); }, cardStyle: true, celebrate: this.vm.state.outcome === 1 })
+          showSecondary: true, secondaryText: this.gameId === 'buscolor' && this.vm.canUndo ? $r('app.string.expansion_undo') : $r('app.string.exit_confirm_leave'),
+          onSecondary: () => { if (this.gameId === 'buscolor' && this.vm.canUndo) { this.vm.undo(); } else { this.pathStack.pop(); } },
+          cardStyle: true, celebrate: this.vm.state.outcome === 1 })
       }
       if (this.vm.confirmExit) {
         ExitConfirmDialog({ onConfirm: () => { this.vm.dismissExitConfirm(); this.pathStack.pop(); }, onCancel: () => { this.vm.dismissExitConfirm(); } })

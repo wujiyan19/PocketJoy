@@ -12,7 +12,7 @@ import { GameHeader } from '../../components/GameHeader';
 import { ControlPad } from '../../components/ControlPad';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { ScreenUtils } from '../../common/ScreenUtils';
 import { range } from '../../common/Range';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -25,7 +25,7 @@ const ROWS = 20;
 @ComponentV2
 export struct SnakeGamePage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: SnakeViewModel = new SnakeViewModel();
   @Local cell: number = 16;
   private idx20: number[] = range(COLS);
@@ -127,11 +127,14 @@ export struct SnakeGamePage {
               }
             }, (row: number) => row.toString())
           }.width(this.cell * COLS).height(this.cell * ROWS)
+          .accessibilityGroup(true)
+          .accessibilityText($r('app.string.a11y_snake_board', (this.viewModel.snake[0]?.y ?? -1) + 1,
+            (this.viewModel.snake[0]?.x ?? -1) + 1, this.viewModel.food.y + 1, this.viewModel.food.x + 1, this.viewModel.snake.length))
           .borderRadius(RadiusTokens.md)
           .backgroundColor($r('app.color.play_board_background'))
 
           if (!this.viewModel.started) {
-            Text('按方向键开始')
+            Text($r('app.string.snake_start_hint'))
               .fontSize(FontTokens.sizeSubtitle).fontColor(SemanticColors.textTertiary)
               .margin({ top: 12 })
           }
@@ -148,11 +151,9 @@ export struct SnakeGamePage {
           onUp: () => this.viewModel.turnUp(),
           onDown: () => this.viewModel.turnDown(),
           onLeft: () => this.viewModel.turnLeft(),
-          onRight: () => this.viewModel.turnRight(),
-          onCenter: () => {},
-          showCenter: true
+          onRight: () => this.viewModel.turnRight()
         })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {
         GameResultDialog({ shareGameId: 'snake',

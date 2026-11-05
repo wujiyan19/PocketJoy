@@ -39,8 +39,7 @@ export class GameRoutes {
     for (let i = 0; i < COLLECTION_IDS.length; i++) {
       if (isGameAvailable(COLLECTION_IDS[i]) && route === 'Collection_' + COLLECTION_IDS[i]) { return COLLECTION_IDS[i]; }
     }
-    const ids: string[] = ['snake', 'tetris', '2048', 'whackmole', 'minesweeper', 'sudoku',
-      'slidepuzzle', 'klotski', 'guessnumber', 'memorycard', 'jumpjump', 'brickbreaker', 'match3'];
+    const ids: string[] = Object.keys(GameRoutes.PATHS);
     for (let i = 0; i < ids.length; i++) {
       const name: string = GameRoutes.routeName(ids[i]);
       if (name.length > 0 && name === route) { return ids[i]; }

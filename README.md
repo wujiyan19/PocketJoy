@@ -16,6 +16,8 @@
 HarmonyOS API 26 / 最低兼容 API 24<br>
 简体中文 / English
 
+[下载 v1.0.1 开发包](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.0.1) · [本次更新与验证](docs/release/v1.0.1.md)
+
 [体验画面](#体验画面) &nbsp; / &nbsp; [玩法目录](#玩法目录) &nbsp; / &nbsp; [运行项目](#运行项目) &nbsp; / &nbsp; [文档导航](#文档导航)
 
 </div>
@@ -118,7 +120,7 @@ node scripts/build-hap.cjs
 node scripts/build-hap.cjs release
 ```
 
-产物位于 `entry/build/default/outputs/default/`。共享配置不包含个人签名，未配置本机签名时生成 unsigned HAP；连接真机前，在 DevEco Studio 配置调试签名。也可启动 Local Emulator，在 IDE 中选择设备后运行。
+产物位于 `entry/build/default/outputs/default/`。共享配置不包含个人签名；本机签名保存在已忽略的 `signing.local.json`，由根目录 Hvigor 插件在内存中注入。其结构为 `signingConfigs` 数组与 `products` 数组（每项包含 `name`、`signingConfig`），字段内容沿用 DevEco 签名配置。未提供该文件时生成 unsigned HAP。也可启动 Local Emulator，在 IDE 中选择设备后运行。
 
 Release HAP 构建与正式上架 App Pack、发布签名及市场准入是不同步骤，当前发布限制见[发布状态](docs/release/status-2026-10-27.md)。
 
@@ -140,19 +142,19 @@ $env:LITTLEGAMES_REGRESSION_OUTPUT = "$PWD/.local-tools/regressions"
 node scripts/run-regressions.cjs
 ```
 
-运行器当前包含 **32 套检查**，直接执行转换后的 Model / ViewModel，并替代原生服务与时钟。它验证规则与状态流转；ArkTS 编译、设备渲染、触控和性能分别验收。可用 `ARKTS_TYPESCRIPT_PATH` 指定工具链中的 `ohpm/node_modules/typescript/lib/typescript.js`。
+运行器当前包含 **34 套检查**（清单与排除原因在 `scripts/regression-suites.json`），直接执行转换后的 Model / ViewModel，并替代原生服务与时钟。它验证规则与状态流转；ArkTS 编译、设备渲染、触控和性能分别验收。可用 `ARKTS_TYPESCRIPT_PATH` 指定工具链中的 `ohpm/node_modules/typescript/lib/typescript.js`。
 
 ## 验证进展
 
-以下是已有记录的范围，**不是本页更新时重新执行的测试结果**。
+以下按各层实际执行日期列出验证范围；桌面回归和构建均不能替代真机验收。
 
 | 验证层次 | 最近记录 | 适用范围 |
 | --- | --- | --- |
-| 桌面逻辑 | 2026-10-27 · 32 套，1400/1400 通过 | 64 入口版本；含合并模式、旧数据承接、42 份旧模型快照恢复，以及 630 局公开输入控制样本。部分检查仍覆盖暂撤模型。 |
-| 原生构建 | 2026-10-27 · API 26 Debug / Release 成功 | 包哈希与源码指纹有记录；这一轮未安装新包，尚未完成对应设备复验。 |
-| 真实界面 | 历史手机与模拟器记录 | 只证明报告对应包、设备和操作范围；不代表当前 64 入口版本全量通过。 |
+| 桌面逻辑 | 2026-11-04 · 34 套，1425/1425 通过 | 64 入口版本；含 13 项本轮缺陷回归、9 份升级前关卡快照及 12 项模拟 Socket 检查。部分检查仍覆盖暂撤模型。 |
+| 原生构建 | 2026-11-04 · API 26 Debug 签名成功 | 11 月 5 日已在独立 API 26 模拟器安装同一哈希修复包。 |
+| 真实界面 | 2026-11-05 · 修复版模拟器复验 | 已测贴底旋转、巴士死局/撤销/再结算、重启成绩、方向键、拆螺丝撤销与两张桌面卡片；详见[模拟器报告](docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md)。不代表当前 64 入口版本全量或真机通过。 |
 
-当前工程结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
+本轮修复、复核结论和验收边界见[审查问题修复记录](docs/review-fixes-2026-11-04.md)。历史结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
 
 仍待补齐：当前版本逐款真机操作与结算、音效试听、长局帧率与内存、温升耗电、英文与最大字体、无障碍、窗口变化，以及真实跨设备接续／传输。工程声明支持 phone / tablet，实际覆盖以设备报告为准。
 

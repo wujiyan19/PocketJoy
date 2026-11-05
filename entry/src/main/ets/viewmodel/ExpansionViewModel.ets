@@ -153,7 +153,11 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   activate(): void { if (this.blocked()) { return; } this.model.activate(); this.sync(true, true); this.run(); }
   action(): void { if (this.blocked()) { return; } this.model.action(); this.sync(true, true); }
   choose(index: number): void { if (this.chessAnimating || this.computerThinking || this.blocked()) { return; } this.model.choose(index); this.sync(true, true); }
-  undo(): void { if (this.blocked()) { return; } this.cancelComputerTurn(); this.model.undo(); this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++; this.sync(false); }
+  undo(): void {
+    if (this.blocked() || !this.model.canUndo()) { return; }
+    this.cancelComputerTurn(); this.model.undo(); this.recorded = false;
+    this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++; this.sync(false);
+  }
   aim(x: number, y: number): void {
     if (this.blocked()) { return; } this.model.aim(x, y); this.sync(true, true); this.run();
   }

@@ -3871,6 +3871,22 @@
     {
       "name": "whack_legacy_round",
       "value": "继续旧版对局；下局统一为30秒"
+    },
+    {
+      "name": "snake_start_hint",
+      "value": "按方向键开始"
+    },
+    {
+      "name": "a11y_tetris_rotate",
+      "value": "旋转方块"
+    },
+    {
+      "name": "a11y_snake_board",
+      "value": "蛇头第%1$d行第%2$d列，食物第%3$d行第%4$d列，蛇身长度%5$d"
+    },
+    {
+      "name": "a11y_tetris_board",
+      "value": "得分%1$d，等级%2$d，当前方块左上角第%3$d行第%4$d列"
     }
   ]
 }

@@ -41,6 +41,7 @@ export class ExpansionSorting {
       if (bus.w === 3) { bus.alive = false; s.tray = s.tray.filter((other: number) => other !== id); s.score += 50; }
     }
     if (s.cursor === s.goal) { s.outcome = 1; }
+    else if (s.tray.length === 3) { s.outcome = 2; }
   }
   private tapBus(s: ExpansionState, lane: number): void {
     if (lane >= 3 || s.data[lane] >= 4 || s.tray.length >= 3) { return; }

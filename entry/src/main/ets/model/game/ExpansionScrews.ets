@@ -23,12 +23,12 @@ export class ExpansionScrews {
   static start(s: ExpansionState, random: RandomSource): void {
     let seed: number = 1 + Math.min(999998, Math.max(0, Math.floor(random.next() * 999999)));
     for (let attempt: number = 0; attempt < 32; attempt++) {
-      ExpansionScrews.build(s, seed);
+      ExpansionScrews.build(s, seed, 2);
       if (s.level !== 2 || !ExpansionScrews.greedyClears(s)) { return; }
       seed = (seed + 7918) % 999999 + 1;
     }
     // A verified planning deal bounds generation time even for a constant random source.
-    ExpansionScrews.build(s, 55464);
+    ExpansionScrews.build(s, 14, 2);
   }
 
   private static pick(random: RandomSource, count: number): number {
@@ -42,10 +42,10 @@ export class ExpansionScrews {
     }
   }
 
-  private static build(s: ExpansionState, seed: number): void {
+  private static build(s: ExpansionState, seed: number, version: number): void {
     s.pieces = []; s.target = [];
-    s.cols = 3; s.rows = 3; s.phase = 1; s.data = [seed]; s.goal = 5 + s.level * 2;
-    const random: SeededRandom = new SeededRandom(seed);
+    s.cols = 3; s.rows = 3; s.phase = 1; s.data = version === 1 ? [seed] : [seed, 2]; s.goal = 5 + s.level * 2;
+    const random: SeededRandom = new SeededRandom(seed, version === 1);
     const beams: ScrewBeam[] = [new ScrewBeam(26, 66, 264, 68), new ScrewBeam(226, 70, 68, 310),
       new ScrewBeam(40, 314, 274, 68), new ScrewBeam(36, 62, 68, 310), new ScrewBeam(24, 190, 292, 68),
       new ScrewBeam(136, 48, 68, 340), new ScrewBeam(54, 80, 264, 68), new ScrewBeam(242, 48, 68, 340),
@@ -151,8 +151,9 @@ export class ExpansionScrews {
     const expected: ExpansionState = new ExpansionState(); expected.id = s.id; expected.level = s.level;
     if (s.phase === 0) { if (s.data.length !== 0) { return false; } ExpansionScrews.legacy(expected); }
     else {
-      if (s.data.length !== 1 || !Number.isInteger(s.data[0]) || s.data[0] < 1 || s.data[0] > 999999) { return false; }
-      ExpansionScrews.build(expected, s.data[0]);
+      if ((s.data.length !== 1 && (s.data.length !== 2 || s.data[1] !== 2)) ||
+        !Number.isInteger(s.data[0]) || s.data[0] < 1 || s.data[0] > 999999) { return false; }
+      ExpansionScrews.build(expected, s.data[0], s.data.length === 1 ? 1 : 2);
     }
     if (s.cols !== 3 || s.rows !== 3 || s.goal !== expected.goal || s.board.length !== 0 ||
       s.pieces.length !== expected.pieces.length || s.target.join(',') !== expected.target.join(',') ||

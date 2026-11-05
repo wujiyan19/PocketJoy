@@ -1,0 +1,87 @@
+{
+  "date": "2026-11-05",
+  "sourceReference": "v1.0.1",
+  "versionName": "1.0.1",
+  "versionCode": 1000001,
+  "build": {
+    "mode": "release",
+    "api": 26,
+    "compatibleApi": 24,
+    "debug": false,
+    "succeeded": true,
+    "arktsWarnings": 11
+  },
+  "publicArtifact": {
+    "name": "LittleGames-1.0.1-release-unsigned.hap",
+    "bytes": 10356859,
+    "sha256": "6ce2ffc1094b9321d41c7e736d6bf8c36906fb13c5da5fc1734c7154838726d2",
+    "signed": false,
+    "personalProfileIncluded": false
+  },
+  "localSignedCounterpart": {
+    "bytes": 10431518,
+    "sha256": "0fe5f4b7c35d4e730c8811025965feb7a71b7914accccf401e7fbaf74058b95b",
+    "published": false
+  },
+  "desktop": {
+    "suites": 34,
+    "passed": 1425,
+    "total": 1425,
+    "report": "v1.0.1-regressions.json"
+  },
+  "nativeSmoke": {
+    "target": "127.0.0.1:15528",
+    "installedVersionName": "1.0.1",
+    "installedVersionCode": 1000001,
+    "dataPreservingUpgrade": true,
+    "startup": true,
+    "continued2048": {
+      "score": 80,
+      "tiles": [
+        {
+          "text": "16",
+          "bounds": "[149,822][271,941]"
+        },
+        {
+          "text": "2",
+          "bounds": "[780,822][841,941]"
+        },
+        {
+          "text": "8",
+          "bounds": "[180,1122][241,1241]"
+        },
+        {
+          "text": "2",
+          "bounds": "[180,1422][241,1541]"
+        },
+        {
+          "text": "8",
+          "bounds": "[480,1422][541,1541]"
+        },
+        {
+          "text": "4",
+          "bounds": "[180,1722][241,1841]"
+        },
+        {
+          "text": "4",
+          "bounds": "[480,1722][541,1841]"
+        },
+        {
+          "text": "4",
+          "bounds": "[780,1722][841,1841]"
+        },
+        {
+          "text": "2",
+          "bounds": "[1080,1722][1141,1841]"
+        }
+      ],
+      "comparison": "post-install before/after force-stop"
+    },
+    "busBest": 20,
+    "appPid": "3441",
+    "errorFatalLogLines": 238,
+    "scope": "Release signed counterpart upgrade/start and saved data smoke, not a repeat of full Debug native checks"
+  },
+  "runtimeLogLimit": "Startup buffer contains system/driver/material E messages; no custom LittleGames E/F or uncaught JS exception found; not continuous monitoring",
+  "fullCatalogPhysicalDeviceAcceptance": false
+}

@@ -56,9 +56,10 @@ export default function viewModelClassicTest() {
     it('rejects_reverse_turn', 0, () => {
       const vm = new SnakeViewModel(new SeededRandom(5));
       vm.newGame(); // 向右
+      const headX = vm.snake[0].x;
       vm.turnLeft(); // 反向，应被忽略
       vm.stepOnce();
-      expect(vm.snake[0].x > vm.snake.length - 1).assertTrue(); // 仍向右移动
+      expect(vm.snake[0].x).assertEqual(headX + 1);
       vm.dispose();
     });
   });
@@ -125,10 +126,12 @@ export default function viewModelClassicTest() {
       const vm = new MinesweeperViewModel(new SeededRandom(8));
       vm.newGame();
       vm.reveal(4, 4); // 触发布雷 + 计时
-      vm.toggleFlag(0, 0);
-      expect(vm.isFlagged(0, 0)).assertTrue();
+      const row = vm.revealed.findIndex((cells: boolean[]) => cells.some((cell: boolean) => !cell));
+      const col = vm.revealed[row].findIndex((cell: boolean) => !cell);
+      vm.toggleFlag(row, col);
+      expect(vm.isFlagged(row, col)).assertTrue();
       expect(vm.flagCount).assertEqual(1);
-      vm.toggleFlag(0, 0);
+      vm.toggleFlag(row, col);
       expect(vm.flagCount).assertEqual(0);
       vm.dispose();
     });

@@ -114,7 +114,7 @@ export class ExpansionModel {
     } else if (ACTION_IDS.includes(this.state.id)) { this.actionGames.step(this.state, dt); } else if (SPORTS_IDS.includes(this.state.id)) { this.sports.step(this.state, dt);
     } else if (this.isArcade()) { this.arcade.step(this.state, dt); } else if (this.isAdventure()) { this.adventure.step(this.state, dt); } else { this.physics.step(this.state, dt); }
   }
-  canUndo(): boolean { return this.history.length > 0 && this.state.outcome === 0; }
+  canUndo(): boolean { return this.history.length > 0 && (this.state.outcome === 0 || this.state.id === 'buscolor' && this.state.outcome === 2); }
   needsComputerTurn(): boolean {
     if (this.state.outcome !== 0) { return false; }
     if (CHESS_IDS.includes(this.state.id)) { return this.chess.needsComputerTurn(this.state); }

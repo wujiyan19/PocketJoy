@@ -12,7 +12,7 @@ import { widgetLaunch } from '../../widgets/WidgetLaunch';
 import { SemanticColors, RadiusTokens, FontTokens, ShadowTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
-import { SafeAreaInsets } from '../../common/SafeAreaInsets';
+import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
@@ -23,7 +23,7 @@ import { SudokuViewModel } from '../../viewmodel/SudokuViewModel';
 @ComponentV2
 export struct SudokuPage {
   @Param pathStack: NavPathStack = new NavPathStack();
-  @Local safeBottom: number = SafeAreaInsets.bottom;
+  @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: SudokuViewModel = new SudokuViewModel();
   @Local scaleFactor: number = 1;
   @Local translateX: number = 0;
@@ -257,7 +257,7 @@ export struct SudokuPage {
             }.width('100%')
           }, (row: number) => row.toString())
         }.width('100%').padding({ left: SpacingTokens.base, right: SpacingTokens.base, bottom: SpacingTokens.lg })
-      }.width('100%').height('100%').padding({ bottom: this.safeBottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.resumePending) {
         ExitConfirmDialog({

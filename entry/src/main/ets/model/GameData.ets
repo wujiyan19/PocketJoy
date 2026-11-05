@@ -45,6 +45,8 @@ export class PlayedGameRecord {
  */
 export class GameDataManager {
   private static store: preferences.Preferences | null = null;
+  /** API 读取失败的字段保留原值，本次进程不以缺省值覆盖它们。 */
+  private static unreadKeys: Set<string> = new Set<string>();
   /** 防抖定时器句柄，-1 表示无待落盘任务 */
   private static flushTimer: number = -1;
   private static dirty: boolean = false;
@@ -67,6 +69,7 @@ export class GameDataManager {
   private static gameStarts: Record<string, number> = {};
   private static gameStartsDirty: boolean = false;
   private static modeRecords: Record<string, number> = {};
+  private static modeRecordsDirty: boolean = false;
   /** 完整登记目录用于保留撤下玩法的旧战绩，只有 games 对外提供上架内容。 */
   private static catalog: GameInfo[] = [
     {
@@ -205,23 +208,44 @@ export class GameDataManager {
   private static games: GameInfo[] = GameDataManager.catalog.filter((game: GameInfo): boolean => isGameAvailable(game.id));
 
   static init(context: Context): void {
+    GameDataManager.unreadKeys.clear();
     try {
       GameDataManager.store = preferences.getPreferencesSync(context, { name: GAME_DATA_STORE_NAME });
-      GameDataManager.restore();
     } catch (e) {
       // 初始化失败后 store 为 null，此后所有最高分都会静默丢失，必须留痕
       hilog.error(0x0000, 'LittleGames', 'Failed to init preferences, high scores will NOT persist');
       GameDataManager.store = null;
     }
+    GameDataManager.restore();
     gameSound.setEnabled(GameDataManager.getSetting('soundEnabled', true));
     gameSound.setVolume(GameDataManager.getSoundVolume());
+  }
+
+  /** Preferences 是外部边界；内容类型校验和 API 异常隔离只在这里完成。 */
+  private static readText(key: string): string {
+    if (!GameDataManager.store) { return ''; }
+    try {
+      const value = GameDataManager.store.getSync(key, '');
+      return typeof value === 'string' ? value : '';
+    } catch (e) {
+      GameDataManager.unreadKeys.add(key);
+      hilog.error(0x0000, 'LittleGames', 'Failed to read preferences key %{public}s; original value retained', key);
+      return '';
+    }
+  }
+
+  private static writeText(key: string, value: string): void {
+    if (GameDataManager.store && !GameDataManager.unreadKeys.has(key)) {
+      GameDataManager.store.putSync(key, value);
+    }
   }
 
   private static restore(): void {
     if (!GameDataManager.store) { return; }
     GameDataManager.modeRecords = {};
+    GameDataManager.modeRecordsDirty = false;
     try {
-      const records: Record<string, number> = JSON.parse(GameDataManager.store.getSync(KEY_MODE_RECORDS, '{}') as string) as Record<string, number>;
+      const records: Record<string, number> = JSON.parse(GameDataManager.readText(KEY_MODE_RECORDS) || '{}') as Record<string, number>;
       const keys: string[] = Object.keys(records);
       for (let i: number = 0; i < keys.length; i++) {
         const value: number | undefined = records[keys[i]];
@@ -230,34 +254,32 @@ export class GameDataManager {
         }
       }
     } catch (e) { /* A damaged new record cannot erase the original score maps. */ }
-    const saved2048 = GameDataManager.store.getSync(KEY_SAVED_2048, '');
-    const savedSudoku = GameDataManager.store.getSync(KEY_SAVED_SUDOKU, '');
-    GameDataManager.saved2048 = typeof saved2048 === 'string' ? saved2048 : '';
-    GameDataManager.savedSudoku = typeof savedSudoku === 'string' ? savedSudoku : '';
-    const scoreJson = GameDataManager.store.getSync(KEY_HIGH_SCORES, '') as string;
+    GameDataManager.saved2048 = GameDataManager.readText(KEY_SAVED_2048);
+    GameDataManager.savedSudoku = GameDataManager.readText(KEY_SAVED_SUDOKU);
+    const scoreJson = GameDataManager.readText(KEY_HIGH_SCORES);
     GameDataManager.applyMap(scoreJson, (g: GameInfo, v: number): void => {
       if (GameDataManager.validHighScore(v)) { g.highScore = v; }
     });
-    const timeJson = GameDataManager.store.getSync(KEY_PLAY_TIMES, '') as string;
+    const timeJson = GameDataManager.readText(KEY_PLAY_TIMES);
     GameDataManager.applyMap(timeJson, (g: GameInfo, v: number): void => {
       if (Number.isFinite(v) && v >= 0 && v <= Number.MAX_SAFE_INTEGER) { g.playTimeMs = Math.floor(v); }
     });
     GameDataManager.gameStarts = {};
     GameDataManager.gameStartsDirty = false;
-    const startsJson = GameDataManager.store.getSync(KEY_GAME_STARTS, '') as string;
+    const startsJson = GameDataManager.readText(KEY_GAME_STARTS);
     GameDataManager.applyMap(startsJson, (g: GameInfo, v: number): void => {
       if (Number.isSafeInteger(v) && v > 0) { GameDataManager.gameStarts[g.id] = v; }
     });
-    const playedJson = GameDataManager.store.getSync(KEY_PLAYED_GAMES, '') as string;
+    const playedJson = GameDataManager.readText(KEY_PLAYED_GAMES);
     GameDataManager.playedGameIds = GameDataManager.restoreGameIds(playedJson);
     if (playedJson.length === 0) {
       // 旧次数只用于保留「已玩游戏」数量，无法换算为时长。
-      const countJson = GameDataManager.store.getSync(KEY_PLAY_COUNTS, '') as string;
+      const countJson = GameDataManager.readText(KEY_PLAY_COUNTS);
       GameDataManager.applyMap(countJson, (g: GameInfo, v: number): void => {
         if (Number.isFinite(v) && v > 0) { GameDataManager.markPlayed(g.id); }
       });
     }
-    const recentJson = GameDataManager.store.getSync(KEY_RECENT_GAMES, '') as string;
+    const recentJson = GameDataManager.readText(KEY_RECENT_GAMES);
     GameDataManager.recentGameIds = GameDataManager.restoreGameIds(recentJson);
     for (let i = 0; i < GameDataManager.recentGameIds.length; i++) {
       GameDataManager.markPlayed(GameDataManager.recentGameIds[i]);
@@ -268,7 +290,7 @@ export class GameDataManager {
     }
     // 旧版本只保存已玩标记、最近顺序或累计时长，无法推算真实游玩日期。
     GameDataManager.lastPlayedAtByGame = {};
-    const lastPlayedJson = GameDataManager.store.getSync(KEY_LAST_PLAYED_AT, '') as string;
+    const lastPlayedJson = GameDataManager.readText(KEY_LAST_PLAYED_AT);
     GameDataManager.applyMap(lastPlayedJson, (g: GameInfo, v: number): void => {
       if (Number.isFinite(v) && v > 0 && v <= MAX_DATE_TIMESTAMP_MS) {
         GameDataManager.lastPlayedAtByGame[g.id] = Math.floor(v);
@@ -276,7 +298,7 @@ export class GameDataManager {
       }
     });
     // 恢复用户设置
-    const settingsJson = GameDataManager.store.getSync(KEY_SETTINGS, '') as string;
+    const settingsJson = GameDataManager.readText(KEY_SETTINGS);
     if (settingsJson.length > 0) {
       try {
         const parsed = JSON.parse(settingsJson) as Record<string, boolean | string | number>;
@@ -364,22 +386,23 @@ export class GameDataManager {
           scores[game.id] = game.highScore;
           times[game.id] = game.playTimeMs;
         }
-        GameDataManager.store.putSync(KEY_HIGH_SCORES, JSON.stringify(scores));
-        if (Object.keys(GameDataManager.modeRecords).length > 0) {
-          GameDataManager.store.putSync(KEY_MODE_RECORDS, JSON.stringify(GameDataManager.modeRecords));
+        GameDataManager.writeText(KEY_HIGH_SCORES, JSON.stringify(scores));
+        if (GameDataManager.modeRecordsDirty || Object.keys(GameDataManager.modeRecords).length > 0) {
+          GameDataManager.writeText(KEY_MODE_RECORDS, JSON.stringify(GameDataManager.modeRecords));
+          GameDataManager.modeRecordsDirty = false;
         }
-        GameDataManager.store.putSync(KEY_PLAY_TIMES, JSON.stringify(times));
+        GameDataManager.writeText(KEY_PLAY_TIMES, JSON.stringify(times));
         if (GameDataManager.gameStartsDirty) {
-          GameDataManager.store.putSync(KEY_GAME_STARTS, JSON.stringify(GameDataManager.gameStarts));
+          GameDataManager.writeText(KEY_GAME_STARTS, JSON.stringify(GameDataManager.gameStarts));
           GameDataManager.gameStartsDirty = false;
         }
-        GameDataManager.store.putSync(KEY_PLAYED_GAMES, JSON.stringify(GameDataManager.playedGameIds));
-        GameDataManager.store.putSync(KEY_SETTINGS, JSON.stringify(GameDataManager.settings));
-        GameDataManager.store.putSync(KEY_RECENT_GAMES, JSON.stringify(GameDataManager.recentGameIds));
-        GameDataManager.store.putSync(KEY_LAST_PLAYED_AT, JSON.stringify(GameDataManager.lastPlayedAtByGame));
+        GameDataManager.writeText(KEY_PLAYED_GAMES, JSON.stringify(GameDataManager.playedGameIds));
+        GameDataManager.writeText(KEY_SETTINGS, JSON.stringify(GameDataManager.settings));
+        GameDataManager.writeText(KEY_RECENT_GAMES, JSON.stringify(GameDataManager.recentGameIds));
+        GameDataManager.writeText(KEY_LAST_PLAYED_AT, JSON.stringify(GameDataManager.lastPlayedAtByGame));
         if (GameDataManager.savedGamesDirty) {
-          GameDataManager.store.putSync(KEY_SAVED_2048, GameDataManager.saved2048);
-          GameDataManager.store.putSync(KEY_SAVED_SUDOKU, GameDataManager.savedSudoku);
+          GameDataManager.writeText(KEY_SAVED_2048, GameDataManager.saved2048);
+          GameDataManager.writeText(KEY_SAVED_SUDOKU, GameDataManager.savedSudoku);
           GameDataManager.savedGamesDirty = false;
         }
         GameDataManager.dirty = false;
@@ -685,8 +708,13 @@ export class GameDataManager {
 
   /** 清空战绩和最近游玩列表，保留用户设置。调用前由设置页确认。 */
   static clearPlayData(): void {
+    // 用户明确清空战绩时才允许替换读取失败的战绩字段；偏好设置继续保留。
+    [KEY_HIGH_SCORES, KEY_MODE_RECORDS, KEY_PLAY_TIMES, KEY_GAME_STARTS, KEY_PLAYED_GAMES,
+      KEY_RECENT_GAMES, KEY_LAST_PLAYED_AT, KEY_SAVED_2048, KEY_SAVED_SUDOKU].forEach((key: string) => {
+      GameDataManager.unreadKeys.delete(key);
+    });
     GameDataManager.modeRecords = {};
-    if (GameDataManager.store) { GameDataManager.store.putSync(KEY_MODE_RECORDS, '{}'); }
+    GameDataManager.modeRecordsDirty = true;
     for (let i = 0; i < GameDataManager.catalog.length; i++) {
       GameDataManager.catalog[i].highScore = 0;
       GameDataManager.catalog[i].playTimeMs = 0;

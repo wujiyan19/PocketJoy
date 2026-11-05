@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "deadlockAfterThreeFirstLaneLaunches": true,
+  "undoRestoredTwoSlots": true,
+  "replayTexts": [
+    "得分 20 · 最高 20",
+    "进度 2 / 36",
+    "候车位 3 / 3",
+    "候车位已满，撤销后调整发车顺序",
+    "本局结束",
+    "本局得分：20"
+  ],
+  "scope": "Public widget launch navigation and rendered button actions."
+}
