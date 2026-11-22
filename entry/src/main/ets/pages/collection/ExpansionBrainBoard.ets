@@ -1,11 +1,9 @@
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
 import { ExpansionRenderPiece } from '../../viewmodel/ExpansionRenderPiece';
-import { IDIOMS, IDIOM_PARTS } from '../../model/game/ExpansionBrain';
 import { ExpansionTonePlayer } from '../../common/ExpansionTonePlayer';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
-import { GameArtTile } from '../../components/GameArtTile';
 import { GameSound, gameSound } from '../../common/GameSound';
 
 @ComponentV2
@@ -45,34 +43,10 @@ export struct ExpansionBrainBoard {
     return images[this.vm.state.variant ?? 0];
   }
   measure(area: Area): void { const width: number = Number(area.width); if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; } }
-  point(node: number): number[] { return [(60 + node % 3 * 120) * this.arenaScale(), (100 + Math.floor(node / 3) * 120) * this.arenaScale()]; }
   color(index: number): Resource { return [$r('app.color.expansion_color_1'), $r('app.color.expansion_color_2'), $r('app.color.expansion_color_3'), $r('app.color.expansion_color_4')][index % 4]; }
-  object(value: number): string { return ['🌲', '🌷', '🍄', '🦋', '🐈', '🐦', '🪁', '🍎', '🏠'][value - 1]; }
-  word(value: number): string { return ['', '木', '火', '水', '金', '森', '焱', '淼', '鑫'][value]; }
-  phrase(): string { return IDIOMS[this.vm.state.data[0]].split('').map((v: string, i: number) => i === this.vm.state.data[1] ? '□' : v).join(''); }
-  drawRescue(event: GestureEvent): void {
-    if (!this.vm.dragging || this.vm.state.phase !== 0 || event.fingerList.length === 0) { return; }
-    const finger: FingerInfo = event.fingerList[0];
-    const x: number = Math.max(0, Math.min(360, finger.localX / this.arenaScale()));
-    const y: number = Math.max(0, Math.min(460, finger.localY / this.arenaScale()));
-    this.vm.aim(x, y);
-  }
   build() {
     Column({ space: SpacingTokens.base }) {
-      if (this.gameId === 'onestroke') { this.Stroke() }
-      if (this.gameId === 'hiddenobjects') { this.Hidden() }
       if (this.gameId === 'picturepuzzle') { this.Picture() }
-      if (this.gameId === 'idiom') { this.Idiom() }
-      if (this.gameId === 'linerescue') {
-        Text($r('app.string.linerescue_draw_hint')).fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textSecondary)
-        this.RescueArena()
-        if (this.vm.state.phase === 0) {
-          Button($r('app.string.expansion_ready')).id('linerescue-start')
-            .enabled(this.vm.state.target.length >= 4 && !this.vm.dragging).onClick(() => { this.vm.activate(); })
-          Button($r('app.string.expansion_clear_line')).id('linerescue-clear')
-            .enabled(this.vm.state.target.length > 0).onClick(() => { this.vm.tap(900); })
-        }
-      }
       if (this.gameId === 'beatjump') {
         Stack({ alignContent: Alignment.Top }) {
           Stack() {
@@ -84,49 +58,12 @@ export struct ExpansionBrainBoard {
             Text(this.vm.state.target.slice(this.vm.state.cursor, this.vm.state.cursor + 4).map((v: number) => ['←', '●', '→'][v]).join('   ')).fontSize(FontTokens.sizeTitle).fontColor(SemanticColors.primary).id('beatjump-cues')
           }.align(Alignment.Top).hitTestBehavior(HitTestMode.None)
         }.width('100%').constraintSize({ maxWidth: this.beatAreaLimit }).id('rhythm-three-board')
-      } else if (this.gameId === 'wordtower') { this.Arena() }
-      if (this.gameId === 'melody') { this.Melody() }
-      if (this.gameId === 'wordtower' && this.vm.state.phase === 0) { Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); }) }
-      if (this.gameId === 'wordtower') {
-        Text($r('app.string.expansion_pack_stats', this.vm.state.data[0], this.vm.state.data[1], this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
-        Text($r('app.string.expansion_tower_cost')).fontColor(SemanticColors.textSecondary)
-        Row({ space: SpacingTokens.sm }) { ForEach(range(4), (i: number) => { Button(this.word(i + 1)).layoutWeight(1).border({ width: this.vm.state.next === i + 1 ? 3 : 0, color: SemanticColors.warning }).onClick(() => { this.vm.choose(i); }) }, (i: number) => i.toString()) }.width('100%')
       }
+      if (this.gameId === 'melody') { this.Melody() }
       if (this.gameId === 'beatjump') {
         Row({ space: SpacingTokens.sm }) { ForEach(range(3), (lane: number) => { Button(['←', '●', '→'][lane]).layoutWeight(1).height($r('app.float.expansion_control_height')).id('beatjump-key-' + lane).onClick(() => { this.vm.tap(lane); }) }, (lane: number) => lane.toString()) }.width('100%')
       }
     }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-  }
-  @Builder
-  Stroke() {
-    Stack({ alignContent: Alignment.TopStart }) {
-      ForEach(range(this.vm.state.goal), (edge: number) => {
-        Line().width('100%').height('100%').startPoint(this.point(this.vm.state.board[edge * 2])).endPoint(this.point(this.vm.state.board[edge * 2 + 1]))
-          .strokeWidth(this.vm.state.tray.includes(edge) ? 5 : 2).stroke(this.vm.state.tray.includes(edge) ? SemanticColors.primary : SemanticColors.border).hitTestBehavior(HitTestMode.None)
-      }, (edge: number) => edge.toString())
-      ForEach(range(9), (node: number) => {
-        Button((node + 1).toString(), { type: ButtonType.Circle }).width(38 * this.arenaScale()).height(38 * this.arenaScale()).padding(0)
-          .backgroundColor(this.vm.state.selected === node ? SemanticColors.warning : SemanticColors.primary)
-          .translate({ x: this.point(node)[0] - 19 * this.arenaScale(), y: this.point(node)[1] - 19 * this.arenaScale() }).onClick(() => { this.vm.tap(node); })
-      }, (node: number) => node.toString())
-    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
-  }
-  @Builder
-  Hidden() {
-    Column({ space: SpacingTokens.sm }) {
-      Text($r('app.string.expansion_find_objects')).fontColor(SemanticColors.textSecondary)
-      Row({ space: SpacingTokens.xs }) { ForEach(this.vm.state.target, (value: number) => { Image(this.hiddenArt(value)).objectFit(ImageFit.Contain).height(42).layoutWeight(1).opacity(this.vm.state.tray.includes(value) ? 0.2 : 1).accessibilityText(this.object(value)) }, (value: number) => value.toString()) }.width('100%')
-      Column({ space: SpacingTokens.xs }) {
-        ForEach(range(6), (row: number) => {
-          Row({ space: SpacingTokens.xs }) {
-            ForEach(range(6), (col: number) => {
-              Column() { GameArtTile({ image: this.hiddenArt(this.vm.state.board[row * 6 + col]), description: this.object(this.vm.state.board[row * 6 + col]),
-                onTap: () => { this.vm.tap(row * 6 + col); } }) }.layoutWeight(1).height('100%')
-            }, (col: number) => col.toString())
-          }.layoutWeight(1).width('100%')
-        }, (row: number) => row.toString())
-      }.width('100%').aspectRatio(1).padding(SpacingTokens.sm).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-    }.width('100%')
   }
   @Builder
   Picture() {
@@ -170,39 +107,8 @@ export struct ExpansionBrainBoard {
     }.width('100%')
   }
   @Builder
-  Idiom() {
-    Column({ space: SpacingTokens.base }) {
-      Text(this.phrase()).fontSize(FontTokens.sizeDisplay).fontColor(SemanticColors.textPrimary).padding(SpacingTokens.xl)
-      Row({ space: SpacingTokens.sm }) {
-        ForEach(this.vm.state.board, (part: number, index: number) => { Button(IDIOM_PARTS[part]).layoutWeight(1).height(64).fontSize(FontTokens.sizeTitle).onClick(() => { this.vm.tap(index); }) }, (part: number) => part.toString())
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  RescueArena() {
-    Stack({ alignContent: Alignment.TopStart }) {
-      ForEach(range(Math.max(0, this.vm.state.target.length / 2 - 1)), (segment: number) => {
-        Line().width('100%').height('100%')
-          .startPoint([this.vm.state.target[segment * 2] * this.arenaScale(), this.vm.state.target[segment * 2 + 1] * this.arenaScale()])
-          .endPoint([this.vm.state.target[segment * 2 + 2] * this.arenaScale(), this.vm.state.target[segment * 2 + 3] * this.arenaScale()])
-          .strokeWidth($r('app.float.linerescue_line_width')).stroke(SemanticColors.primary).hitTestBehavior(HitTestMode.None)
-      }, (segment: number) => segment.toString())
-      this.ArenaPieces()
-    }
-    .id('linerescue-drawing-area')
-    .width('100%').aspectRatio(360 / 460).clip(true)
-    .backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId))
-    .backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-    .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
-    .priorityGesture(PanGesture({ fingers: 1, direction: this.vm.state.phase === 0 ? PanDirection.All : PanDirection.None, distance: 0 })
-      .onActionStart((event: GestureEvent) => { this.vm.setDragging(true); this.drawRescue(event); })
-      .onActionUpdate((event: GestureEvent) => { this.drawRescue(event); })
-      .onActionEnd((event: GestureEvent) => { this.drawRescue(event); this.vm.setDragging(false); })
-      .onActionCancel(() => { this.vm.setDragging(false); }))
-  }
-  @Builder
   ArenaPieces() {
-    ForEach(this.vm.worldPieces.filter((rendered: ExpansionRenderPiece) => rendered.piece.kind !== 57), (rendered: ExpansionRenderPiece) => {
+    ForEach(this.vm.worldPieces, (rendered: ExpansionRenderPiece) => {
       Image(ExpansionArt.piece(this.gameId, rendered.piece)).width(rendered.piece.r * 2 * this.arenaScale()).height(rendered.piece.r * 2 * this.arenaScale()).objectFit(ImageFit.Contain)
         .translate({ x: (rendered.piece.x - rendered.piece.r) * this.arenaScale(), y: (rendered.piece.y - rendered.piece.r) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
     }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
@@ -210,14 +116,6 @@ export struct ExpansionBrainBoard {
   @Builder
   Arena() {
     Stack({ alignContent: Alignment.TopStart }) {
-      if (this.gameId === 'wordtower') {
-        ForEach(range(6), (slot: number) => {
-          Button(this.word(this.vm.state.board[slot]), { type: ButtonType.Normal }).width(60 * this.arenaScale()).height(60 * this.arenaScale()).padding(0)
-            .fontSize(FontTokens.sizeTitle).backgroundColor(SemanticColors.surface).fontColor(SemanticColors.primary)
-            .border({ width: this.vm.state.tray.includes(slot) ? 3 : 1, color: SemanticColors.primary })
-            .translate({ x: (40 + slot % 3 * 110) * this.arenaScale(), y: (260 + Math.floor(slot / 3) * 95) * this.arenaScale() }).onClick(() => { this.vm.tap(slot); })
-        }, (slot: number) => slot.toString())
-      }
       if (this.gameId === 'beatjump') { ForEach(range(3), (lane: number) => { Column().width(72 * this.arenaScale()).height(18 * this.arenaScale()).backgroundColor(this.color(lane)).translate({ x: (24 + lane * 120) * this.arenaScale(), y: 370 * this.arenaScale() }) }, (lane: number) => lane.toString()) }
       this.ArenaPieces()
     }.width('100%').aspectRatio(360 / 460).clip(true).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
@@ -256,8 +154,5 @@ export struct ExpansionBrainBoard {
       else if (!this.audioReady) { Text($r('app.string.expansion_audio_loading')).fontColor(SemanticColors.textSecondary) }
       Button($r('app.string.expansion_play_melody')).id('melody-play').enabled(this.vm.state.phase === 0 && (this.audioReady || !this.sound.enabled)).onClick(() => { this.vm.tap(900); })
     }.width('100%')
-  }
-  hiddenArt(value: number): Resource {
-    return value === 8 ? ExpansionArt.fruit(4) : value === 9 ? ExpansionArt.object(2) : ExpansionArt.object([0, 1, 3, 5, 6, 7, 8][value - 1]);
   }
 }

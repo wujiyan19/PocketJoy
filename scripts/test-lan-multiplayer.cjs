@@ -44,7 +44,7 @@ function player(id, wire, connection) {
   const vm = new module[collection ? 'CollectionViewModel' : 'ExpansionViewModel']();
   vm.init(id); vm.startGame();
   const Adapter = module[collection ? 'CollectionLanAdapter' : 'ExpansionLanAdapter'];
-  const { LanGameSession } = f.load('entry/src/main/ets/common/LanGameSession.ets');
+  const { LanGameSession } = f.load('archive/lan/LanGameSession.ets');
   vm.lan = new LanGameSession(new Adapter(vm), connection);
   return { f, vm, lan: vm.lan, connection };
 }
@@ -60,13 +60,13 @@ async function pair(id, guestId = id, hostDifficulty = 'normal', guestDifficulty
 
 function same(pair) { assert.deepEqual(pair.host.vm.state, pair.guest.vm.state); }
 function packetFrom(player, type) {
-  const { LanPacket } = player.f.load('entry/src/main/ets/common/LanProtocol.ets');
+  const { LanPacket } = player.f.load('archive/lan/LanProtocol.ets');
   const packet = new LanPacket(); packet.game = player.vm.state.id; packet.type = type;
   packet.round = 1; packet.revision = player.lan.revision; return packet;
 }
 
 test('IPv4 and packet validation reject remote endpoints, missing fields and excessive data', () => {
-  const f = fixture(); const { LanProtocol, LanPacket } = f.load('entry/src/main/ets/common/LanProtocol.ets');
+  const f = fixture(); const { LanProtocol, LanPacket } = f.load('archive/lan/LanProtocol.ets');
   for (const ip of ['10.0.0.1', '172.16.0.1', '172.31.255.254', '192.168.1.10']) assert(LanProtocol.address(ip));
   for (const ip of ['8.8.8.8', '127.0.0.1', '0.0.0.0', '172.32.0.1', '192.168.1.256',
     '192.168.01.1', '192.168.1', 'example.com', '192.168.1.1:41237', '192.168.1.-1']) assert(!LanProtocol.address(ip), ip);
@@ -241,7 +241,7 @@ test('handshake timeout and canceled join cannot resurrect an abandoned room', a
 });
 
 test('LAN resources cover all languages and required network permissions are declared', () => {
-  const panel = fs.readFileSync('entry/src/main/ets/components/LanRoomPanel.ets', 'utf8');
+  const panel = fs.readFileSync('archive/lan/LanRoomPanel.ets', 'utf8');
   const names = [...new Set([...panel.matchAll(/app\.string\.(lan_[a-z_]+)/g)].map(match => match[1]))];
   assert(names.length > 10);
   for (const locale of ['base', 'en_US', 'zh_CN']) {

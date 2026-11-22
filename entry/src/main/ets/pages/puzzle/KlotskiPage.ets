@@ -42,9 +42,6 @@ export struct KlotskiPage {
     }
     GameLifecycleBus.attach(this.viewModel);
     if (!GameSessionTransfer.restore(this.viewModel)) { this.viewModel.startGame(); }
-    const ctx = this.getUIContext().getHostContext();
-    if (ctx) {
-    }
     this.playTimeStateChanged();
   }
 
@@ -182,7 +179,8 @@ export struct KlotskiPage {
           detailColor: SemanticColors.warning,
           showDetail: true,
           primaryText: $r('app.string.result_play_again'),
-          onPrimary: () => { this.viewModel.startGame(); }
+          onPrimary: () => { this.viewModel.startGame(); }, showSecondary: true,
+          secondaryText: $r('app.string.action_back'), onSecondary: () => { this.pathStack.pop(); }
         })
       }
 

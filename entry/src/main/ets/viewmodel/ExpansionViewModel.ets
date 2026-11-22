@@ -1,10 +1,11 @@
+import { ChessDataIndex } from '../model/game/ExpansionStateCodes';
 import { GameDifficulty } from '../common/GameConstants';
 import { GameLifecycleBus, GameLifecycleObserver } from '../common/GameLifecycleBus';
 import { FrameLoop } from '../common/FrameLoop';
 import { GameDataManager } from '../model/GameData';
 import { ExpansionModel } from '../model/game/ExpansionModel';
 import { SOKOBAN_LEVELS } from '../model/game/SokobanLevels';
-import { ExpansionPiece, ExpansionState } from '../model/game/ExpansionState';
+import { ExpansionPiece, ExpansionState, sameExpansionState, snapshotExpansion } from '../model/game/ExpansionState';
 import { CHESS_IDS } from '../model/game/ExpansionChess';
 import { ExpansionRenderPiece } from './ExpansionRenderPiece';
 import { ChessPieceMove, chessMovesBetween } from './ChessPieceMove';
@@ -43,11 +44,10 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   private model: ExpansionModel = new ExpansionModel();
   private frame: FrameLoop | null = null;
   private id: string = '';
-  private initialProgress: string = '';
+  private initialState: ExpansionState | null = null;
   private recorded: boolean = false;
   private visible: boolean = true;
   private accumulator: number = 0;
-  private renderElapsed: number = 0;
   private tone: (note: number) => void = (note: number): void => {};
   private toneStop: () => void = (): void => {};
   private toneSerial: number = 0;
@@ -85,7 +85,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   }
   setToneCallbacks(play: (note: number) => void, stop: () => void): void { this.tone = play; this.toneStop = stop; this.toneSerial = 0; }
   startGame(): void {
-    gameSound.stop(this.id);
+    GameLifecycleBus.selectSoundMode(this, this.modeId);
     this.resetChessAnimation();
     this.stop(); this.paused = false; this.confirmExit = false; this.recorded = false; this.dragging = false;
     this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++;
@@ -94,7 +94,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     if (this.sokobanLevel > 0) { this.model.startSokobanLevel(this.sokobanLevel); }
     else { this.model.start(this.modeId, level); }
     GameDataManager.recordGameStarted(this.id); this.sync(false);
-    this.initialProgress = JSON.stringify(this.state);
+    this.initialState = this.state;
   }
   changeDifficulty(d: GameDifficulty): void {
     if (d === this.difficulty || this.sokobanLevel > 0) { return; } this.difficulty = d;
@@ -102,11 +102,11 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   }
   private sync(feedback: boolean = true, interaction: boolean = false): void {
     const previous: ExpansionState = this.state;
-    this.state = JSON.parse(JSON.stringify(this.model.state)) as ExpansionState; this.canUndo = this.model.canUndo();
+    this.state = snapshotExpansion(this.model.state, previous); this.canUndo = this.model.canUndo();
     this.puzzleStuck = this.state.outcome === 0 && ((this.id === 'watersort' && !this.model.puzzle.hasWaterMove(this.state)) ||
       (this.id === 'mahjongsolitaire' && !this.model.matching.canContinueMahjong(this.state)));
     this.syncChessAnimation(previous, feedback);
-    this.syncWorldPieces();
+    if (previous.pieces !== this.state.pieces) { this.syncWorldPieces(); }
     this.isFinished = this.state.outcome !== 0;
     const recordId: string = this.modeId === 'picturepuzzle' ? this.modeId + '_' + (this.state.variant ?? 0) : this.modeId;
     this.modeHighScore = GameDataManager.getModeScore(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard');
@@ -117,14 +117,13 @@ export class ExpansionViewModel implements GameLifecycleObserver {
       if (this.state.errors > previous.errors || hurt) { this.feedbackKind = 2; this.feedbackGain = 0; this.feedbackSerial++; }
       else if (gain > 0) { this.feedbackKind = 1; this.feedbackGain = gain; this.feedbackSerial++; }
       if (this.state.outcome !== 0) {
-        const draw: boolean = this.id === 'chess' && this.state.data[8] === 1 || this.id === 'mahjong' && this.state.data[3] === 1;
-        gameSound.play(this.id, draw ? GameSoundEvent.DRAW : this.state.outcome === 1 ? GameSoundEvent.WIN : GameSoundEvent.LOSE);
-      } else if (this.state.errors > previous.errors || hurt) { gameSound.play(this.id, GameSoundEvent.ERROR); }
-      else if (gain > 0) { gameSound.play(this.id, GameSoundEvent.REWARD); }
+        gameSound.play(this.modeId, this.isDraw() ? GameSoundEvent.DRAW : this.state.outcome === 1 ? GameSoundEvent.WIN : GameSoundEvent.LOSE);
+      } else if (this.state.errors > previous.errors || hurt) { gameSound.play(this.modeId, GameSoundEvent.ERROR); }
+      else if (gain > 0) { gameSound.play(this.modeId, GameSoundEvent.REWARD); }
       else if (interaction && this.id !== 'melody' && (this.state.moves !== previous.moves || this.state.selected !== previous.selected ||
         this.state.phase !== previous.phase || this.state.cursor !== previous.cursor || this.state.serial !== previous.serial ||
         this.state.next !== previous.next || this.state.pieces.length !== previous.pieces.length || this.state.tray.join(',') !== previous.tray.join(','))) {
-        gameSound.play(this.id);
+        gameSound.play(this.modeId);
       }
     }
     if (this.state.id === 'melody' && this.state.data[1] !== this.toneSerial) {
@@ -150,6 +149,13 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   private syncWorldPieces(): void {
     // ForEach keeps children for the same ID. Update the observed wrapper so their
     // images and transforms read the new snapshot without rebuilding every frame.
+    const pieces: ExpansionPiece[] = this.state.pieces;
+    if (pieces.length === this.worldPieces.length && pieces.every((p: ExpansionPiece, i: number) => p.alive && p.id === this.worldPieces[i].id)) {
+      for (let i: number = 0; i < pieces.length; i++) {
+        if (this.worldPieces[i].piece !== pieces[i]) { this.worldPieces[i].piece = pieces[i]; }
+      }
+      return;
+    }
     const existing: Map<number, ExpansionRenderPiece> = new Map<number, ExpansionRenderPiece>();
     this.worldPieces.forEach((rendered: ExpansionRenderPiece) => { existing.set(rendered.id, rendered); });
     const next: ExpansionRenderPiece[] = [];
@@ -210,6 +216,10 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   tileFree(id: number): boolean { return this.model.matching.tileFree(this.state, id); }
   crossingEdges(): number[] { return this.model.sorting.crossingEdges(this.state); }
   realtime(): boolean { return this.model.realtime(); }
+  isDraw(): boolean {
+    return this.state.outcome === 1 && (CHESS_IDS.includes(this.state.id) && this.state.data[ChessDataIndex.Draw] === 1 ||
+      this.state.id === 'mahjong' && this.state.data[3] === 1);
+  }
   top(index: number): number { return this.model.puzzle.top(this.state, index); }
   bubbleX(index: number): number { return this.model.physics.bubbleX(index); }
   bubbleY(index: number): number { return this.model.physics.bubbleY(index); }
@@ -219,17 +229,18 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   }
   advance(deltaMs: number): void {
     if (this.blocked() || this.state.outcome !== 0 || !Number.isFinite(deltaMs) || deltaMs < 0) { return; }
-    this.accumulator += Math.min(100, deltaMs); this.renderElapsed += deltaMs;
+    this.accumulator += Math.min(100, deltaMs);
+    if (this.accumulator < 8 && this.model.state.phase !== 0 && this.model.state.outcome === 0) { return; }
     while (this.accumulator >= 8 && this.model.state.outcome === 0) { this.model.step(0.008); this.accumulator -= 8; }
-    if (this.renderElapsed >= 32 || this.model.state.outcome !== 0 || this.model.state.phase === 0) { this.renderElapsed = 0; this.sync(); }
+    this.sync();
     if (this.model.state.phase === 0 || this.model.state.outcome !== 0) { this.stop(); }
   }
-  private stop(): void { this.cancelComputerTurn(); this.frame?.stop(); this.accumulator = 0; this.renderElapsed = 0; this.toneStop(); }
+  private stop(): void { this.cancelComputerTurn(); this.frame?.stop(); this.accumulator = 0; this.toneStop(); }
   togglePause(): void {
     this.resetChessAnimation();
-    gameSound.stop(this.id); this.paused = !this.paused; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.setDragging(false); if (this.paused) { this.stop(); } else { this.run(); this.refreshComputerTurn(); } }
+    gameSound.stop(this.modeId); this.paused = !this.paused; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.setDragging(false); if (this.paused) { this.stop(); } else { this.run(); this.refreshComputerTurn(); } }
   onAppHidden(): void {
-    gameSound.stop(this.id);
+    gameSound.stop(this.modeId);
     this.resetChessAnimation();
     this.visible = false; this.effectsEnabled = false; this.setDragging(false); this.stop();
   }
@@ -237,7 +248,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   onBackRequested(): boolean { return this.requestBack(); }
   requestBack(): boolean {
     if (this.state.outcome !== 0 || !GameDataManager.getSetting('confirmExitEnabled', true)) { return false; }
-    gameSound.stop(this.id); this.resetChessAnimation(); this.confirmExit = true; this.effectsEnabled = false; this.setDragging(false); this.stop(); return true;
+    gameSound.stop(this.modeId); this.resetChessAnimation(); this.confirmExit = true; this.effectsEnabled = false; this.setDragging(false); this.stop(); return true;
   }
   dismissExitConfirm(): void { this.confirmExit = false; this.effectsEnabled = !this.blocked() && this.state.outcome === 0; this.run(); this.refreshComputerTurn(); }
   dispose(): void { this.visible = false; this.effectsEnabled = false; this.resetChessAnimation(); this.stop(); this.setDragging(false); this.frame?.dispose(); }
@@ -247,7 +258,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
 
   hasProgress(): boolean {
     if (this.id === 'sokoban') { return this.state.outcome === 0 && this.state.moves > 0; }
-    return this.state.outcome === 0 && JSON.stringify(this.state) !== this.initialProgress;
+    return this.state.outcome === 0 && (!this.initialState || !sameExpansionState(this.state, this.initialState));
   }
 
   hasComputerOpponent(): boolean { return COMPUTER_GAME_IDS.includes(this.id); }
@@ -284,6 +295,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
       const expected: ExpansionModel = new ExpansionModel(); expected.start(snapshot.state.id, 1);
       if (!expected.valid(snapshot.state)) { return false; }
       this.modeId = snapshot.state.id;
+      GameLifecycleBus.selectSoundMode(this, this.modeId);
       this.stop(); this.model.restore(snapshot.state); this.recorded = snapshot.recorded || snapshot.state.outcome !== 0;
       this.sokobanLevel = this.id === 'sokoban' ? this.model.state.sokobanLevel ?? 0 : 0;
       if (this.sokobanLevel > 0 && snapshot.state.sokobanLevel !== undefined && snapshot.state.outcome === 1 && this.model.state.outcome === 0) {

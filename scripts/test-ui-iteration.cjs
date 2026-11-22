@@ -8,6 +8,49 @@ const tests = [];
 const test = (name, run) => tests.push({ name, run });
 const base = 'entry/src/main/ets/';
 
+test('home highlights eight available games and localized catalog searches perform no repeated resource reads', () => {
+  const f = fixture({}, name => ({ id: name, params: [] }));
+  f.native['@kit.LocalizationKit'] = { intl: { Collator: Intl.Collator } };
+  const { HomeCatalog } = f.load(base + 'pages/home/HomeCatalog.ets');
+  const games = f.data().getAllGames();
+  for (const [locale, name, description] of [['zh_CN', '彩泡弹射', '碰壁'], ['en_US', 'BUBBLE', ' arena ']]) {
+    const strings = new Map(JSON.parse(fs.readFileSync(path.join(root, 'entry/src/main/resources', locale,
+      'element/string.json'), 'utf8')).string.map(item => ['app.string.' + item.name, item.value]));
+    let reads = 0;
+    const context = { resourceManager: { getStringSync(id) { reads++; return strings.get(id); } } };
+    const catalog = new HomeCatalog(games, context);
+    assert.equal(reads, games.length * 2);
+    assert.deepEqual(catalog.categoryCounts, [13, 23, 5, 4, 4, 11]);
+    assert.equal(new Set(catalog.featured.map(game => game.id)).size, 8);
+    assert.ok(catalog.featured.every(game => games.includes(game)));
+    assert.equal(catalog.search(-1, '   ').length, games.length);
+    assert.ok(catalog.search(0, name).some(game => game.id === 'bubbleshooter'));
+    assert.ok(catalog.search(0, description).some(game => game.id === 'bubbleshooter'));
+    assert.equal(catalog.search(1, name).length, 0);
+    assert.equal(catalog.search(-1, '毛线收卷').length, 0);
+    assert.equal(reads, games.length * 2);
+  }
+});
+
+test('merged games use the active rules and a missed three-key beat advances the displayed cursor', () => {
+  const f = fixture();
+  const { gameRules } = f.load(base + 'common/GameRules.ets');
+  for (const id of ['arithmetic', 'compare', 'sequence', 'binary', 'targetsum', 'rhythm', 'beatjump']) {
+    assert.equal(gameRules(id), 'app.string.game_' + id + '_rules');
+  }
+  const model = new (f.rules('Expansion').ExpansionModel)(f.rng(79));
+  model.start('beatjump', 1);
+  model.activate();
+  model.tap(model.state.target[0]);
+  assert.equal(model.state.cursor, 1);
+  assert.equal(model.state.moves, 0);
+  const pages = fs.readFileSync(path.join(root, base, 'pages/collection/ExpansionPage.ets'), 'utf8');
+  assert.match(pages, /this\.vm\.modeId === 'beatjump' \? this\.vm\.state\.cursor : this\.vm\.state\.moves/);
+  assert.match(pages, /rulesModeId: this\.vm\.modeId/);
+  const math = fs.readFileSync(path.join(root, base, 'pages/collection/CollectionPage.ets'), 'utf8');
+  assert.match(math, /rulesModeId: this\.gameId === 'arithmetic' \? this\.vm\.modeId/);
+});
+
 test('duration displays zero, sub-minute, minute and hour boundaries in both languages', () => {
   for (const [lang, expected] of [
     ['base', ['0分钟','不足1分钟','不足1分钟','1分钟','59分钟','1.0 小时','1.2 小时']],

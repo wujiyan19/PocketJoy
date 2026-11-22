@@ -15,7 +15,6 @@ export class GameRoutes {
     'klotski': 'KlotskiPage',
     'guessnumber': 'GuessNumberPage',
     'memorycard': 'MemoryCardPage',
-    'jumpjump': 'JumpJumpPage',
     'brickbreaker': 'BrickBreakerPage',
     'match3': 'Match3Page'
   };

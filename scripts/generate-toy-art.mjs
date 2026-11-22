@@ -3,6 +3,7 @@
  * node scripts/generate-toy-art.mjs
  */
 import fs from 'node:fs';
+import glbWriter from './encode-toy-glb.cjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as T from '../.local-tools/toy-art/node_modules/three/build/three.module.js';
@@ -12,8 +13,10 @@ import { chromium } from '../.local-tools/toy-art/node_modules/playwright-core/i
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const media = path.join(root, 'entry/src/main/resources/base/media');
 const raw = path.join(root, 'entry/src/main/resources/rawfile/toy');
+const archivedRaw = path.join(root, 'archive/jumpjump/resources/rawfile/toy');
 const docs = path.join(root, 'docs/art/toy');
 fs.mkdirSync(raw, { recursive: true }); fs.mkdirSync(docs, { recursive: true });
+fs.mkdirSync(archivedRaw, { recursive: true });
 const palette = ['#EC947F', '#E7BE6F', '#83BCA5', '#8DB8D0', '#ADA0C7', '#C4A17F'];
 const light = new T.Vector3(-.45, .65, 1).normalize();
 const assets = [];
@@ -92,8 +95,8 @@ function render(g, name, bounds, w, h) {
 // Compact glTF 2.0 writer: shared mesh buffers, vertex-baked lighting and no textures.
 function glb(g,name,cameraBounds) {
   const json={asset:{version:'2.0',generator:'LittleGames original procedural toy art'},scene:0,scenes:[{nodes:[]}],nodes:[],meshes:[],materials:[{name:'matte-toy',pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:0,roughnessFactor:.85},extensions:{KHR_materials_unlit:{}}}],extensionsUsed:['KHR_materials_unlit'],accessors:[],bufferViews:[],buffers:[],cameras:[{type:'orthographic',orthographic:{xmag:cameraBounds[0],ymag:cameraBounds[1],znear:.1,zfar:3000}}]};
-  const chunks=[];let size=0;const geometries=new Map();
-  const acc=(array,type,componentType,min,max)=>{const buf=Buffer.from(array.buffer,array.byteOffset,array.byteLength);const padded=Buffer.alloc(Math.ceil(buf.length/4)*4);buf.copy(padded);const view=json.bufferViews.length;json.bufferViews.push({buffer:0,byteOffset:size,byteLength:buf.length});chunks.push(padded);size+=padded.length;const index=json.accessors.length;json.accessors.push({bufferView:view,componentType,count:array.length/(type==='SCALAR'?1:3),type,...(min?{min,max}:{})});return index;};
+  const chunks=[];const geometries=new Map();
+  const acc=(array,type,componentType,min,max)=>{const buf=Buffer.from(array.buffer,array.byteOffset,array.byteLength);const padded=Buffer.alloc(Math.ceil(buf.length/4)*4);buf.copy(padded);const view=json.bufferViews.length;json.bufferViews.push({buffer:0,byteOffset:0,byteLength:buf.length});chunks.push(padded);const index=json.accessors.length;json.accessors.push({bufferView:view,componentType,count:array.length/(type==='SCALAR'?1:3),type,...(min?{min,max}:{})});return index;};
   const visit=o=>{const node={name:o.name||'part',translation:o.position.toArray(),rotation:o.quaternion.toArray(),scale:o.scale.toArray()};const id=json.nodes.length;json.nodes.push(node);
     if(o.isMesh){const key=o.geometry.uuid+o.material.color.getHexString();let mi=geometries.get(key);
       if(mi===undefined){const geom=o.geometry,p=geom.attributes.position,n=geom.attributes.normal,positions=new Float32Array(p.array),colors=new Float32Array(p.count*3),normals=new Float32Array(n.array);const box3=new T.Box3().setFromBufferAttribute(p);
@@ -107,10 +110,10 @@ function glb(g,name,cameraBounds) {
     if(o.children.length)node.children=o.children.map(visit);return id;
   };
   json.scenes[0].nodes.push(visit(g));json.nodes.push({name:'ToyCamera',camera:0,translation:[0,0,1000]});json.scenes[0].nodes.push(json.nodes.length-1);
-  json.buffers.push({byteLength:size});let j=Buffer.from(JSON.stringify(json));const padded=Buffer.alloc(Math.ceil(j.length/4)*4,32);j.copy(padded);const bin=Buffer.concat(chunks);
-  const header=Buffer.alloc(12);header.writeUInt32LE(0x46546c67);header.writeUInt32LE(2,4);header.writeUInt32LE(28+padded.length+bin.length,8);
-  const jh=Buffer.alloc(8);jh.writeUInt32LE(padded.length);jh.writeUInt32LE(0x4e4f534a,4);const bh=Buffer.alloc(8);bh.writeUInt32LE(bin.length);bh.writeUInt32LE(0x004e4942,4);
-  const data=Buffer.concat([header,jh,padded,bh,bin]);fs.writeFileSync(path.join(raw,name+'.glb'),data);assets.push({name:'toy/'+name+'.glb',bytes:data.length,nodes:json.nodes.length,meshes:json.meshes.length});
+  const data=glbWriter.encodeToyGlb(json,chunks);
+  const packaged=!name.startsWith('jump');
+  fs.writeFileSync(path.join(packaged?raw:archivedRaw,name+'.glb'),data);
+  assets.push({name:'toy/'+name+'.glb',bytes:data.length,nodes:json.nodes.length,meshes:json.meshes.length,packaged});
 }
 render(screw(),'toy_screw',[-18,18,18,-18],108,108);
 const slot=group('slot');cylinder(slot,16,1,'#BDAB90');cylinder(slot,12,1,'#766C60',0,0,1);cylinder(slot,9,1,'#514E49',0,0,2);

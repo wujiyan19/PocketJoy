@@ -1,6 +1,29 @@
 /* Drop unreachable gradients only. Geometry and all other XML remain untouched. */
 const fs = require('node:fs');
 const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const artworkOnly = new Set([
+  'col_gem_blue', 'col_gem_coral', 'col_gem_gold', 'col_gem_mint', 'col_gem_violet', 'col_question_memory',
+  'expansion_puzzle_scene', 'exp_book', 'exp_brush', 'exp_goal', 'exp_plate', 'exp_screw', 'exp_wall',
+  'play_jump_frog', 'play_jump_platform', 'play_jump_scene'
+]);
+function svgPath(theme, name) {
+  const directory = artworkOnly.has(name) ? 'docs/art/source-media' : 'entry/src/main/resources';
+  return path.join(root, directory, theme, 'media', name + '.svg');
+}
+function resolveSvg(theme, name) {
+  const file = svgPath(theme, name);
+  return theme === 'dark' && !fs.existsSync(file) ? svgPath('base', name) : file;
+}
+function writeThemedSvg(theme, name, contents) {
+  const file = svgPath(theme, name);
+  if (theme === 'dark' && fs.readFileSync(svgPath('base', name), 'utf8') === contents) {
+    fs.rmSync(file, { force: true });
+    return;
+  }
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, contents);
+}
 function references(xml) {
   return [...xml.matchAll(/url\(\s*#([^\s)]+)\s*\)|(?:xlink:)?href=["']#([^"']+)["']/g)].map(m => m[1] || m[2]);
 }
@@ -22,7 +45,7 @@ function pruneSvgDefs(svg) {
     return '<defs>' + next + '</defs>';
   });
 }
-module.exports = { pruneSvgDefs };
+module.exports = { pruneSvgDefs, resolveSvg, writeThemedSvg };
 if (require.main === module) {
   const root = path.resolve(__dirname, '..');
   const backup = path.join(process.env.TEMP || process.env.TMP || root, 'littlegames-ui-20261019');

@@ -61,7 +61,7 @@ function disjointIds(oldItems, newItems) {
   assert.equal(new Set(newItems.map(item => item.id)).size, newItems.length);
 }
 function jumpKeys(vm) {
-  const text=source('entry/src/main/ets/pages/classic/JumpJumpPage.ets');
+  const text=source('archive/jumpjump/JumpJumpPage.ets');
   const expression=/\}, \(p: PlatformData\) => (.+)\)/.exec(text)[1];
   const key=new Function('p',`return ${expression};`);
   return vm.platforms.map(p=>key.call({viewModel:vm},p));

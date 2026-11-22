@@ -8,10 +8,13 @@ const commandLineTools = process.env.LITTLEGAMES_TOOLCHAIN_ROOT;
 const toolchain = path.resolve(commandLineTools || studio);
 const tools = commandLineTools ? toolchain : path.join(toolchain, 'tools');
 const javaHome = process.env.JAVA_HOME || path.join(studio, 'jbr');
-const mode = process.argv[2] || 'debug';
-if (mode !== 'debug' && mode !== 'release') {
-  throw new Error('Usage: node scripts/build-hap.cjs [debug|release]');
+const args = process.argv.slice(2);
+const modes = args.filter(arg => arg !== '--clean');
+const mode = modes[0] || 'debug';
+if (modes.length > 1 || !['debug', 'release'].includes(mode)) {
+  throw new Error('Usage: node scripts/build-hap.cjs [debug|release] [--clean]');
 }
+const incremental = mode === 'debug' && !args.includes('--clean');
 const sdk = JSON.parse(fs.readFileSync(path.join(toolchain, 'sdk/default/sdk-pkg.json'), 'utf8'));
 if (sdk.data.apiVersion !== '26') {
   throw new Error('Expected HarmonyOS API 26 SDK, found ' + sdk.data.apiVersion);
@@ -28,6 +31,6 @@ const env = {
 };
 const result = cp.spawnSync(path.join(nodeHome, 'node.exe'), [path.join(tools, 'hvigor/bin/hvigorw.js'),
   'assembleHap', '--mode', 'module', '-p', 'product=default', '-p', 'buildMode=' + mode,
-  '--no-daemon', '--no-incremental'], { cwd: root, env, stdio: 'inherit' });
+  '--no-daemon', incremental ? '--incremental' : '--no-incremental'], { cwd: root, env, stdio: 'inherit' });
 if (result.error) { throw result.error; }
 process.exitCode = result.status === null ? 1 : result.status;

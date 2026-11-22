@@ -1,6 +1,5 @@
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
-import { ExpansionPiece, ExpansionPile } from '../../model/game/ExpansionState';
-import { POKER_IDS } from '../../model/game/ExpansionPoker';
+import { ExpansionPile } from '../../model/game/ExpansionState';
 import { CHESS_IDS } from '../../model/game/ExpansionChess';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
@@ -19,22 +18,13 @@ export struct ExpansionCardBoard {
   }
   @Param gameId: string = '';
   @Param vm: ExpansionViewModel = new ExpansionViewModel();
-  @Local arenaWidth: number = 320;
-  color(player: number): Resource { return [$r('app.color.expansion_color_1'), $r('app.color.expansion_color_2'), $r('app.color.expansion_color_3'), $r('app.color.expansion_color_4')][player % 4]; }
   cardText(card: number): string {
-    if (this.gameId === 'mahjong') {
-      const type: number = Math.floor(card / 4); return type < 27 ? (type % 9 + 1).toString() + ['萬', '筒', '索'][Math.floor(type / 9)] : ['東', '南', '西', '北', '中', '發', '白'][type - 27];
-    }
     if (this.gameId === 'spider' && this.vm.state.pieces[card].w === 0) { return '▧'; }
-    const base: number = POKER_IDS.includes(this.gameId) ? card % 54 : card;
-    if (base >= 52 && POKER_IDS.includes(this.gameId)) { return base === 52 ? '☆' : '★'; }
-    return (this.gameId === 'spider' ? '♤' : ['♤', '♡', '♢', '♧'][Math.floor(base / 13)]) + ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][base % 13];
+    return (this.gameId === 'spider' ? '♤' : ['♤', '♡', '♢', '♧'][Math.floor(card / 13)]) + ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][card % 13];
   }
   cardColor(card: number): Resource {
     if (this.gameId === 'spider') { return SemanticColors.textPrimary; }
-    if (this.gameId === 'mahjong') { return Math.floor(card / 4) < 9 ? SemanticColors.error : Math.floor(card / 4) < 27 ? SemanticColors.primary : SemanticColors.textPrimary; }
-    const suit: number = Math.floor((POKER_IDS.includes(this.gameId) ? card % 54 : card) / 13);
-    if (POKER_IDS.includes(this.gameId)) { return suit === 1 || suit === 2 ? $r('app.color.playing_card_red') : $r('app.color.playing_card_ink'); }
+    const suit: number = Math.floor(card / 13);
     return suit === 1 || suit === 2 ? SemanticColors.error : SemanticColors.textPrimary;
   }
   slotColor(slot: number): Resource {
@@ -49,18 +39,9 @@ export struct ExpansionCardBoard {
     if (this.gameId === 'spider') { return Math.max(135, ...this.vm.state.piles.slice(0, 10).map((pile: ExpansionPile) => this.spiderOffset(pile, Math.max(0, pile.cards.length - 1)) + 62)); }
     return Math.max(230, ...this.vm.state.piles.slice(0, 8).map((pile: ExpansionPile) => pile.cards.length * 24 + 40));
   }
-  ludoPoint(token: ExpansionPiece): number[] {
-    if (token.x < 0) { const side: number = token.owner; return [side === 0 || side === 3 ? 30 + token.id % 2 * 38 : 254 + token.id % 2 * 38, side < 2 ? 25 + Math.floor(token.id % 4 / 2) * 38 : 365 + Math.floor(token.id % 4 / 2) * 38]; }
-    if (token.x >= 52) { const angle: number = token.owner * Math.PI / 2 - Math.PI / 2; const distance: number = (57 - token.x) * 17; return [165 + Math.cos(angle) * distance + token.id % 2 * 8, 215 + Math.sin(angle) * distance + Math.floor(token.id % 4 / 2) * 8]; }
-    const angle: number = ((token.x + token.owner * 13) % 52) * Math.PI * 2 / 52 - Math.PI / 2; return [165 + Math.cos(angle) * 140, 215 + Math.sin(angle) * 175];
-  }
-  measure(area: Area): void { const width: number = Number(area.width); if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; } }
   build() {
     Column({ space: SpacingTokens.base }) {
       if (CHESS_IDS.includes(this.gameId)) { ExpansionChessBoard({ gameId: this.gameId, vm: this.vm }) }
-      if (POKER_IDS.includes(this.gameId)) { this.Poker() }
-      if (this.gameId === 'mahjong') { this.Mahjong() }
-      if (this.gameId === 'ludo') { this.Ludo() }
       if (this.gameId === 'spider' || this.gameId === 'freecell') { this.Solitaire() }
     }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
       .enabled(CHESS_IDS.includes(this.gameId) || !this.vm.computerThinking)
@@ -83,86 +64,11 @@ export struct ExpansionCardBoard {
   @Builder
   Card(card: number) {
     Column() {
-      GameArtTile({ image: this.gameId === 'mahjong' ? $r('app.media.exp_mahjong') : POKER_IDS.includes(this.gameId) ? $r('app.media.exp_poker_front') : this.gameId === 'spider' && this.vm.state.pieces[card].w === 0 ? $r('app.media.exp_card_back') : $r('app.media.exp_card_front'),
-        label: this.gameId === 'spider' && this.vm.state.pieces[card].w === 0 ? '' : this.cardText(card), description: this.cardText(card), textColor: this.cardColor(card),
-        labelAtTop: this.gameId === 'spider' || this.gameId === 'freecell',
-        selected: this.vm.state.selected === card || this.vm.state.tray.includes(card), onTap: () => { this.vm.tap(card); } })
-    }.width(this.gameId === 'freecell' ? 52 : 48).height(62)
-  }
-  @Builder
-  Hand(pile: number) {
-    Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-      // Restart replaces the hand array; read observed state instead of retaining a builder value argument.
-      ForEach(this.vm.state.piles[pile].cards, (card: number) => { Column() { this.Card(card) }.margin(SpacingTokens.xs) }, (card: number) => card.toString())
-    }.width('100%')
-  }
-  @Builder
-  Poker() {
-    Column({ space: SpacingTokens.base }) {
-      Row({ space: SpacingTokens.sm }) {
-        ForEach(range(this.gameId === 'guandan' ? 3 : 2), (opponent: number) => {
-          Text($r('app.string.computer_hand_count', opponent + 2, this.vm.state.piles[opponent + 1].cards.length)).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary).layoutWeight(1)
-        }, (opponent: number) => opponent.toString())
-      }.width('100%')
-      Text(this.gameId === 'doudizhu' ? $r('app.string.expansion_landlord') : $r('app.string.expansion_guandan_team')).fontColor(SemanticColors.textSecondary)
-      Text(this.vm.state.piles[4].cards.length === 0 ? $r('app.string.expansion_last_play') :
-        this.vm.state.data[0] === 0 ? $r('app.string.computer_your_last_play') :
-          $r('app.string.computer_last_play', this.vm.state.data[0] + 1)).fontColor(SemanticColors.textSecondary)
-      this.Hand(4)
-      this.Hand(0)
-      Row({ space: SpacingTokens.sm }) {
-        Button($r('app.string.expansion_hint')).layoutWeight(1).onClick(() => { this.vm.tap(902); })
-        Button($r('app.string.expansion_pass')).layoutWeight(1).enabled(this.vm.state.data[2] !== 0).onClick(() => { this.vm.tap(901); })
-        Button($r('app.string.expansion_play_cards')).layoutWeight(1).onClick(() => { this.vm.tap(900); })
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Mahjong() {
-    Column({ space: SpacingTokens.base }) {
-      Text($r('app.string.expansion_wall', 136 - this.vm.state.cursor)).fontColor(SemanticColors.textSecondary)
-      Row({ space: SpacingTokens.sm }) {
-        ForEach(range(3), (seat: number) => { Text($r('app.string.computer_hand_count', seat + 2, this.vm.state.piles[seat + 1].cards.length)).fontColor(SemanticColors.textSecondary).fontSize(FontTokens.sizeCaption) }, (seat: number) => seat.toString())
-      }.width('100%')
-      if (this.vm.state.piles[8].cards.length > 0) { Text($r('app.string.expansion_discard', this.cardText(this.vm.state.piles[8].cards[this.vm.state.piles[8].cards.length - 1]))).fontColor(SemanticColors.textPrimary) }
-      this.Hand(0)
-      if (this.vm.state.piles[4].cards.length > 0) { this.Hand(4) }
-      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-        Button($r('app.string.expansion_mahjong_win')).margin(SpacingTokens.xs).enabled(this.vm.mahjongCan(900)).onClick(() => { this.vm.tap(900); })
-        if (this.vm.state.data[0] === 1) {
-          Button($r('app.string.expansion_pong')).margin(SpacingTokens.xs).enabled(this.vm.mahjongCan(901)).onClick(() => { this.vm.tap(901); })
-          ForEach(range(3), (choice: number) => {
-            Button($r('app.string.expansion_chi', choice + 1)).margin(SpacingTokens.xs).enabled(this.vm.mahjongCan(902 + choice)).onClick(() => { this.vm.tap(902 + choice); })
-          }, (choice: number) => choice.toString())
-          Button($r('app.string.expansion_kong')).margin(SpacingTokens.xs).enabled(this.vm.mahjongCan(905)).onClick(() => { this.vm.tap(905); })
-          Button($r('app.string.expansion_pass')).margin(SpacingTokens.xs).onClick(() => { this.vm.tap(907); })
-        } else { Button($r('app.string.expansion_closed_kong')).margin(SpacingTokens.xs).onClick(() => { this.vm.tap(906); }) }
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Ludo() {
-    Column({ space: SpacingTokens.base }) {
-      Text($r('app.string.expansion_die', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary)
-      Stack({ alignContent: Alignment.TopStart }) {
-        ForEach(range(52), (step: number) => {
-          Text('·').width(8).height(8).fontColor(SemanticColors.border)
-            .translate({ x: (180 + Math.cos(step * Math.PI * 2 / 52 - Math.PI / 2) * 140) * this.arenaWidth / 360,
-              y: (230 + Math.sin(step * Math.PI * 2 / 52 - Math.PI / 2) * 175) * this.arenaWidth / 360 })
-        }, (step: number) => step.toString())
-        ForEach(this.vm.state.pieces, (token: ExpansionPiece) => {
-          Column() { GameArtTile({ image: $r('app.media.exp_plane'), label: (token.id % 4 + 1).toString(),
-            description: $r('app.string.art_ludo_token', token.owner + 1, token.id % 4 + 1), onTap: () => { this.vm.tap(token.id); } }) }
-            .width(30 * this.arenaWidth / 360).height(30 * this.arenaWidth / 360).backgroundColor(this.color(token.owner)).borderRadius(RadiusTokens.sm)
-            .enabled(token.owner === 0)
-            // Reused ForEach nodes must position the current snapshot, not the first token object.
-            .translate({ x: this.ludoPoint(this.vm.state.pieces[token.id])[0] * this.arenaWidth / 360,
-              y: this.ludoPoint(this.vm.state.pieces[token.id])[1] * this.arenaWidth / 360 })
-        }, (token: ExpansionPiece) => token.id.toString())
-      }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-        .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
-      Button($r('app.string.expansion_roll')).enabled(this.vm.state.next === 1 && this.vm.state.data[0] === 0).onClick(() => { this.vm.tap(900); })
-    }.width('100%')
+      GameArtTile({ image: $r('app.media.exp_card_front'),
+        label: this.cardText(card), description: this.cardText(card), textColor: this.cardColor(card),
+        labelAtTop: true,
+        selected: this.vm.state.selected === card, onTap: () => { this.vm.tap(card); } })
+    }.width(52).height(62)
   }
   @Builder
   FreecellSlots(first: number, label: Resource) {

@@ -1,3 +1,4 @@
+import { ExpansionPieceKind } from '../model/game/ExpansionStateCodes';
 /** Generated resource selectors; see scripts/generate-expansion-art.cjs. */
 import { ExpansionPiece } from '../model/game/ExpansionState';
 
@@ -175,21 +176,21 @@ export class ExpansionArt {
     if (p.kind === 16) { return $r('app.media.exp_hoop'); }
     if (p.kind === 17) { return $r('app.media.exp_basketball'); }
     if (p.kind === 18) { return $r('app.media.exp_note'); }
-    if (p.kind === 24) { return id === 'shooter' ? $r('app.media.exp_plane') : id === 'tanks' ? $r('app.media.exp_tank') : id === 'fortress' ? $r('app.media.exp_tower') : id === 'flappy' ? $r('app.media.exp_bird') : $r('app.media.exp_robot'); }
-    if (p.kind === 25 || p.kind === 26) { return $r('app.media.exp_platform'); }
-    if (p.kind === 27 || p.kind === 43) { return $r('app.media.exp_flag'); }
-    if (p.kind === 28) { return $r('app.media.exp_anchor'); }
-    if (p.kind === 30) { return ExpansionArt.fruit([0, 3, 4, 5, 6, 1][Math.max(0, (p.color - 1) % 6)]); }
-    if (p.kind === 31) { return $r('app.media.exp_bomb'); }
+    if (p.kind === ExpansionPieceKind.Actor) { return id === 'shooter' ? $r('app.media.exp_plane') : id === 'tanks' ? $r('app.media.exp_tank') : id === 'fortress' ? $r('app.media.exp_tower') : id === 'flappy' ? $r('app.media.exp_bird') : $r('app.media.exp_robot'); }
+    if (p.kind === ExpansionPieceKind.Platform || p.kind === ExpansionPieceKind.Wall) { return $r('app.media.exp_platform'); }
+    if (p.kind === ExpansionPieceKind.Goal || p.kind === 43) { return $r('app.media.exp_flag'); }
+    if (p.kind === ExpansionPieceKind.Anchor) { return $r('app.media.exp_anchor'); }
+    if (p.kind === ExpansionPieceKind.Fruit) { return ExpansionArt.fruit([0, 3, 4, 5, 6, 1][Math.max(0, (p.color - 1) % 6)]); }
+    if (p.kind === ExpansionPieceKind.Hazard) { return $r('app.media.exp_bomb'); }
     if (p.kind === 58) { return $r('app.media.exp_ball'); }
-    if (p.kind === 32 && (id === 'billiards' || id === 'golf')) { return p.color === 1 || id === 'golf' ? $r('app.media.exp_cueball') : ExpansionArt.sportBall(p.color - 2); }
-    if (p.kind === 32 && id === 'bowling') { return $r('app.media.exp_bowlingball'); }
-    if (p.kind === 32) { return id === 'penalty' ? $r('app.media.exp_soccer') : id === 'airhockey' ? $r('app.media.exp_puck') : $r('app.media.exp_ball'); }
-    if (p.kind === 33) { return id === 'tanks' ? $r('app.media.exp_tank') : $r('app.media.exp_enemy'); }
-    if (p.kind === 34) { return $r('app.media.exp_bullet'); }
-    if (p.kind === 36) { return ExpansionArt.car(id === 'drift' ? 0 : 3); }
+    if (p.kind === ExpansionPieceKind.Ball && (id === 'billiards' || id === 'golf')) { return p.color === 1 || id === 'golf' ? $r('app.media.exp_cueball') : ExpansionArt.sportBall(p.color - 2); }
+    if (p.kind === ExpansionPieceKind.Ball && id === 'bowling') { return $r('app.media.exp_bowlingball'); }
+    if (p.kind === ExpansionPieceKind.Ball) { return id === 'penalty' ? $r('app.media.exp_soccer') : id === 'airhockey' ? $r('app.media.exp_puck') : $r('app.media.exp_ball'); }
+    if (p.kind === ExpansionPieceKind.Enemy) { return id === 'tanks' ? $r('app.media.exp_tank') : $r('app.media.exp_enemy'); }
+    if (p.kind === ExpansionPieceKind.Projectile) { return $r('app.media.exp_bullet'); }
+    if (p.kind === ExpansionPieceKind.Vehicle) { return ExpansionArt.car(id === 'drift' ? 0 : 3); }
     if (p.kind === 37) { return $r('app.media.exp_pin'); }
-    if (p.kind === 39) { return id === 'airhockey' ? $r('app.media.exp_striker') : $r('app.media.exp_paddle'); }
+    if (p.kind === ExpansionPieceKind.Paddle) { return id === 'airhockey' ? $r('app.media.exp_striker') : $r('app.media.exp_paddle'); }
     if (p.kind === 44) { return $r('app.media.exp_glove'); }
     if (p.kind === 55) { return $r('app.media.exp_dog'); }
     return ExpansionArt.tile(Math.max(0, p.color - 1) % 6);

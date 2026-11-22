@@ -166,22 +166,6 @@
       }
     },
     {
-      "id": "jumpjump",
-      "family": "jump",
-      "action": {
-        "path": "sounds/jumpjump_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "fd6716ef4d2674e1a1f33ccad00b3864eabc0a9604b44a4bc52646edc877617e"
-      },
-      "reward": {
-        "path": "sounds/jumpjump_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "50845ead0b618392ab501dff43f611ab1de77f7c10154fbba0c53ffb41410c54"
-      }
-    },
-    {
       "id": "brickbreaker",
       "family": "hit",
       "action": {
@@ -422,22 +406,6 @@
       }
     },
     {
-      "id": "missing",
-      "family": "bell",
-      "action": {
-        "path": "sounds/missing_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "b804c17f17945cf25a0adf27e44c67066461782fa34aed31b41f5a6b80effee6"
-      },
-      "reward": {
-        "path": "sounds/missing_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "6b5208c15c6bb45e983ea0df137576424cd5d8c27a68a746fb6bc7081e6d0dbb"
-      }
-    },
-    {
       "id": "reaction",
       "family": "bell",
       "action": {
@@ -646,70 +614,6 @@
       }
     },
     {
-      "id": "pipes",
-      "family": "tile",
-      "action": {
-        "path": "sounds/pipes_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "8c47796834f587656353163d947fd45110933fe9e30563185d22adfb62f2f532"
-      },
-      "reward": {
-        "path": "sounds/pipes_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "a0d105d774e482a088446f421372142b13169681b230a27257964f913e5c720b"
-      }
-    },
-    {
-      "id": "differences",
-      "family": "bell",
-      "action": {
-        "path": "sounds/differences_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "32d97e7b351d07b227645f4636b20ea929d4f29a74902564fffe0f1cb8a763d1"
-      },
-      "reward": {
-        "path": "sounds/differences_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "42f1fb214967cbe189be00fbda23922c898a55962280a9dfb7128cf0d90e9554"
-      }
-    },
-    {
-      "id": "roomdefense",
-      "family": "laser",
-      "action": {
-        "path": "sounds/roomdefense_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "bf841a9d482761d89b3ad72afc777b08e9eac87b99cbb5b167f2d6a960c6c445"
-      },
-      "reward": {
-        "path": "sounds/roomdefense_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "c5b5ca9f2f64c0750331fd7f2ae9c10638bf50ecb278df3f2c02bd772ad3ba61"
-      }
-    },
-    {
-      "id": "basketball",
-      "family": "hit",
-      "action": {
-        "path": "sounds/basketball_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "ebdde2de5df32daf21461579e193af26e5edff37e41a317ac91b3ac7a40ebc87"
-      },
-      "reward": {
-        "path": "sounds/basketball_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "3c7c16652cd01216ceb86eedbfdb83ebbc77b24671130d064ac6f33855c318d2"
-      }
-    },
-    {
       "id": "solitaire",
       "family": "paper",
       "action": {
@@ -723,22 +627,6 @@
         "durationMs": 300,
         "bytes": 26504,
         "sha256": "941b01216af681226808f35011fc1070944376596b77e870f2ea0ef48e335f4a"
-      }
-    },
-    {
-      "id": "characters",
-      "family": "bell",
-      "action": {
-        "path": "sounds/characters_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "b3d916e47a2e24532030fcdd7e948a8a024a9f7bb18add8d252c3555297f337b"
-      },
-      "reward": {
-        "path": "sounds/characters_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "698673ab6e4c146f93436342bcaf845edafa20fcd3b0878b08ab4fcb4d0c96e1"
       }
     },
     {
@@ -758,19 +646,19 @@
       }
     },
     {
-      "id": "restaurant",
+      "id": "beatjump",
       "family": "bell",
       "action": {
-        "path": "sounds/restaurant_action.wav",
+        "path": "sounds/beatjump_action.wav",
         "durationMs": 150,
         "bytes": 13274,
-        "sha256": "f00e3adc54d6105e0a45b63164fc07b31674794f3f7c6b2ac9574aa65a64bcd2"
+        "sha256": "e1eb23d7dd8da325191919e010dbb350846a672e826a98c1e367eed6f2069851"
       },
       "reward": {
-        "path": "sounds/restaurant_reward.wav",
+        "path": "sounds/beatjump_reward.wav",
         "durationMs": 300,
         "bytes": 26504,
-        "sha256": "8743f15fe7c45acb08152a5b72a92f5e525b9148559339a823cc2b852ab39811"
+        "sha256": "d2225927cb9636690d1aa3f0e4c1828689afc90b7b68f092743add48044051cb"
       }
     },
     {
@@ -822,22 +710,6 @@
       }
     },
     {
-      "id": "slotpair",
-      "family": "pop",
-      "action": {
-        "path": "sounds/slotpair_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "eee3dec3d971207d0ba5d22960343d015e87664a8f6d3d0846ec1a137c59e79f"
-      },
-      "reward": {
-        "path": "sounds/slotpair_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "17a8c88039d800a9fbfcd194cd4fbe3b9e9732a4964b0f6340d8464e14df6511"
-      }
-    },
-    {
       "id": "buscolor",
       "family": "pop",
       "action": {
@@ -851,38 +723,6 @@
         "durationMs": 300,
         "bytes": 26504,
         "sha256": "765b579de9cbe52b977f64d752fe7744cfb1542fc08174ae1a4b2f9097857a09"
-      }
-    },
-    {
-      "id": "yarn",
-      "family": "pop",
-      "action": {
-        "path": "sounds/yarn_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "50f4c7f0884e5a579566aabd57845ca152bc1a27a416448b085d2c368397f931"
-      },
-      "reward": {
-        "path": "sounds/yarn_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "d489b91c535d8a25efcb5c32664f9e9e8f809400f22137d3e231b74b41bb32b8"
-      }
-    },
-    {
-      "id": "sand",
-      "family": "water",
-      "action": {
-        "path": "sounds/sand_action.wav",
-        "durationMs": 200,
-        "bytes": 17684,
-        "sha256": "b29a959d2628a9c912639a3798f6ab7d794c5a0d0d953f4ac6e04897eaa746ce"
-      },
-      "reward": {
-        "path": "sounds/sand_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "ff57caf050f7b999d8b71e594de984d953c546a3c29ca73b0b57f0a455d86b90"
       }
     },
     {
@@ -1014,22 +854,6 @@
       }
     },
     {
-      "id": "fortress",
-      "family": "laser",
-      "action": {
-        "path": "sounds/fortress_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "2307782879faa8b91b5e85b2dec5976bf0110c579f59f343934108743f6169d0"
-      },
-      "reward": {
-        "path": "sounds/fortress_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "5af4a43677dd5e492e94e3f502c7f45db568964eb37be1d1a3ecf1cd33d1040d"
-      }
-    },
-    {
       "id": "survival",
       "family": "laser",
       "action": {
@@ -1046,54 +870,6 @@
       }
     },
     {
-      "id": "backpack",
-      "family": "laser",
-      "action": {
-        "path": "sounds/backpack_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "ac003e805d98b4706087d481167f29a6f70d2e2db0e64913b64fef4789fd83c6"
-      },
-      "reward": {
-        "path": "sounds/backpack_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "5c4d7e5ee9710c187696d9f401455fe4c270c26e111987c18a2f198542669bcd"
-      }
-    },
-    {
-      "id": "billiards",
-      "family": "hit",
-      "action": {
-        "path": "sounds/billiards_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "36913612a0da01e3f3171b9d77b4aa747e3164127ed3d7e47108ec87e16410c2"
-      },
-      "reward": {
-        "path": "sounds/billiards_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "3bbc34be3c47e3a7d321320b46322e7de882ad881d85f5dc6f51eb02f3a37e12"
-      }
-    },
-    {
-      "id": "penalty",
-      "family": "hit",
-      "action": {
-        "path": "sounds/penalty_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "2b3412143ce2fabcb0b48fae4b7461e38798be82f120b458a64d72f590373f13"
-      },
-      "reward": {
-        "path": "sounds/penalty_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "774312090bfe139ddbea4540e2ec6c85855c106d09e1c3201b7684e0d379915b"
-      }
-    },
-    {
       "id": "pingpong",
       "family": "hit",
       "action": {
@@ -1107,38 +883,6 @@
         "durationMs": 300,
         "bytes": 26504,
         "sha256": "120ae31741ab36e6cdb2026ec4cf98e29458b777fc49991ed07f79b01f6c2159"
-      }
-    },
-    {
-      "id": "bowling",
-      "family": "hit",
-      "action": {
-        "path": "sounds/bowling_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "02baeaf3b21eb66ca1f4a671664f76ba10ce5bae52ca454f785acca1b3542059"
-      },
-      "reward": {
-        "path": "sounds/bowling_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "4821cccce2a691b46c87d981e61fd3b135f57d4fb151eb1358bf8974d2936425"
-      }
-    },
-    {
-      "id": "golf",
-      "family": "hit",
-      "action": {
-        "path": "sounds/golf_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "78c361a9f08bb3781ec444ffdfb3319ee7aaeaa183e09836df724a8c88da6348"
-      },
-      "reward": {
-        "path": "sounds/golf_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "e53159b597021f42545fa3c59ee8c034f0267968941b107e751f76dae9a6cedf"
       }
     },
     {
@@ -1254,54 +998,6 @@
       }
     },
     {
-      "id": "onestroke",
-      "family": "bell",
-      "action": {
-        "path": "sounds/onestroke_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "3b51d1c18f9503a08f81e7d54e0c7d4e01735ba3799fa594a3db608af7a70177"
-      },
-      "reward": {
-        "path": "sounds/onestroke_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "7ca97154edf4ae75f5539d89c464f9b69689cf27c3ccc2f7444d3862e766396b"
-      }
-    },
-    {
-      "id": "hiddenobjects",
-      "family": "bell",
-      "action": {
-        "path": "sounds/hiddenobjects_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "92b4a90874dc26f6c253f9ce7585a1ff07c9310c6b9fcb3d40c1dd9e3115395a"
-      },
-      "reward": {
-        "path": "sounds/hiddenobjects_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "580d1b912af72faae3633b17371ab45b6b541a6c746fa16f222b82e7990c7f34"
-      }
-    },
-    {
-      "id": "linerescue",
-      "family": "bell",
-      "action": {
-        "path": "sounds/linerescue_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "d4cb79ce3eb252de1ae0ebfa4f513255366905331ff858b90742b856cdfca291"
-      },
-      "reward": {
-        "path": "sounds/linerescue_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "90e4d30748c21a76053f5b903e92be447514a8490b5ed88ab5971b789a564b1d"
-      }
-    },
-    {
       "id": "picturepuzzle",
       "family": "tile",
       "action": {
@@ -1318,54 +1014,6 @@
       }
     },
     {
-      "id": "idiom",
-      "family": "bell",
-      "action": {
-        "path": "sounds/idiom_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "b60fb16c92f6ef115250593a13bf801f63fed49386da9d387a4c235a1b100f6e"
-      },
-      "reward": {
-        "path": "sounds/idiom_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "53985a729a9b8815971722ba38139db906fe967a891659f06e9c677bed258a82"
-      }
-    },
-    {
-      "id": "wordtower",
-      "family": "bell",
-      "action": {
-        "path": "sounds/wordtower_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "934285ee1273bb0883e74f77a90889019c80635c663d117e5bba6aa45efeb0aa"
-      },
-      "reward": {
-        "path": "sounds/wordtower_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "a8a1296a556f63e01f45f2f243290a7a709f24fa3a965aeda297fb78146be9fc"
-      }
-    },
-    {
-      "id": "beatjump",
-      "family": "bell",
-      "action": {
-        "path": "sounds/beatjump_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "e1eb23d7dd8da325191919e010dbb350846a672e826a98c1e367eed6f2069851"
-      },
-      "reward": {
-        "path": "sounds/beatjump_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "d2225927cb9636690d1aa3f0e4c1828689afc90b7b68f092743add48044051cb"
-      }
-    },
-    {
       "id": "melody",
       "family": "bell",
       "action": {
@@ -1379,38 +1027,6 @@
         "durationMs": 300,
         "bytes": 26504,
         "sha256": "704ebeb2577308994e1d2f8cbf3f0f7d8efed2c1b74787b566c7db2bd1a39c34"
-      }
-    },
-    {
-      "id": "farm",
-      "family": "bell",
-      "action": {
-        "path": "sounds/farm_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "b6818edf783b0ddf41f63ba8fa425ed1172eddc98b07984b2c6247e70e2590c9"
-      },
-      "reward": {
-        "path": "sounds/farm_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "662c5179e84dd9bcc27da267a55127d9f1f21a120b409d403119faa108b334c4"
-      }
-    },
-    {
-      "id": "decorate",
-      "family": "bell",
-      "action": {
-        "path": "sounds/decorate_action.wav",
-        "durationMs": 150,
-        "bytes": 13274,
-        "sha256": "7a831dafe3f3c9a8a5830e10c773a25b3813fec09405d95b366b08537362ce9f"
-      },
-      "reward": {
-        "path": "sounds/decorate_reward.wav",
-        "durationMs": 300,
-        "bytes": 26504,
-        "sha256": "5d444e838b4b933a20ea82c2173470c1c6a8dc303f558ddef468a18a0d031ea1"
       }
     },
     {

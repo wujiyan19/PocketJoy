@@ -138,4 +138,4 @@ P5：`df236e98793b79636139354f0da2985d6cf6bdaf03899b69e84cde2c52ddc2c8`；已记
 
 本轮以手机当前深色界面为主。截图和界面树证明所记录时刻的显示及交互结果；没有据此声称测得帧率、音频听感、所有机型兼容或长期稳定性。
 
-续跑：`node scripts/device-three-settlements.cjs run`；只读查询：`node scripts/device-three-report.cjs`。同一时间只运行一个手机控制脚本。
+续跑：`node scripts/device/three-settlements/device-three-settlements.cjs run`；只读查询：`node scripts/device/three-settlements/device-three-settlements.cjs status`；重新生成报告：`node scripts/device/three-settlements/device-three-report.cjs`。同一时间只运行一个手机控制脚本。

@@ -1,0 +1,116 @@
+{
+  "before": {
+    "hap": "LittleGames-1.1.0-release-unsigned.hap",
+    "sha256": "33fbe820928d896b263b4ea16a85c1dd931c59adccc022731f389952314f87b2",
+    "bytes": 10650714,
+    "version": "1.1.0",
+    "versionCode": 1001000,
+    "debug": false,
+    "zip": {
+      "resource-index": {
+        "count": 1,
+        "uncompressed": 307834,
+        "compressed": 307834
+      },
+      "ark-bytecode": {
+        "count": 2,
+        "uncompressed": 2050616,
+        "compressed": 2050616
+      },
+      "other": {
+        "count": 30,
+        "uncompressed": 514862,
+        "compressed": 514862
+      },
+      "sounds": {
+        "count": 182,
+        "uncompressed": 3695650,
+        "compressed": 3695650
+      },
+      "theme-svg": {
+        "count": 955,
+        "uncompressed": 1273332,
+        "compressed": 1273332
+      },
+      "toy-glb": {
+        "count": 6,
+        "uncompressed": 2627968,
+        "compressed": 2627968
+      }
+    }
+  },
+  "after": {
+    "hap": "entry-default-unsigned.hap",
+    "sha256": "c5699194ad9aa1f82d16382a73c7057adee2e45b01fd6558b3d0dcd559fdda7c",
+    "bytes": 8029359,
+    "version": "1.1.0",
+    "versionCode": 1001000,
+    "debug": false,
+    "zip": {
+      "resource-index": {
+        "count": 1,
+        "uncompressed": 303609,
+        "compressed": 303609
+      },
+      "ark-bytecode": {
+        "count": 2,
+        "uncompressed": 1875580,
+        "compressed": 1875580
+      },
+      "other": {
+        "count": 30,
+        "uncompressed": 514862,
+        "compressed": 514862
+      },
+      "sounds": {
+        "count": 134,
+        "uncompressed": 2736568,
+        "compressed": 2736568
+      },
+      "theme-svg": {
+        "count": 888,
+        "uncompressed": 1229198,
+        "compressed": 1229198
+      },
+      "toy-glb": {
+        "count": 4,
+        "uncompressed": 1207288,
+        "compressed": 1207288
+      }
+    }
+  },
+  "differenceBytes": -2621355,
+  "differencePercent": -24.61,
+  "differencesByGroup": {
+    "resource-index": {
+      "count": 0,
+      "uncompressed": -4225,
+      "compressed": -4225
+    },
+    "ark-bytecode": {
+      "count": 0,
+      "uncompressed": -175036,
+      "compressed": -175036
+    },
+    "other": {
+      "count": 0,
+      "uncompressed": 0,
+      "compressed": 0
+    },
+    "sounds": {
+      "count": -48,
+      "uncompressed": -959082,
+      "compressed": -959082
+    },
+    "theme-svg": {
+      "count": -67,
+      "uncompressed": -44134,
+      "compressed": -44134
+    },
+    "toy-glb": {
+      "count": -2,
+      "uncompressed": -1420680,
+      "compressed": -1420680
+    }
+  }
+}

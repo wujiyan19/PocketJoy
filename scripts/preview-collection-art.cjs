@@ -1,5 +1,6 @@
 /* Asset contact sheets, not device screenshots. Requires sharp on NODE_PATH. */
 const fs = require('node:fs');
+const { resolveSvg } = require('./svg-resource-utils.cjs');
 const path = require('node:path');
 const sharp = require('sharp');
 const { fixture } = require('./test-performance.cjs');
@@ -17,7 +18,7 @@ async function main() {
   for (const theme of ['base','dark']) {
     const p=palettes[theme], images={};
     for (const asset of manifest.assets) {
-      const file=path.join(root,'entry/src/main/resources',theme,'media',asset.name+'.svg');
+      const file=resolveSvg(theme,asset.name);
       // Render every resource at source size as a compatibility/syntax check.
       const data=await sharp(file).png().toBuffer(); images[asset.name]=data.toString('base64');
     }

@@ -17,7 +17,7 @@ import { ScreenUtils } from '../../common/ScreenUtils';
 import { range } from '../../common/Range';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
-import { SnakeViewModel } from '../../viewmodel/SnakeViewModel';
+import { SnakeCellData, SnakeCellKind, SnakeViewModel } from '../../viewmodel/SnakeViewModel';
 
 const COLS = 20;
 const ROWS = 20;
@@ -56,10 +56,11 @@ export struct SnakeGamePage {
     this.pathStack.pop();
   }
 
-  getSnakeImage(col: number, row: number): Resource {
-    if (this.viewModel.isSnakeHead(col, row)) { return $r('app.media.play_snake_head'); }
-    if (this.viewModel.isSnakeTail(col, row)) { return $r('app.media.play_snake_tail'); }
-    if (this.viewModel.isSnakeCorner(col, row)) { return $r('app.media.play_snake_corner'); }
+  getSnakeImage(kind: SnakeCellKind): Resource {
+    if (kind === SnakeCellKind.HEAD) { return $r('app.media.play_snake_head'); }
+    if (kind === SnakeCellKind.TAIL) { return $r('app.media.play_snake_tail'); }
+    if (kind === SnakeCellKind.CORNER) { return $r('app.media.play_snake_corner'); }
+    if (kind === SnakeCellKind.FOOD) { return $r('app.media.play_snake_food'); }
     return $r('app.media.play_snake_body');
   }
 
@@ -111,21 +112,23 @@ export struct SnakeGamePage {
 
         Column() {
           Column() {
-            ForEach(this.idx20, (row: number) => {
-              Row() {
-                ForEach(this.idx20, (col: number) => {
-                  Stack() {
-                    if (this.viewModel.isSnakeCell(col, row)) {
-                      Image(this.getSnakeImage(col, row)).width(this.cell).height(this.cell).objectFit(ImageFit.Contain)
-                        .rotate({ z: 1, angle: this.viewModel.getSnakeRotation(col, row), centerX: '50%', centerY: '50%' })
-                    } else if (this.viewModel.isFood(col, row)) {
-                      Image($r('app.media.play_snake_food')).width(this.cell).height(this.cell).objectFit(ImageFit.Contain)
-                    }
-                  }.width(this.cell).height(this.cell)
-                    .backgroundColor((row + col) % 2 === 0 ? $r('app.color.snake_floor') : $r('app.color.snake_floor_alt'))
-                }, (col: number) => col.toString())
-              }
-            }, (row: number) => row.toString())
+            Stack({ alignContent: Alignment.TopStart }) {
+              Column() {
+                ForEach(this.idx20, (row: number) => {
+                  Row() {
+                    ForEach(this.idx20, (col: number) => {
+                      Column().width(this.cell).height(this.cell)
+                        .backgroundColor((row + col) % 2 === 0 ? $r('app.color.snake_floor') : $r('app.color.snake_floor_alt'))
+                    }, (col: number) => col.toString())
+                  }
+                }, (row: number) => row.toString())
+              }.renderGroup(true).accessibilityLevel('no')
+              ForEach(this.viewModel.visibleCells, (tile: SnakeCellData) => {
+                Image(this.getSnakeImage(tile.kind)).width(this.cell).height(this.cell).objectFit(ImageFit.Contain)
+                  .rotate({ z: 1, angle: tile.rotation, centerX: '50%', centerY: '50%' })
+                  .position({ x: tile.id % COLS * this.cell, y: Math.floor(tile.id / COLS) * this.cell })
+              }, (tile: SnakeCellData) => tile.id.toString())
+            }.width(this.cell * COLS).height(this.cell * ROWS)
           }.width(this.cell * COLS + BOARD_RIM * 2).height(this.cell * ROWS + BOARD_RIM * 2)
           .padding(BOARD_RIM).borderRadius(RadiusTokens.sm).clip(true).backgroundColor($r('app.color.snake_frame'))
           .id('snake-board').gesture(PanGesture({ fingers: 1, direction: PanDirection.All, distance: SpacingTokens.md })

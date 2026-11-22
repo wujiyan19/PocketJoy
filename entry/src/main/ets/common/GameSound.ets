@@ -44,8 +44,10 @@ export class GameSound {
     else { this.volumeChanged(); }
   }
 
-  selectGame(gameId: string): void {
-    this.stop(); this.gameId = gameId;
+  selectGame(gameId: string, reload: boolean = true): void {
+    this.stop();
+    if (!reload && this.gameId === gameId) { return; }
+    this.gameId = gameId;
     this.prepare(gameId);
   }
 

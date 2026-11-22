@@ -35,20 +35,6 @@ export struct ExpansionMatchingBoard {
       if (this.gameId === 'linktiles' || this.gameId === 'mahjongsolitaire') {
         Button($r('app.string.expansion_rearrange')).enabled(!this.vm.puzzleStuck).onClick(() => { this.vm.action(); })
       }
-
-      if (this.gameId === 'slotpair') {
-        Row({ space: SpacingTokens.sm }) {
-          Text($r('app.string.expansion_next_tile')).fontColor(SemanticColors.textSecondary)
-          Image(ExpansionArt.tile(this.vm.state.next - 1)).width(38).height(38).objectFit(ImageFit.Contain)
-          Text($r('app.string.expansion_progress', this.vm.state.cursor, this.vm.state.goal)).fontColor(SemanticColors.textSecondary)
-        }
-        Row({ space: SpacingTokens.xs }) {
-          ForEach(range(6), (col: number) => {
-            Button('↓').layoutWeight(1).height($r('app.float.expansion_control_height'))
-              .accessibilityText($r('app.string.expansion_drop_column', col + 1)).onClick(() => { this.vm.tap(col); })
-          }, (col: number) => col.toString())
-        }.width('100%')
-      }
     }.width('100%')
   }
   @Builder
@@ -72,7 +58,7 @@ export struct ExpansionMatchingBoard {
             GameArtTile({ image: this.vm.state.board[index] === 0 ? $r('app.media.exp_empty') : ExpansionArt.tile(this.vm.state.board[index] - 1),
           selected: this.vm.state.selected === index || this.vm.state.tray.includes(index),
           description: $r('app.string.expansion_cell', Math.floor(index / 6) + 1, index % 6 + 1, this.symbol(this.vm.state.board[index])),
-          onTap: () => { this.vm.tap(this.gameId === 'slotpair' ? index % 6 : index); } })
+          onTap: () => { this.vm.tap(index); } })
           }
         }.width(this.unit() - (this.gameId === 'linktiles' ? 3 : 4)).height(this.unit() - (this.gameId === 'linktiles' ? 3 : 4))
           .opacity(this.vm.state.board[index] === 0 ? 0.2 : 1)

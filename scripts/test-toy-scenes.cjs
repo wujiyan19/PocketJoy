@@ -55,10 +55,12 @@ async function main() {
     assert.equal(await c.load('bad',background),false);assert(c.failed);assert.equal(s.destroyed,1);assert.equal(c.scene,null);
   });
   for(const name of ['jump','jump_dark','rolling','rolling_dark','blackhole','blackhole_dark']) await test(name+' GLB buffers, camera and texture-free material are valid',()=>{
-    const data=fs.readFileSync(`entry/src/main/resources/rawfile/toy/${name}.glb`);
+    if(name.startsWith('jump')) assert(!fs.existsSync(`entry/src/main/resources/rawfile/toy/${name}.glb`));
+    const data=fs.readFileSync(`${name.startsWith('jump') ? 'archive/jumpjump/resources' : 'entry/src/main/resources'}/rawfile/toy/${name}.glb`);
     assert.equal(data.readUInt32LE(0),0x46546c67);assert.equal(data.readUInt32LE(4),2);assert.equal(data.readUInt32LE(8),data.length);
     const length=data.readUInt32LE(12),g=JSON.parse(data.subarray(20,20+length).toString());
     const binaryStart=28+length;assert.equal(data.readUInt32LE(20+length),data.length-binaryStart);
+    assert(new Set(g.bufferViews.map(view=>view.byteOffset)).size<g.bufferViews.length,'shared geometry bytes');
     assert(!g.images&&!g.textures);assert(g.materials.every(m=>m.extensions.KHR_materials_unlit));
     assert.deepEqual(g.cameras[0].orthographic,{xmag:180,ymag:230,znear:.1,zfar:3000});
     for(const view of g.bufferViews)assert(view.byteOffset+view.byteLength<=g.buffers[0].byteLength);

@@ -1,4 +1,4 @@
-import { ExpansionState, ExpansionPiece, ExpansionPile } from './ExpansionState';
+import { ExpansionState, ExpansionPiece, ExpansionPile, sameExpansionState, snapshotExpansion } from './ExpansionState';
 import { ExpansionPuzzle } from './ExpansionPuzzle';
 import { ExpansionScrews } from './ExpansionScrews';
 import { ExpansionPhysics } from './ExpansionPhysics';
@@ -47,7 +47,7 @@ export class ExpansionModel {
   cards: ExpansionCards;
   brain: ExpansionBrain;
   life: ExpansionLife;
-  private history: string[] = [];
+  private history: ExpansionState[] = [];
   constructor(random: RandomSource = new RealRandom()) {
     this.puzzle = new ExpansionPuzzle(random); this.physics = new ExpansionPhysics(random); this.adventure = new ExpansionAdventure(random);
     this.table = new ExpansionTable(random); this.arcade = new ExpansionArcade(random);
@@ -85,13 +85,13 @@ export class ExpansionModel {
     }
     if (this.isArcade()) { this.arcade.tap(this.state, index); this.state.pieces = this.state.pieces.filter((p: ExpansionPiece) => p.alive); return; }
     if (this.state.id === 'runner') { this.adventure.tap(this.state, index); return; }
-    const previous: string = JSON.stringify(this.state);
+    const previous: ExpansionState = snapshotExpansion(this.state, this.history[this.history.length - 1]);
     if (BRAIN_IDS.includes(this.state.id)) { this.brain.tap(this.state, index); } else if (LIFE_IDS.includes(this.state.id)) { this.life.tap(this.state, index);
     } else if (CHESS_IDS.includes(this.state.id)) { this.chess.tap(this.state, index, !this.deferComputerTurns); } else if (POKER_IDS.includes(this.state.id)) { this.poker.tap(this.state, index, !this.deferComputerTurns); } else if (CARD_IDS.includes(this.state.id)) { this.cards.tap(this.state, index, !this.deferComputerTurns);
     } else if (ACTION_IDS.includes(this.state.id)) { this.actionGames.tap(this.state, index); } else if (SPORTS_IDS.includes(this.state.id)) { this.sports.tap(this.state, index);
     } else if (MATCHING_IDS.includes(this.state.id)) { this.matching.tap(this.state, index); } else if (SORTING_IDS.includes(this.state.id)) { this.sorting.tap(this.state, index);
     } else if (this.isTable()) { this.table.tap(this.state, index); } else if (this.isAdventure()) { this.adventure.tap(this.state, index); } else { this.puzzle.tap(this.state, index); }
-    if (JSON.stringify(this.state) !== previous) { this.history.push(previous); if (this.history.length > 120) { this.history.shift(); } }
+    if (!sameExpansionState(this.state, previous)) { this.history.push(previous); if (this.history.length > 120) { this.history.shift(); } }
   }
   choose(index: number): void {
     if (!V.integer(index, 0, 1000) || this.state.outcome !== 0) { return; }
@@ -104,11 +104,11 @@ export class ExpansionModel {
   }
   action(): boolean {
     if (this.state.outcome !== 0) { return false; }
-    const previous: string = JSON.stringify(this.state);
+    const previous: ExpansionState = snapshotExpansion(this.state, this.history[this.history.length - 1]);
     if (MATCHING_IDS.includes(this.state.id)) {
       if (!this.matching.action(this.state)) { return false; }
     } else if (this.state.id === 'characters') { this.table.checkWord(this.state); }
-    if (previous !== JSON.stringify(this.state)) { this.history.push(previous); if (this.history.length > 120) { this.history.shift(); } }
+    if (!sameExpansionState(this.state, previous)) { this.history.push(previous); if (this.history.length > 120) { this.history.shift(); } }
     return true;
   }
   activate(): void {
@@ -151,7 +151,12 @@ export class ExpansionModel {
     else if (POKER_IDS.includes(this.state.id)) { this.poker.computerTurn(this.state); }
     else { this.cards.computerTurn(this.state); }
   }
-  undo(): void { if (this.canUndo()) { this.state = JSON.parse(this.history.pop() ?? '') as ExpansionState; } }
+  undo(): void {
+    if (this.canUndo()) {
+      // Older undo entries can share unchanged arrays with this one. Rules need their own mutable copy.
+      this.state = snapshotExpansion(this.history[this.history.length - 1]); this.history.pop();
+    }
+  }
   restore(s: ExpansionState): void {
     if (s.id === 'sokoban' && s.sokobanLevel !== undefined && s.variant === 0) {
       const level: number = s.sokobanLevel + (s.outcome === 1 ? 1 : 0);

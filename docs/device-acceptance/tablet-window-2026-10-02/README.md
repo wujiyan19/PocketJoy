@@ -65,6 +65,6 @@
 
 公开截图只保留被测应用窗口；系统桌面、分屏另一侧及个人设置截图留在被 Git 忽略的构建目录。布局树坐标仍为屏幕坐标，悬浮窗截图原点为应用窗口左上角。
 
-设备检查脚本为 `scripts/device-tablet-window.cjs`，通过 `LITTLEGAMES_TABLET_TARGET` 指定设备；HDC、Python 路径可用 `LITTLEGAMES_HDC`、`LITTLEGAMES_PYTHON` 覆盖。先构建和安装所记录的包，再运行 `node scripts/device-tablet-window.cjs smoke <批次名> <可选英文游戏ID列表>`。检查过程中不要重新构建，否则本机 HAP 身份与已安装包可能不一致。窗口切换和真实旋转需通过系统菜单／实际设备完成。汇总图由 `scripts/tablet-contact-sheets.py` 生成；窗口计算回归为 `node scripts/test-window-sizing.cjs`。
+设备检查脚本为 `scripts/device/tablet-window/device-tablet-window.cjs`，通过 `LITTLEGAMES_TABLET_TARGET` 指定设备；HDC、Python 路径可用 `LITTLEGAMES_HDC`、`LITTLEGAMES_PYTHON` 覆盖。先构建和安装所记录的包，再运行 `node scripts/device/tablet-window/device-tablet-window.cjs smoke <批次名> <可选英文游戏ID列表>`。检查过程中不要重新构建，否则本机 HAP 身份与已安装包可能不一致。窗口切换和真实旋转需通过系统菜单／实际设备完成。汇总图由 `scripts/device/tablet-window/tablet-contact-sheets.py` 生成；窗口计算回归为 `node scripts/test-window-sizing.cjs`。
 
-补充交互脚本为 `scripts/device-tablet-interactions.cjs`，参数 `rotation`、`brick`、`result`；旋转检查需要先保留当前棋盘数值基准文件。结算可用 `result floating` 与 `result landscape` 分别命名证据，避免覆盖不同窗口的结果。各检查通过后才写入 interaction 组。
+补充交互脚本为 `scripts/device/tablet-window/device-tablet-interactions.cjs`，参数 `rotation`、`brick`、`result`；旋转检查需要先保留当前棋盘数值基准文件。结算可用 `result floating` 与 `result landscape` 分别命名证据，避免覆盖不同窗口的结果。各检查通过后才写入 interaction 组。

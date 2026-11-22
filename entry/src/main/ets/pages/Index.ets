@@ -12,7 +12,6 @@
  * 壳只保留：Navigation + Tabs 骨架、数据装配（loadData）与导航回调。
  * 顺带清理：isTablet 是死状态（mediaquery 监听后从未在 UI 使用，见报告 P2-7）。
  */
-import { intl } from '@kit.LocalizationKit';
 import { HdsTabs, HdsTabsFloatingStyle } from '@kit.UIDesignKit';
 import { AppContinuation, AppContinuationState, ContinuationNavigationState } from '../common/AppContinuation';
 import { GameSessionTransfer } from '../common/GameSessionTransfer';
@@ -26,13 +25,11 @@ import { GamePageMap, GameRoutes } from '../router/GameRoutes';
 import { FeaturedTab } from './home/FeaturedTab';
 import { PlayHistoryPage } from './home/PlayHistoryPage';
 import { CategoryTab } from './home/CategoryTab';
-import { ProfileTab } from './home/ProfileTab';
+import { HomeCatalog } from './home/HomeCatalog';
+import { ProfileTab, ProfileGameRank } from './home/ProfileTab';
 import { HarmonyMotion } from '../common/HarmonyMotion';
 import { DailyFeaturedViewModel } from '../viewmodel/DailyFeaturedViewModel';
 import { WidgetLaunch, widgetLaunch } from '../widgets/WidgetLaunch';
-
-/** 拼音排序器：构造是重操作，模块级单例，避免每次排序都新建（P2-6） */
-const PINYIN_COLLATOR: intl.Collator = new intl.Collator('zh-CN', { usage: 'sort', collation: 'pinyin' });
 
 @Entry
 @ComponentV2
@@ -42,9 +39,7 @@ struct Index {
   @Local featuredGames: GameInfo[] = [];
   @Local dailyFeatured: DailyFeaturedViewModel = new DailyFeaturedViewModel();
   private dailyRefreshTimer: number = -1;
-  @Local newGames: GameInfo[] = [];
-  @Local rankedGames: GameInfo[] = [];
-  @Local totalGames: number = 0;
+  @Local rankedGames: ProfileGameRank[] = [];
   @Local totalStarts: number = 0;
   @Local recentGames: GameInfo[] = [];
   @Local savedGames: GameInfo[] = [];
@@ -53,8 +48,7 @@ struct Index {
   @Local totalPlayTimeMs: number = 0;
   /** 0 加载中，1 已就绪，2 无数据，3 加载异常 */
   @Local dataStatus: number = 0;
-  // 全部游戏按拼音排序；清空数据后替换列表，分类页同步刷新。
-  @Local allGamesPinyin: GameInfo[] = [];
+  @Local catalog: HomeCatalog = new HomeCatalog();
   /** 冷启动时 aboutToAppear 已完整加载，跳过紧随其后的首次 onPageShow */
   private firstShow: boolean = true;
   private floatingTabStyle: HdsTabsFloatingStyle = ImmersiveLight.floatingTabs();
@@ -136,12 +130,8 @@ struct Index {
   loadAll(): void {
     this.dataStatus = 0;
     try {
-      this.newGames = GameDataManager.getAllGames().filter((game: GameInfo) =>
-        ['fruitslice', 'backpack', 'billiards', 'guandan', 'xiangqi', 'linerescue', 'melody', 'farm'].includes(game.id));
-      this.allGamesPinyin = this.sortByPinyin(GameDataManager.getAllGames());
-      this.totalGames = this.allGamesPinyin.length;
       this.refreshScores();
-      this.dataStatus = this.totalGames > 0 ? 1 : 2;
+      this.dataStatus = this.catalog.total > 0 ? 1 : 2;
     } catch (e) {
       this.dataStatus = 3;
     }
@@ -153,32 +143,20 @@ struct Index {
    */
   refreshScores(): void {
     GameLifecycleBus.flushPlayTime();
-    this.dailyFeatured.update(GameDataManager.getAllGames());
+    const games: GameInfo[] = GameDataManager.getAllGames();
+    this.catalog = new HomeCatalog(games, this.getUIContext().getHostContext());
+    this.dailyFeatured.update(games);
     this.featuredGames = this.dailyFeatured.recommendations;
     this.scheduleDailyRefresh();
-    this.rankedGames = GameDataManager.getFrequentlyPlayed(6);
+    this.rankedGames = GameDataManager.getFrequentlyPlayed(6).map((game: GameInfo): ProfileGameRank =>
+      ({ game: game, starts: GameDataManager.getPlayCount(game.id) }));
     this.playHistory = GameDataManager.getPlayHistory();
-    this.savedGames = GameDataManager.getAllGames().filter((game: GameInfo): boolean =>
+    this.savedGames = games.filter((game: GameInfo): boolean =>
       (game.id === '2048' || game.id === 'sudoku') && GameDataManager.getSavedGame(game.id).length > 0);
     this.recentGames = this.playHistory.slice(0, 5).map((record: PlayedGameRecord) => record.game);
     this.playedGameCount = GameDataManager.getPlayedGameCount();
     this.totalPlayTimeMs = GameDataManager.getTotalPlayTimeMs();
-    // GameInfo 是普通接口，替换数组并以时长作为卡片 key，确保返回后展示新时长。
-    this.newGames = this.newGames.slice();
-    this.allGamesPinyin = this.allGamesPinyin.slice();
     this.totalStarts = GameDataManager.getTotalStarts();
-  }
-
-  // 中文按拼音排序（系统 Locale 习惯排序）
-  sortByPinyin(list: GameInfo[]): GameInfo[] {
-    const copy = list.slice();
-    const context = this.getUIContext().getHostContext();
-    copy.sort((a: GameInfo, b: GameInfo) => {
-      const nameA = resolveString(a.name, context);
-      const nameB = resolveString(b.name, context);
-      return PINYIN_COLLATOR.compare(nameA, nameB);
-    });
-    return copy;
   }
 
   /**
@@ -242,7 +220,7 @@ struct Index {
                   this.dailyFeatured.refresh(GameDataManager.getAllGames());
                   this.featuredGames = this.dailyFeatured.recommendations;
                 },
-                newGames: this.newGames,
+                newGames: this.catalog.featured,
                 recentGames: this.recentGames,
                 savedGames: this.savedGames,
                 onResumeGameClick: (game: GameInfo) => { widgetLaunch.prepareResume(game.id); this.navigateToGame(game); },
@@ -254,7 +232,7 @@ struct Index {
             .tabBar(this.TabBuilder(0, $r('app.string.tab_featured')))
             TabContent() {
               CategoryTab({
-                allGames: this.allGamesPinyin,
+                catalog: this.catalog,
                 onSettingsClick: () => { this.pathStack.pushPathByName('SettingsPage', null); },
                 onGameClick: (game: GameInfo) => { this.navigateToGame(game); }
               })
@@ -262,12 +240,13 @@ struct Index {
             .tabBar(this.TabBuilder(1, $r('app.string.tab_category')))
             TabContent() {
               ProfileTab({
-                totalGames: this.totalGames,
+                totalGames: this.catalog.total,
                 totalStarts: this.totalStarts,
                 rankedGames: this.rankedGames,
                 recentGames: this.recentGames,
                 playedGameCount: this.playedGameCount,
                 totalPlayTimeMs: this.totalPlayTimeMs,
+                onGameClick: (game: GameInfo) => { this.navigateToGame(game); },
                 onSettingsClick: () => { this.pathStack.pushPathByName('SettingsPage', null); }
               })
             }

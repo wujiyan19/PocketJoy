@@ -40,6 +40,9 @@ export class GameLifecycleBus {
   private static playTimeTimer: number = -1;
 
   static isAppForeground(): boolean { return GameLifecycleBus.foreground; }
+  static selectSoundMode(observer: GameLifecycleObserver, modeId: string): void {
+    if (GameLifecycleBus.observer === observer) { gameSound.selectGame(modeId, false); }
+  }
 
   static exportSession(gameId: string): string {
     const observer: GameLifecycleObserver | null = GameLifecycleBus.observer;

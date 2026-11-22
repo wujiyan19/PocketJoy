@@ -1,3 +1,4 @@
+import { ExpansionPieceKind } from '../model/game/ExpansionStateCodes';
 import { Node } from '@kit.ArkGraphics3D';
 import { resourceManager } from '@kit.LocalizationKit';
 import { ToySceneController } from '../common/ToySceneController';
@@ -51,7 +52,7 @@ export struct ToyRollingStage {
     let wall: number = 0; let hole: number = 0;
     for (let i: number = 0; i < this.vm.state.pieces.length; i++) {
       const p: ExpansionPiece = this.vm.state.pieces[i];
-      if (p.kind === 32) {
+      if (p.kind === ExpansionPieceKind.Ball) {
         if (this.vm.state.phase === 0) { this.angleX = 0; this.angleY = 0; }
         else { this.angleX += (p.y - this.previousY) / 15; this.angleY += (p.x - this.previousX) / 15; }
         this.previousX = p.x; this.previousY = p.y;
@@ -61,11 +62,11 @@ export struct ToyRollingStage {
           y: Math.cos(this.angleX / 2) * Math.sin(this.angleY / 2),
           z: Math.sin(this.angleX / 2) * Math.sin(this.angleY / 2),
           w: Math.cos(this.angleX / 2) * Math.cos(this.angleY / 2) };
-      } else if (p.kind === 27 && this.goal !== null) {
+      } else if (p.kind === ExpansionPieceKind.Goal && this.goal !== null) {
         this.goal.position = { x: p.x - 180, y: 230 - p.y, z: 0 };
-      } else if (p.kind === 26 && wall < this.walls.length) {
+      } else if (p.kind === ExpansionPieceKind.Wall && wall < this.walls.length) {
         this.walls[wall++].position = { x: p.x - 180, y: 230 - p.y - p.h / 2, z: 0 };
-      } else if (p.kind === 31 && hole < this.holes.length) {
+      } else if (p.kind === ExpansionPieceKind.Hazard && hole < this.holes.length) {
         const node: Node = this.holes[hole++]; node.visible = true;
         node.position = { x: p.x - 180, y: 230 - p.y, z: 0 };
       }

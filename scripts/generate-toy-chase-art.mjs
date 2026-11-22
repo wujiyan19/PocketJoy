@@ -1,5 +1,6 @@
 /** Original, texture-free toy geometry. Only generates the blackhole/drift assets. */
 import fs from 'node:fs';
+import glbWriter from './encode-toy-glb.cjs';
 import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
@@ -51,17 +52,17 @@ function coupe(){
 function serialized(g){const copy=g.clone(true);copy.traverse(m=>{if(m.isMesh)m.geometry=new T.BufferGeometry().copy(m.geometry);});copy.updateMatrixWorld(true);return copy.toJSON();}
 function glb(g,name){
   const j={asset:{version:'2.0',generator:'LittleGames original toy chase geometry'},scene:0,scenes:[{nodes:[]}],nodes:[],meshes:[],materials:[{pbrMetallicRoughness:{baseColorFactor:[1,1,1,1],metallicFactor:0,roughnessFactor:.85},extensions:{KHR_materials_unlit:{}}}],extensionsUsed:['KHR_materials_unlit'],accessors:[],bufferViews:[],buffers:[],cameras:[{type:'orthographic',orthographic:{xmag:180,ymag:230,znear:.1,zfar:3000}}]};
-  const chunks=[],cache=new Map();let size=0;
-  function acc(a,type,componentType,min,max){const b=Buffer.from(a.buffer,a.byteOffset,a.byteLength),pad=Buffer.alloc(Math.ceil(b.length/4)*4);b.copy(pad);const view=j.bufferViews.length;j.bufferViews.push({buffer:0,byteOffset:size,byteLength:b.length});chunks.push(pad);size+=pad.length;const id=j.accessors.length;j.accessors.push({bufferView:view,componentType,count:a.length/(type==='SCALAR'?1:3),type,...(min?{min,max}:{})});return id;}
+  const chunks=[],cache=new Map();
+  function acc(a,type,componentType,min,max){const b=Buffer.from(a.buffer,a.byteOffset,a.byteLength),pad=Buffer.alloc(Math.ceil(b.length/4)*4);b.copy(pad);const view=j.bufferViews.length;j.bufferViews.push({buffer:0,byteOffset:0,byteLength:b.length});chunks.push(pad);const id=j.accessors.length;j.accessors.push({bufferView:view,componentType,count:a.length/(type==='SCALAR'?1:3),type,...(min?{min,max}:{})});return id;}
   function visit(o){const n={name:o.name||'part',translation:o.position.toArray(),rotation:o.quaternion.toArray(),scale:o.scale.toArray()},id=j.nodes.length;j.nodes.push(n);
     if(o.isMesh){const key=o.geometry.uuid+o.material.color.getHexString();let mi=cache.get(key);if(mi===undefined){const p=o.geometry.attributes.position,normal=o.geometry.attributes.normal,c=new Float32Array(p.count*3),bounds=new T.Box3().setFromBufferAttribute(p);
       for(let i=0;i<p.count;i++){const v=o.material.color.clone().multiplyScalar(.76+.24*Math.max(0,new T.Vector3().fromBufferAttribute(normal,i).dot(light)));c.set([v.r,v.g,v.b],i*3);}
       const primitive={attributes:{POSITION:acc(new Float32Array(p.array),'VEC3',5126,bounds.min.toArray(),bounds.max.toArray()),NORMAL:acc(new Float32Array(normal.array),'VEC3',5126),COLOR_0:acc(c,'VEC3',5126)},material:0};if(o.geometry.index)primitive.indices=acc(new Uint16Array(o.geometry.index.array),'SCALAR',5123);mi=j.meshes.length;j.meshes.push({primitives:[primitive]});cache.set(key,mi);}n.mesh=mi;}
     if(o.children.length)n.children=o.children.map(visit);return id;}
-  j.scenes[0].nodes.push(visit(g));j.nodes.push({name:'ToyCamera',camera:0,translation:[0,0,1000]});j.scenes[0].nodes.push(j.nodes.length-1);j.buffers.push({byteLength:size});
-  const bytes=Buffer.from(JSON.stringify(j)),json=Buffer.alloc(Math.ceil(bytes.length/4)*4,32);bytes.copy(json);const bin=Buffer.concat(chunks),header=Buffer.alloc(12),jh=Buffer.alloc(8),bh=Buffer.alloc(8);
-  header.writeUInt32LE(0x46546c67);header.writeUInt32LE(2,4);header.writeUInt32LE(28+json.length+bin.length,8);jh.writeUInt32LE(json.length);jh.writeUInt32LE(0x4e4f534a,4);bh.writeUInt32LE(bin.length);bh.writeUInt32LE(0x004e4942,4);
-  const out=path.join(raw,name+'.glb');fs.writeFileSync(out,Buffer.concat([header,jh,json,bh,bin]));assets.push({name:'toy/'+name+'.glb',bytes:fs.statSync(out).size,packaged:true,meshes:j.meshes.length,nodes:j.nodes.length});
+  j.scenes[0].nodes.push(visit(g));j.nodes.push({name:'ToyCamera',camera:0,translation:[0,0,1000]});j.scenes[0].nodes.push(j.nodes.length-1);
+  const data=glbWriter.encodeToyGlb(j,chunks);
+  fs.writeFileSync(path.join(raw,name+'.glb'),data);
+  assets.push({name:'toy/'+name+'.glb',bytes:data.length,packaged:true,meshes:j.meshes.length,nodes:j.nodes.length});
 }
 for(const dark of [false,true]){
   const g=blackhole(dark);glb(g,dark?'blackhole_dark':'blackhole');

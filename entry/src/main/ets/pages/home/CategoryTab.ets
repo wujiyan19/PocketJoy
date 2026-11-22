@@ -14,11 +14,15 @@ import { GameCard } from '../../components/GameCard';
 import { HomeHeader } from '../../components/HomeHeader';
 import { resolveString } from '../../common/I18nUtils';
 import { HarmonyMotion } from '../../common/HarmonyMotion';
+import { HomeCatalog } from './HomeCatalog';
+
+const CATEGORY_SYMBOLS: Resource[] = [$r('sys.symbol.gamecontroller'), $r('sys.symbol.puzzle'),
+  $r('sys.symbol.square_grid_2x2'), $r('sys.symbol.calculator'), $r('sys.symbol.lightbulb'), $r('sys.symbol.bolt_fill')];
 
 @ComponentV2
 export struct CategoryTab {
-  /** 全部游戏（已按拼音排序），「全部」分类使用 */
-  @Param allGames: GameInfo[] = [];
+  /** 首页按当前语言解析并排序，输入搜索词不再读取资源。 */
+  @Param catalog: HomeCatalog = new HomeCatalog();
   @Param onGameClick: (game: GameInfo) => void = () => {};
   @Param onSettingsClick: () => void = () => {};
   // -1 为全部，其余索引对应 GAME_CATEGORIES。
@@ -30,33 +34,12 @@ export struct CategoryTab {
   /** 当前分类 + 搜索词过滤后的展示列表，随状态自动重算 */
   @Computed
   get categoryGames(): GameInfo[] {
-    let source: GameInfo[] = [];
-    if (this.currentCategory === -1) {
-      source = this.allGames;
-    } else {
-      source = this.allGames.filter((game: GameInfo) => game.category === GAME_CATEGORIES[this.currentCategory]);
-    }
-    const keyword: string = this.searchText.trim().toLowerCase();
-    if (keyword.length === 0) {
-      return source;
-    }
-    const context = this.getUIContext().getHostContext();
-    const result: GameInfo[] = [];
-    for (let i = 0; i < source.length; i++) {
-      const g: GameInfo = source[i];
-      const nameStr = resolveString(g.name, context).toLowerCase();
-      const descStr = resolveString(g.description, context).toLowerCase();
-      if (nameStr.includes(keyword) || descStr.includes(keyword)) {
-        result.push(g);
-      }
-    }
-    return result;
+    return this.catalog.search(this.currentCategory, this.searchText);
   }
 
   getCategorySymbol(index: number): Resource {
     if (index === -1) { return $r('sys.symbol.star_fill'); }
-    if (index === 0) { return $r('sys.symbol.gamecontroller'); }
-    return $r('sys.symbol.square_grid_2x2');
+    return CATEGORY_SYMBOLS[index];
   }
 
   getCategoryTextColor(index: number): Resource {
@@ -234,7 +217,7 @@ export struct CategoryTab {
         .fontWeight(this.getCategoryWeight(index))
         .fontColor(this.getCategoryTextColor(index))
         .maxLines(1)
-      Text((index === -1 ? this.allGames.length : this.allGames.filter((game: GameInfo) => game.category === GAME_CATEGORIES[index]).length).toString())
+      Text((index === -1 ? this.catalog.total : this.catalog.categoryCounts[index]).toString())
         .fontSize(FontTokens.sizeCaption).fontColor(this.getCategoryTextColor(index))
       }
     }

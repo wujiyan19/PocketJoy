@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import artStyle from './game-art-palette.cjs';
 import svgResources from './svg-resource-utils.cjs';
-const { pruneSvgDefs } = svgResources;
+const { pruneSvgDefs, writeThemedSvg } = svgResources;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rect = (x,y,w,h,r,fill,stroke='none',sw=2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
 const ellipse = (x,y,rx,ry,fill,opacity=1) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" opacity="${opacity}"/>`;
@@ -24,8 +24,7 @@ for (const theme of ['base','dark']) {
   }
   fs.writeFileSync(colorFile,JSON.stringify(resources,null,2)+'\n');
   const saveSvg = (name,w,h,svg) => {
-    fs.writeFileSync(path.join(root,`entry/src/main/resources/${theme}/media/play_${name}.svg`),
-      pruneSvgDefs(svg));
+    writeThemedSvg(theme,'play_'+name,pruneSvgDefs(svg));
     if (theme === 'base') generated.push({ name:'play_'+name, width:w, height:h });
   };
   const save = (name,w,h,body) => saveSvg(name,w,h,`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${defs}</defs>${body}</svg>\n`);

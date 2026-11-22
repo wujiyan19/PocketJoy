@@ -300,7 +300,8 @@ export struct SudokuPage {
           symbolColor: SemanticColors.success,
           title: $r('app.string.result_sudoku_complete'),
           primaryText: $r('app.string.result_new_game'),
-          onPrimary: () => { this.viewModel.newGameAsync(); }
+          onPrimary: () => { this.viewModel.newGameAsync(); }, showSecondary: true,
+          secondaryText: $r('app.string.action_back'), onSecondary: () => { this.pathStack.pop(); }
         })
       }
 

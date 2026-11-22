@@ -205,6 +205,7 @@ export struct GuessNumberPage {
           showDetail: true,
           primaryText: $r('app.string.result_play_again'),
           onPrimary: () => { this.viewModel.startGame(); },
+          showSecondary: true, secondaryText: $r('app.string.action_back'), onSecondary: () => { this.pathStack.pop(); },
           cardStyle: true
         })
       } else if (this.viewModel.status === GameStatus.OVER) {
@@ -217,6 +218,7 @@ export struct GuessNumberPage {
           showDetail: true,
           primaryText: $r('app.string.result_play_again'),
           onPrimary: () => { this.viewModel.startGame(); },
+          showSecondary: true, secondaryText: $r('app.string.action_back'), onSecondary: () => { this.pathStack.pop(); },
           cardStyle: true
         })
       }

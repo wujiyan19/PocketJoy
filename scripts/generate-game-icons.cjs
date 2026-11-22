@@ -2,7 +2,7 @@
  * Gameplay art generators call this after updating the reusable exp_* materials. */
 const fs = require('node:fs');
 const path = require('node:path');
-const { pruneSvgDefs } = require('./svg-resource-utils.cjs');
+const { pruneSvgDefs, resolveSvg } = require('./svg-resource-utils.cjs');
 const assert = require('node:assert/strict');
 const artStyle = require('./game-art-palette.cjs');
 const root = path.resolve(__dirname, '..');
@@ -32,7 +32,7 @@ function generate() {
     const defs = artStyle.gradients(theme);
     const tile = (x,y,w,h,color='paper',r=7) => rect(x,y+3,w,h,r,p.edge)+rect(x,y,w,h,r,'url(#'+color+')',p.edge)+line(`M${x+7} ${y+5}H${x+w-7}`,'#FFFFFF',2,.5);
     const asset = name => {
-      const svg = fs.readFileSync(path.join(root,`entry/src/main/resources/${theme}/media/exp_${name}.svg`),'utf8');
+      const svg = fs.readFileSync(resolveSvg(theme,'exp_'+name),'utf8');
       // Every icon gets one shared ground shadow, rather than a second shadow per reused piece.
       return svg.slice(svg.indexOf('</defs>')+7,svg.lastIndexOf('</svg>'))
         .replace(/<ellipse cx="50" cy="87" rx="32" ry="6"[^>]*\/>/g,'');

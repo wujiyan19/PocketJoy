@@ -1,11 +1,8 @@
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
-import { ExpansionRenderPiece } from '../../viewmodel/ExpansionRenderPiece';
-import { ExpansionPiece, ExpansionPile } from '../../model/game/ExpansionState';
-import { CHARACTER_PARTS, CHARACTER_RECIPES } from '../../model/game/ExpansionTable';
+import { ExpansionPile } from '../../model/game/ExpansionState';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
-import { ExpansionArcade } from '../../model/game/ExpansionArcade';
 
 @ComponentV2
 export struct ExpansionExtras {
@@ -22,17 +19,9 @@ export struct ExpansionExtras {
   }
   top(pile: number): number { const cards: number[] = this.vm.state.piles[pile].cards; return cards.length > 0 ? cards[cards.length - 1] : -1; }
   tableauHeight(): number { return Math.max(200, ...this.vm.state.piles.slice(2, 9).map((p: ExpansionPile) => p.cards.length * 28 + 45)); }
-  food(index: number): Resource { return index === 0 ? $r('app.string.expansion_food_0') : index === 1 ? $r('app.string.expansion_food_1') : $r('app.string.expansion_food_2'); }
   build() {
     Column({ space: SpacingTokens.base }) {
       if (this.gameId === 'solitaire') { this.Solitaire() }
-      if (this.gameId === 'characters') { this.Characters() }
-      if (this.gameId === 'restaurant') { this.Restaurant() }
-      if (this.gameId === 'roomdefense') {
-        Text($r('app.string.expansion_coins', this.vm.state.data[0], this.vm.state.data[1])).fontColor(SemanticColors.textPrimary)
-        Button($r('app.string.expansion_repair')).enabled(this.vm.state.data[0] >= 25 && this.vm.state.data[1] < 100)
-          .onClick(() => { this.vm.tap(6); })
-      }
       if (this.gameId === 'rhythm') {
         Row({ space: SpacingTokens.xs }) {
           ForEach(range(4), (lane: number) => {
@@ -88,61 +77,6 @@ export struct ExpansionExtras {
             }, (card: number) => card.toString())
           }.layoutWeight(1).height(this.tableauHeight())
         }, (col: number) => col.toString())
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Characters() {
-    Column({ space: SpacingTokens.base }) {
-      Text($r('app.string.expansion_character', CHARACTER_RECIPES[this.vm.state.cursor].result)).fontSize(FontTokens.sizeTitle).fontColor(SemanticColors.textPrimary)
-      Text(this.vm.state.tray.map((part: number) => CHARACTER_PARTS[part]).join(' + ')).height(48).fontSize(FontTokens.sizeTitle).fontColor(SemanticColors.primary)
-      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-        ForEach(this.vm.state.board, (part: number, option: number) => {
-          Button(CHARACTER_PARTS[part]).width('29%').height(64).margin(SpacingTokens.xs).fontSize(FontTokens.sizeTitle)
-            .onClick(() => { this.vm.tap(option); })
-        }, (part: number) => part.toString())
-      }.width('100%')
-      Row({ space: SpacingTokens.sm }) {
-        Button($r('app.string.expansion_clear')).layoutWeight(1).onClick(() => { this.vm.tap(100); })
-        Button($r('app.string.expansion_check')).layoutWeight(1).onClick(() => { this.vm.action(); })
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Restaurant() {
-    Column({ space: SpacingTokens.base }) {
-      Text($r('app.string.expansion_money', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary)
-      Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-        ForEach(this.vm.worldPieces.filter((rendered: ExpansionRenderPiece) => rendered.piece.kind === 19), (rendered: ExpansionRenderPiece) => {
-          Button({ type: ButtonType.Normal }) {
-            Column({ space: SpacingTokens.sm }) {
-              Image(ExpansionArt.person(rendered.piece.id % 6)).width(52).height(52).objectFit(ImageFit.Contain).accessibilityLevel('no')
-              Image(ExpansionArt.food(rendered.piece.color)).width(32).height(32).objectFit(ImageFit.Contain).accessibilityLevel('no')
-              Text(this.food(rendered.piece.color)).fontColor(SemanticColors.textPrimary)
-              Text($r('app.string.expansion_customer', rendered.piece.id, Math.ceil(rendered.piece.age))).fontSize(FontTokens.sizeCaption).fontColor(rendered.piece.age < 8 ? SemanticColors.warningText : SemanticColors.textSecondary)
-              Progress({ value: Math.max(0, rendered.piece.age), total: ExpansionArcade.customerPatience(this.vm.state.level), type: ProgressType.Linear })
-                .width('90%').color(rendered.piece.age < 8 ? SemanticColors.error : SemanticColors.success)
-              if (this.vm.state.board[rendered.piece.color] > 0) {
-                Text($r('app.string.restaurant_serve')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary)
-              }
-            }.padding(SpacingTokens.sm)
-          }.width('47%').margin(SpacingTokens.xs).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
-            .id('restaurant-customer-' + rendered.id).onClick(() => { this.vm.tap(100 + rendered.piece.id); })
-        }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
-      }.width('100%')
-      Row({ space: SpacingTokens.sm }) {
-        ForEach(range(3), (food: number) => {
-          Button({ type: ButtonType.Normal }) {
-            Column({ space: SpacingTokens.sm }) {
-              Image(ExpansionArt.food(food)).width(48).height(48).objectFit(ImageFit.Contain).accessibilityLevel('no')
-              Text(this.food(food)).fontColor(SemanticColors.textPrimary)
-              Text($r('app.string.expansion_food_stock', this.vm.state.board[food])).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
-              if (this.vm.state.pieces.some((p: ExpansionPiece) => p.kind === 20 && p.color === food)) { Text($r('app.string.expansion_cooking')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary) }
-              else { Text($r('app.string.restaurant_prepare')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary) }
-            }.padding(SpacingTokens.sm)
-          }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
-            .id('restaurant-cook-' + food).onClick(() => { this.vm.tap(food); })
-        }, (food: number) => food.toString())
       }.width('100%')
     }.width('100%')
   }

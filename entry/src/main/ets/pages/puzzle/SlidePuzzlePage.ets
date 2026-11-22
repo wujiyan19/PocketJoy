@@ -193,7 +193,8 @@ export struct SlidePuzzlePage {
           detailColor: SemanticColors.accent,
           showDetail: true,
           primaryText: $r('app.string.result_play_again'),
-          onPrimary: () => { this.viewModel.startGame(); }
+          onPrimary: () => { this.viewModel.startGame(); }, showSecondary: true,
+          secondaryText: $r('app.string.action_back'), onSecondary: () => { this.pathStack.pop(); }
         })
       }
 

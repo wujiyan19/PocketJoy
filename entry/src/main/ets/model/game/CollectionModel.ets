@@ -1,4 +1,5 @@
 import { RandomSource, RealRandom } from './RandomSource';
+import { sameNumbers, snapshotNumbers } from './SnapshotArrays';
 
 /** Original implementations of traditional boards and generated exercises. No external levels/assets. */
 export const COLLECTION_IDS: string[] = ['tictactoe', 'gomoku', 'reversi', 'fourline', 'nim',
@@ -28,6 +29,24 @@ export class CollectionState {
   minimumMoves: number = 0;
   markEmpty: boolean = false;
   variant: number = 0;
+}
+
+export function snapshotCollection(s: CollectionState, previous: CollectionState): CollectionState {
+  return { id: s.id, level: s.level, cols: s.cols, board: snapshotNumbers(s.board, previous.board),
+    target: snapshotNumbers(s.target, previous.target), choices: snapshotNumbers(s.choices, previous.choices),
+    selected: s.selected, player: s.player, moves: s.moves, round: s.round, score: s.score, answer: s.answer,
+    cursor: s.cursor, phase: s.phase, outcome: s.outcome, prompt: s.prompt, signalAt: s.signalAt,
+    elapsedMs: s.elapsedMs, goalPost: s.goalPost, minimumMoves: s.minimumMoves, markEmpty: s.markEmpty, variant: s.variant };
+}
+
+export function sameCollectionState(a: CollectionState, b: CollectionState): boolean {
+  return a === b || (a.moves === b.moves && a.round === b.round && a.elapsedMs === b.elapsedMs &&
+    a.selected === b.selected && a.phase === b.phase && a.cursor === b.cursor && a.score === b.score &&
+    a.outcome === b.outcome && a.markEmpty === b.markEmpty && a.id === b.id && a.level === b.level &&
+    a.cols === b.cols && a.player === b.player && a.answer === b.answer && a.prompt === b.prompt &&
+    a.signalAt === b.signalAt && a.goalPost === b.goalPost && a.minimumMoves === b.minimumMoves &&
+    a.variant === b.variant && sameNumbers(a.board, b.board) && sameNumbers(a.target, b.target) &&
+    sameNumbers(a.choices, b.choices));
 }
 
 export class CollectionModel {

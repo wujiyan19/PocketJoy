@@ -7,6 +7,9 @@ const ts = require(process.env.ARKTS_TYPESCRIPT_PATH ||
   'C:/Program Files/Huawei/DevEco Studio/tools/ohpm/node_modules/typescript/lib/typescript.js');
 const root = path.resolve(__dirname, '..');
 const compiled = new Map();
+const sharedCache = process.env.LITTLEGAMES_REGRESSION_CACHE;
+const { createHash } = require('node:crypto');
+const compilerKey = sharedCache && createHash('sha256').update(ts.version).update(fs.readFileSync(__filename)).digest('hex');
 const tests = [];
 let group = '';
 const hypium = {
@@ -105,12 +108,29 @@ function fixture(initialValues = {}, resourceResolver = name => name) {
     if (cache.has(file)) { return cache.get(file).exports; }
     if (!compiled.has(file)) {
       const source = fs.readFileSync(file, 'utf8').replace(/@(ObservedV2|Trace|Computed|Concurrent)\b/g, '');
-      const result = ts.transpileModule(source, { fileName: file, compilerOptions: {
-        target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS
-      }, reportDiagnostics: true });
-      const errors = (result.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error);
-      assert.equal(errors.length, 0, `${file}: ${errors.map(e => e.messageText).join(', ')}`);
-      compiled.set(file, result.outputText);
+      const cacheFile = sharedCache && path.join(sharedCache,
+        createHash('sha256').update(compilerKey).update(path.relative(root, file)).update(source).digest('hex') + '.js');
+      if (cacheFile && fs.existsSync(cacheFile)) {
+        compiled.set(file, fs.readFileSync(cacheFile, 'utf8'));
+      } else {
+        const result = ts.transpileModule(source, { fileName: file, compilerOptions: {
+          target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS
+        }, reportDiagnostics: true });
+        const errors = (result.diagnostics || []).filter(d => d.category === ts.DiagnosticCategory.Error);
+        assert.equal(errors.length, 0, `${file}: ${errors.map(e => e.messageText).join(', ')}`);
+        if (cacheFile) {
+          const temporary = cacheFile + '.' + process.pid;
+          fs.writeFileSync(temporary, result.outputText);
+          // A concurrent suite can publish and open the same immutable file first.
+          try {
+            fs.renameSync(temporary, cacheFile);
+          } catch (error) {
+            if (!fs.existsSync(cacheFile)) throw error;
+            fs.unlinkSync(temporary);
+          }
+        }
+        compiled.set(file, result.outputText);
+      }
     }
     const module = { exports: {} };
     cache.set(file, module);
@@ -207,6 +227,67 @@ test('snake retained cell identities update only changed appearances', () => {
     assert.equal(vm.isFood(x, y), vm.food.x === x && vm.food.y === y);
   } }
   vm.dispose();
+});
+
+test('snake sends only snake and food cells to the foreground layer after moving and restoring', () => {
+  const {vm} = live('SnakeViewModel', 'newGame');
+  const inspect = () => {
+    const ids = vm.snake.map(p => p.y * vm.cols() + p.x);
+    if (vm.food.x >= 0) ids.push(vm.food.y * vm.cols() + vm.food.x);
+    assert.deepEqual(vm.visibleCells.map(c => c.id), ids);
+    assert.equal(new Set(ids).size, ids.length);
+  };
+  inspect(); vm.turnUp(); vm.stepOnce(); inspect();
+  const saved = vm.exportContinuation();
+  vm.newGame(); inspect(); assert.ok(vm.importContinuation(saved)); inspect(); vm.dispose();
+});
+
+test('display callbacks publish current moving pieces, share static values, and keep 8ms physics', () => {
+  const f = fixture(), frames = new Frames(), vm = f.vm('ExpansionViewModel');
+  vm.init('grapple', frames); vm.startGame(); assert.equal(vm.hasProgress(), false);
+  vm.activate(); vm.tap(0);
+  const initial = vm.state, world = vm.worldPieces, head = initial.pieces[0];
+  const initialY = head.y;
+  for (let frame = 1; frame <= 60; frame++) {
+    const previous = vm.state;
+    frames.tick(16);
+    assert.notStrictEqual(vm.state, previous);
+    assert.ok(Math.abs(vm.state.time - frame * 0.016) < 0.00001);
+    assert.strictEqual(vm.state.pieces[1], initial.pieces[1]); // Fixed platform
+    assert.strictEqual(vm.state.target, initial.target);
+    assert.strictEqual(vm.worldPieces, world);
+    assert.notStrictEqual(vm.state.pieces[0], vm.model.state.pieces[0]);
+  }
+  assert.equal(head.y, initialY);
+  assert.equal(vm.hasProgress(), true);
+  const last = vm.state; frames.tick(4); assert.strictEqual(vm.state, last);
+  frames.tick(4); assert.ok(Math.abs(vm.state.time - 0.968) < 0.00001);
+  vm.togglePause(); const paused = vm.state; frames.tick(32); assert.strictEqual(vm.state, paused);
+  vm.dispose();
+});
+
+test('collection progress returns to initial values and never shares arrays with its rules', () => {
+  const f = fixture(), vm = f.vm('CollectionViewModel');
+  vm.init('nonogram'); vm.startGame();
+  const initial = vm.state;
+  vm.setMarkEmpty(true);
+  assert.ok(vm.hasProgress()); assert.strictEqual(vm.state.board, initial.board);
+  vm.setMarkEmpty(false);
+  assert.equal(vm.hasProgress(), false);
+  assert.notStrictEqual(vm.state.board, vm.model.state.board);
+  vm.tap(0); assert.ok(vm.hasProgress());
+  assert.notEqual(vm.state.board[0], initial.board[0]); vm.dispose();
+});
+
+test('shared undo snapshots survive redealing after a partial undo', () => {
+  const f = fixture(), {ExpansionModel} = f.rules('Expansion');
+  const model = new ExpansionModel(f.rng(79));
+  model.start('spider', 1);
+  const original = JSON.stringify(model.state);
+  model.tap(900); const afterFirst = JSON.stringify(model.state);
+  model.tap(900); model.undo(); assert.equal(JSON.stringify(model.state), afterFirst);
+  model.tap(900); model.undo(); model.undo();
+  assert.equal(JSON.stringify(model.state), original); assert.equal(model.canUndo(), false);
 });
 
 test('tetris cell cache agrees with the rules after movement, rotation, falling and locking', () => {

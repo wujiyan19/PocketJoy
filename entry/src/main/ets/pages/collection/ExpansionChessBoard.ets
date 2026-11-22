@@ -1,3 +1,4 @@
+import { ChessDataIndex } from '../../model/game/ExpansionStateCodes';
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
 import { ChessPieceMove } from '../../viewmodel/ChessPieceMove';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
@@ -139,7 +140,7 @@ export struct ExpansionChessBoard {
       Row({ space: SpacingTokens.sm }) {
         ForEach(range(4), (choice: number) => {
           Column() { GameArtTile({ image: ExpansionArt.chess(choice + 2), description: ['♛', '♜', '♝', '♞'][choice],
-            selected: this.vm.state.data[9] === choice + 2, onTap: () => {
+            selected: this.vm.state.data[ChessDataIndex.Promotion] === choice + 2, onTap: () => {
               this.vm.choose(choice);
               if (this.promotionTarget >= 0) { this.vm.tap(this.promotionTarget); }
               this.promotionTarget = -1; this.promotionOpen = false;
@@ -226,7 +227,7 @@ export struct ExpansionChessBoard {
       }.width('100%').aspectRatio(this.vm.state.cols / this.vm.state.rows).padding(SpacingTokens.xs)
         .backgroundColor(SemanticColors.border).borderRadius(RadiusTokens.sm).id('chess-board')
       if (this.gameId === 'chess') {
-        Button($r('app.string.chess_promotion_choice', ['♛', '♜', '♝', '♞'][this.vm.state.data[9] - 2]),
+        Button($r('app.string.chess_promotion_choice', ['♛', '♜', '♝', '♞'][this.vm.state.data[ChessDataIndex.Promotion] - 2]),
           { buttonStyle: ButtonStyleMode.TEXTUAL }).id('chess-promotion-open').fontSize(FontTokens.sizeBody)
           .onClick(() => { this.promotionTarget = -1; this.promotionOpen = true; })
           .bindSheet($$this.promotionOpen, this.Promotions, { height: SheetSize.FIT_CONTENT, preferType: SheetType.BOTTOM,

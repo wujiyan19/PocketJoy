@@ -52,8 +52,8 @@ function setup(options = {}) {
       return { decodeToString(data) { return decoder.decode(data); } };
     } }
   };
-  const { LanTransport } = f.load('entry/src/main/ets/common/LanTransport.ets');
-  const { LanFrameBuffer, LAN_MAX_FRAME_BYTES, LanAddress } = f.load('entry/src/main/ets/common/LanFraming.ets');
+  const { LanTransport } = f.load('archive/lan/LanTransport.ets');
+  const { LanFrameBuffer, LAN_MAX_FRAME_BYTES, LanAddress } = f.load('archive/lan/LanFraming.ets');
   const transport = new LanTransport();
   transport.setObserver({ onConnected() { events.push('connected'); }, onDisconnected() { events.push('disconnected'); },
     onMessage(value) { events.push(value); }, onError(value) { events.push('error:' + value); } });

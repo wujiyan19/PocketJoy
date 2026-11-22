@@ -27,27 +27,31 @@
     },
     {
       "name": "toy/jump.glb",
-      "bytes": 407604,
+      "bytes": 219228,
       "nodes": 73,
-      "meshes": 17
+      "meshes": 17,
+      "packaged": false
     },
     {
       "name": "toy/rolling.glb",
-      "bytes": 380584,
+      "bytes": 226600,
       "nodes": 31,
-      "meshes": 19
+      "meshes": 19,
+      "packaged": true
     },
     {
       "name": "toy/jump_dark.glb",
-      "bytes": 407604,
+      "bytes": 219228,
       "nodes": 73,
-      "meshes": 17
+      "meshes": 17,
+      "packaged": false
     },
     {
       "name": "toy/rolling_dark.glb",
-      "bytes": 380584,
+      "bytes": 226600,
       "nodes": 31,
-      "meshes": 19
+      "meshes": 19,
+      "packaged": true
     },
     {
       "name": "toy_screw.png",
@@ -135,5 +139,5 @@
       "packaged": false
     }
   ],
-  "totalBytes": 1648700
+  "totalBytes": 525524
 }

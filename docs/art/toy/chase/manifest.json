@@ -4,14 +4,14 @@
   "assets": [
     {
       "name": "toy/blackhole.glb",
-      "bytes": 525796,
+      "bytes": 377044,
       "packaged": true,
       "meshes": 24,
       "nodes": 461
     },
     {
       "name": "toy/blackhole_dark.glb",
-      "bytes": 525796,
+      "bytes": 377044,
       "packaged": true,
       "meshes": 24,
       "nodes": 461
@@ -32,5 +32,5 @@
       "packaged": true
     }
   ],
-  "totalBytes": 1055099
+  "totalBytes": 757595
 }

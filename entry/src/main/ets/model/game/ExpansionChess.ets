@@ -1,3 +1,4 @@
+import { ChessDataIndex } from './ExpansionStateCodes';
 import { ExpansionState } from './ExpansionState';
 import { RandomSource } from './RandomSource';
 import { ContinuationValidation as V } from '../../common/GameSessionTransfer';
@@ -23,7 +24,7 @@ export class ExpansionChess {
   type(piece: number): number { return piece % 10; }
   start(s: ExpansionState): void {
     s.cols = s.id === 'xiangqi' ? 9 : 8; s.rows = s.id === 'xiangqi' ? 10 : 8; s.goal = 1;
-    s.board = new Array<number>(s.cols * s.rows).fill(0); s.data = new Array<number>(10).fill(0); s.data[9] = 2;
+    s.board = new Array<number>(s.cols * s.rows).fill(0); s.data = new Array<number>(10).fill(0); s.data[ChessDataIndex.Promotion] = 2;
     const ranks: number[] = s.id === 'xiangqi' ? [5, 4, 3, 2, 1, 2, 3, 4, 5] : [3, 5, 4, 2, 1, 4, 5, 3];
     for (let x: number = 0; x < s.cols; x++) { s.board[x] = 10 + ranks[x]; s.board[(s.rows - 1) * s.cols + x] = ranks[x]; }
     if (s.id === 'xiangqi') {
@@ -68,7 +69,7 @@ export class ExpansionChess {
     if (attack) { return ax === 1 && dy === direction; }
     if (dx === 0 && dy === direction && s.board[to] === 0) { return true; }
     if (dx === 0 && dy === direction * 2 && y === (side === 1 ? 6 : 1) && s.board[to] === 0 && s.board[from + direction * 8] === 0) { return true; }
-    return ax === 1 && dy === direction && (this.side(s.board[to]) === 3 - side || (s.data[6] === to + 1 && s.board[to - direction * 8] === (side === 1 ? 16 : 6)));
+    return ax === 1 && dy === direction && (this.side(s.board[to]) === 3 - side || (s.data[ChessDataIndex.EnPassant] === to + 1 && s.board[to - direction * 8] === (side === 1 ? 16 : 6)));
   }
   attacked(s: ExpansionState, cell: number, by: number): boolean { return s.board.some((p: number, i: number) => this.side(p) === by && this.raw(s, i, cell, true)); }
   checked(s: ExpansionState, side: number): boolean { const king: number = s.board.findIndex((p: number) => p === (side === 1 ? 1 : 11)); return king < 0 || this.attacked(s, king, 3 - side); }
@@ -80,12 +81,12 @@ export class ExpansionChess {
       if (commit) {
         if (type === 1) { s.data[side === 1 ? 0 : 3] = 1; }
         [56, 63, 0, 7].forEach((cell: number, i: number) => { if (from === cell || to === cell) { s.data[[1, 2, 4, 5][i]] = 1; } });
-        s.data[6] = type === 6 && Math.abs(to - from) === 16 ? (from + to) / 2 + 1 : 0;
-        s.data[7] = type === 6 || capture !== 0 ? 0 : s.data[7] + 1;
+        s.data[ChessDataIndex.EnPassant] = type === 6 && Math.abs(to - from) === 16 ? (from + to) / 2 + 1 : 0;
+        s.data[ChessDataIndex.HalfMoves] = type === 6 || capture !== 0 ? 0 : s.data[ChessDataIndex.HalfMoves] + 1;
       }
     }
     s.board[from] = 0; s.board[to] = piece;
-    if (s.id === 'chess' && type === 6 && (to < 8 || to >= 56)) { s.board[to] = (side === 1 ? 0 : 10) + (side === 1 ? s.data[9] : 2); }
+    if (s.id === 'chess' && type === 6 && (to < 8 || to >= 56)) { s.board[to] = (side === 1 ? 0 : 10) + (side === 1 ? s.data[ChessDataIndex.Promotion] : 2); }
   }
   legal(s: ExpansionState, from: number, to: number): boolean {
     if (!this.raw(s, from, to, false) || this.type(s.board[to]) === 1) { return false; }
@@ -104,12 +105,12 @@ export class ExpansionChess {
   private finish(s: ExpansionState): void {
     const side: number = s.cursor + 1;
     if (this.moves(s, side).length === 0) {
-      if (s.id === 'chess' && !this.checked(s, side)) { s.data[8] = 1; s.outcome = 1; } else { s.outcome = side === 2 ? 1 : 2; s.score = s.outcome === 1 ? Math.max(100, 2000 - s.moves * 5) : 0; } return;
+      if (s.id === 'chess' && !this.checked(s, side)) { s.data[ChessDataIndex.Draw] = 1; s.outcome = 1; } else { s.outcome = side === 2 ? 1 : 2; s.score = s.outcome === 1 ? Math.max(100, 2000 - s.moves * 5) : 0; } return;
     }
     const hash: number = this.hash(s); s.target.push(hash); if (s.target.length > 120) { s.target.shift(); }
     const material: number[] = s.board.filter((p: number) => p !== 0 && this.type(p) !== 1);
     const insufficient: boolean = s.id === 'chess' && (material.length === 0 || (material.length === 1 && [4, 5].includes(this.type(material[0]))));
-    if (s.target.filter((v: number) => v === hash).length >= 3 || (s.id === 'chess' && (s.data[7] >= 100 || insufficient))) { s.data[8] = 1; s.outcome = 1; }
+    if (s.target.filter((v: number) => v === hash).length >= 3 || (s.id === 'chess' && (s.data[ChessDataIndex.HalfMoves] >= 100 || insufficient))) { s.data[ChessDataIndex.Draw] = 1; s.outcome = 1; }
   }
   private move(s: ExpansionState, from: number, to: number): void { this.apply(s, from, to, true); s.selected = -1; s.moves++; s.cursor = 1 - s.cursor; this.finish(s); }
   needsComputerTurn(s: ExpansionState): boolean { return s.outcome === 0 && s.cursor === 1; }
@@ -221,12 +222,12 @@ export class ExpansionChess {
     if (this.side(s.board[at]) === 1) { s.selected = s.selected === at ? -1 : at; return; }
     if (s.selected >= 0 && this.legal(s, s.selected, at)) { this.move(s, s.selected, at); if (automatic && this.needsComputerTurn(s)) { this.computerTurn(s); } }
   }
-  choose(s: ExpansionState, index: number): void { if (s.id === 'chess' && index < 4) { s.data[9] = [2, 3, 4, 5][index]; } }
+  choose(s: ExpansionState, index: number): void { if (s.id === 'chess' && index < 4) { s.data[ChessDataIndex.Promotion] = [2, 3, 4, 5][index]; } }
   valid(s: ExpansionState): boolean {
     if (!CHESS_IDS.includes(s.id) || s.cols !== (s.id === 'xiangqi' ? 9 : 8) || s.rows !== (s.id === 'xiangqi' ? 10 : 8) || s.goal !== 1 || s.phase !== 0 || s.piles.length !== 0 || s.pieces.length !== 0 || s.tray.length !== 0 ||
       !V.numbers(s.board, s.cols * s.rows, 0, 17) || s.board.some((p: number) => p !== 0 && (p % 10 < 1 || p % 10 > (s.id === 'xiangqi' ? 7 : 6))) ||
       s.board.filter((p: number) => p === 1).length !== 1 || s.board.filter((p: number) => p === 11).length !== 1 || s.cursor > 1 || s.selected >= s.board.length ||
-      !V.numbers(s.data, 10, 0, 100000) || s.data.slice(0, 6).some((v: number) => v > 1) || s.data[6] > 64 || s.data[8] > 1 || !V.integer(s.data[9], 2, 5) ||
+      !V.numbers(s.data, 10, 0, 100000) || s.data.slice(0, 6).some((v: number) => v > 1) || s.data[ChessDataIndex.EnPassant] > 64 || s.data[ChessDataIndex.Draw] > 1 || !V.integer(s.data[ChessDataIndex.Promotion], 2, 5) ||
       s.target.length > 120 || !V.numbers(s.target, s.target.length, 0, 1000002)) { return false; }
     return !this.checked(s, 3 - (s.cursor + 1));
   }

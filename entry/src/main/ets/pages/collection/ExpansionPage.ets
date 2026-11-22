@@ -13,10 +13,8 @@ import { GameDataManager } from '../../model/GameData';
 import { ExpansionPiece, ExpansionPile, BLOCK_SHAPES } from '../../model/game/ExpansionState';
 import { FRUIT_WARNING_Y } from '../../model/game/ExpansionPhysics';
 import { isDangerousFish } from '../../model/game/ExpansionAdventure';
-import { BILLIARDS_FOUL_LIMIT } from '../../model/game/ExpansionSports';
 import { ExpansionViewModel } from '../../viewmodel/ExpansionViewModel';
 import { Haptics } from '../../common/Haptics';
-import { ExpansionArcade } from '../../model/game/ExpansionArcade';
 import { ExpansionRenderPiece } from '../../viewmodel/ExpansionRenderPiece';
 import { GameHeader } from '../../components/GameHeader';
 import { GameResultDialog } from '../../components/GameResultDialog';
@@ -33,10 +31,7 @@ import { SPORTS_IDS } from '../../model/game/ExpansionSports';
 import { ExpansionWorldBoard } from './ExpansionWorldBoard';
 import { ExpansionCardBoard } from './ExpansionCardBoard';
 import { CHESS_IDS } from '../../model/game/ExpansionChess';
-import { POKER_IDS } from '../../model/game/ExpansionPoker';
-import { CARD_IDS } from '../../model/game/ExpansionCards';
 import { BRAIN_IDS } from '../../model/game/ExpansionBrain';
-import { LIFE_IDS } from '../../model/game/ExpansionLife';
 import { ExpansionBrainBoard } from './ExpansionBrainBoard';
 import { ExpansionLifeBoard } from './ExpansionLifeBoard';
 import { ExpansionArt } from '../../common/ExpansionArt';
@@ -84,38 +79,14 @@ export struct ExpansionPage {
   }
   symbol(value: number): string { return GameColorCue.symbol(value); }
   arrow(value: number): string { return ['↑', '→', '↓', '←'][value % 4]; }
-  fruit(tier: number): string { return ['🍒', '🍓', '🍇', '🍊', '🍎', '🍐', '🍑', '🥭', '🍈', '🍉'][tier]; }
-  pipe(mask: number): string { return ['', '╵', '╶', '└', '╷', '│', '┌', '├', '╴', '┘', '─', '┴', '┐', '┤', '┬', '┼'][mask]; }
-  scenery(index: number, right: boolean): string {
-    const v: number = this.vm.state.board[index];
-    return ['🌲', '🌻', '🏠', '🍄', '🌳', '🦋'][(v - 1 + (right && this.vm.state.target.includes(index) ? 1 : 0)) % 6];
-  }
   arenaRadius(p: ExpansionPiece): number { return p.kind === 8 ? 70 : p.kind === 10 ? 50 : p.r; }
-  arenaText(p: ExpansionPiece): string {
-    if (p.kind === 13) { return '🚪'; }
-    if (p.kind === 14) { return '⚙'; }
-    if (p.kind === 15) { return '👾'; }
-    if (p.kind === 16) { return '⌒'; }
-    if (p.kind === 17) { return '🏀'; }
-    if (p.kind === 18) { return '♩'; }
-    if (this.gameId === 'fruitmerge') { return this.fruit(p.color); }
-    if (this.gameId === 'fisheat') { return '🐟'; }
-    if (this.gameId === 'blackhole') { return p.kind === 8 ? '●' : this.symbol(p.color); }
-    if (this.gameId === 'runner') { return p.kind === 6 ? '🏃' : p.color === 1 ? '●' : '▣'; }
-    return this.symbol(p.color);
-  }
   arenaScale(): number { return this.arenaWidth / 360; }
   measureArena(area: Area): void {
     const width: number = Number(area.width);
     if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; }
   }
   resultTitle(): Resource {
-    if ((CHESS_IDS.includes(this.gameId) && this.vm.state.data[8] === 1) || (this.gameId === 'mahjong' && this.vm.state.data[3] === 1)) { return $r('app.string.expansion_draw_game'); }
-    if (this.gameId === 'tug') { return $r('app.string.expansion_player_wins', this.vm.state.cursor + 1); }
-    if (this.gameId === 'dots') {
-      const blue: number = this.vm.state.data.filter((v: number) => v === 1).length; const red: number = this.vm.state.data.filter((v: number) => v === 2).length;
-      return blue === red ? $r('app.string.expansion_draw_game') : $r('app.string.expansion_player_wins', blue > red ? 1 : 2);
-    }
+    if (this.vm.isDraw()) { return $r('app.string.expansion_draw_game'); }
     return this.vm.state.outcome === 1 ? $r('app.string.collection_win') : $r('app.string.collection_fail');
   }
   value(index: number): number {
@@ -127,12 +98,10 @@ export struct ExpansionPage {
     for (let layer: number = 0; layer < 3; layer++) { if (this.vm.state.board[layer * count + index] > 0) { result++; } } return result;
   }
   cellText(index: number): string {
-    if (this.gameId === 'pipes') { return this.pipe(this.vm.state.board[index]); }
     const v: number = this.value(index); if (this.gameId === 'arrowclear') { return v === 0 ? '' : this.arrow(v - 1); }
     return this.gameId === 'blockfit' ? '' : this.symbol(v);
   }
   cellArt(index: number): Resource {
-    if (this.gameId === 'pipes') { return ExpansionArt.pipe(this.vm.state.board[index]); }
     const value: number = this.value(index);
     if (value === 0) { return $r('app.media.exp_empty'); }
     if (this.gameId === 'arrowclear') { return ExpansionArt.arrow(value - 1); }
@@ -140,7 +109,6 @@ export struct ExpansionPage {
   }
   remaining(): number {
     if (this.gameId === 'solitaire') { return 52 - this.vm.state.piles.slice(9).reduce((total: number, pile: ExpansionPile) => total + pile.cards.length, 0); }
-    if (this.gameId === 'pipes') { return this.vm.state.board.length - this.vm.state.tray.length; }
     return this.gameId === 'screwout' || this.gameId === 'parkingjam' || this.gameId === 'mahjongsolitaire' ? this.vm.state.pieces.filter((p: ExpansionPiece) => p.alive && p.kind !== 1).length :
       this.vm.state.board.filter((v: number) => v > 0).length;
   }
@@ -163,13 +131,12 @@ export struct ExpansionPage {
           hasProgress: this.vm.hasProgress(), onChange: (mode: string) => { this.vm.changeMode(mode); } })
         if (this.vm.hasComputerOpponent() && this.vm.state.outcome === 0) {
           ComputerOpponentPanel({ gameId: this.gameId, thinking: this.vm.computerThinking,
-            player: this.vm.computerPlayer, difficulty: this.vm.difficulty,
-            reaction: this.gameId === 'mahjong' && this.vm.state.data[0] === 1 })
+            player: this.vm.computerPlayer, difficulty: this.vm.difficulty })
         }
         this.Status()
         if (BRAIN_IDS.includes(this.vm.modeId)) { ExpansionBrainBoard({ gameId: this.vm.modeId, vm: this.vm, beatAreaLimit: this.contentHeight * 0.52 * 360 / 460 }) }
-        if (LIFE_IDS.includes(this.gameId)) { ExpansionLifeBoard({ gameId: this.gameId, vm: this.vm }) }
-        if (CHESS_IDS.includes(this.gameId) || POKER_IDS.includes(this.gameId) || CARD_IDS.includes(this.gameId)) { ExpansionCardBoard({ gameId: this.gameId, vm: this.vm }) }
+        if (this.gameId === 'fishing') { ExpansionLifeBoard({ vm: this.vm }) }
+        if (CHESS_IDS.includes(this.gameId) || this.gameId === 'spider' || this.gameId === 'freecell') { ExpansionCardBoard({ gameId: this.gameId, vm: this.vm }) }
         if (ACTION_IDS.includes(this.gameId) || SPORTS_IDS.includes(this.gameId)) {
           ExpansionWorldBoard({ gameId: this.gameId, vm: this.vm,
             heightLimit: Math.max(this.screwBoardMinHeight, this.contentHeight - this.chaseControlsReserve) })
@@ -178,8 +145,7 @@ export struct ExpansionPage {
         if (SORTING_IDS.includes(this.gameId)) { ExpansionSortingBoard({ gameId: this.gameId, vm: this.vm }) }
         if (this.gameId === 'blockfit') {
           Stack() { this.GridBoard() }.width('100%').id('blockfit-board')
-        } else if (['tilestack', 'arrowclear', 'pipes'].includes(this.gameId)) { this.GridBoard() }
-        if (this.gameId === 'differences') { this.Differences() }
+        } else if (['tilestack', 'arrowclear'].includes(this.gameId)) { this.GridBoard() }
         if (this.gameId === 'blockfit') { this.BlockTray() }
         if (this.gameId === 'tilestack') { this.TileTray() }
         if (this.gameId === 'watersort') { this.Tubes() }
@@ -195,11 +161,11 @@ export struct ExpansionPage {
             this.Arena()
             if (this.vm.state.phase === 0) { Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); }) }
           }.width('100%').constraintSize({ maxWidth: this.contentHeight * 0.55 * 360 / 460 }).id('rhythm-four-board')
-        } else if (this.vm.realtime() && this.gameId !== 'restaurant' && this.gameId !== 'blackhole' && !ACTION_IDS.includes(this.gameId) && !SPORTS_IDS.includes(this.gameId) && !BRAIN_IDS.includes(this.vm.modeId) && !LIFE_IDS.includes(this.gameId)) { this.Arena() }
-        if (['roomdefense', 'basketball', 'restaurant', 'runner'].includes(this.vm.modeId) && this.vm.state.phase === 0) {
+        } else if (this.vm.realtime() && this.gameId !== 'blackhole' && !ACTION_IDS.includes(this.gameId) && !SPORTS_IDS.includes(this.gameId) && !BRAIN_IDS.includes(this.vm.modeId) && this.gameId !== 'fishing') { this.Arena() }
+        if (this.vm.modeId === 'runner' && this.vm.state.phase === 0) {
           Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); })
         }
-        if (['solitaire', 'characters', 'restaurant', 'roomdefense', 'rhythm'].includes(this.vm.modeId)) {
+        if (['solitaire', 'rhythm'].includes(this.vm.modeId)) {
           ExpansionExtras({ gameId: this.vm.modeId, vm: this.vm })
         }
         if (this.gameId === 'runner') {
@@ -213,7 +179,7 @@ export struct ExpansionPage {
             .fontColor(SemanticColors.errorText).textAlign(TextAlign.Center).id('puzzle-stuck')
           Button($r('app.string.expansion_restart')).onClick(() => { this.vm.startGame(); })
         }
-        if (!this.vm.realtime() && this.gameId !== 'backpack' && this.gameId !== 'freecell' && (!this.vm.puzzleStuck || this.vm.canUndo)) {
+        if (!this.vm.realtime() && this.gameId !== 'freecell' && (!this.vm.puzzleStuck || this.vm.canUndo)) {
           Button($r('app.string.expansion_undo')).enabled(this.vm.canUndo).height($r('app.float.expansion_control_height'))
             .onClick(() => { this.vm.undo(); })
         }
@@ -268,7 +234,7 @@ export struct ExpansionPage {
           primaryText: $r('app.string.result_play_again'), onPrimary: () => { this.vm.startGame(); },
           showSecondary: true, secondaryText: this.gameId === 'buscolor' && this.vm.canUndo ? $r('app.string.expansion_undo') : $r('app.string.exit_confirm_leave'),
           onSecondary: () => { if (this.gameId === 'buscolor' && this.vm.canUndo) { this.vm.undo(); } else { this.pathStack.pop(); } },
-          cardStyle: true, celebrate: this.vm.state.outcome === 1 })
+          cardStyle: true, celebrate: this.vm.state.outcome === 1 && !this.vm.isDraw() })
       }
       if (this.vm.confirmExit) {
         ExitConfirmDialog({ onConfirm: () => { this.vm.dismissExitConfirm(); this.pathStack.pop(); }, onCancel: () => { this.vm.dismissExitConfirm(); } })
@@ -288,37 +254,31 @@ export struct ExpansionPage {
           Text($r('app.string.expansion_progress', this.vm.modeId === 'beatjump' ? this.vm.state.cursor : this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary).id('rhythm-progress')
           Text($r('app.string.rhythm_errors', this.vm.state.errors)).fontColor(SemanticColors.warningText).id('rhythm-errors')
         }
-      } else if (BRAIN_IDS.includes(this.gameId) || LIFE_IDS.includes(this.gameId)) {
+      } else if (BRAIN_IDS.includes(this.gameId) || this.gameId === 'fishing') {
         if (this.gameId === 'fishing') {
           Text(this.vm.state.variant === 1 ? $r('app.string.fishing_summary', this.vm.state.cursor, this.vm.state.goal, this.vm.state.errors,
             this.vm.state.target.filter((count: number) => count > 0).length) :
             $r('app.string.fishing_summary_legacy', this.vm.state.cursor, this.vm.state.goal, this.vm.state.errors))
             .fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textPrimary).id('fishing-summary')
         } else {
-          Text($r('app.string.expansion_progress', this.gameId === 'linerescue' ? Math.min(this.vm.state.goal, Math.floor(this.vm.state.time)) : this.gameId === 'picturepuzzle' ? this.vm.state.board.filter((v: number, i: number) => v === i).length : ['hiddenobjects', 'onestroke'].includes(this.gameId) ? this.vm.state.tray.length : LIFE_IDS.includes(this.gameId) || this.gameId === 'beatjump' ? this.vm.state.cursor : this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
+          Text($r('app.string.expansion_progress', this.gameId === 'picturepuzzle' ? this.vm.state.board.filter((v: number, i: number) => v === i).length : this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
         }
-        if (['hiddenobjects', 'idiom', 'melody'].includes(this.gameId)) { Text($r('app.string.expansion_errors', this.vm.state.errors)).fontColor(SemanticColors.warningText) }
-        if (this.gameId === 'linerescue') { Text($r('app.string.expansion_time', Math.max(0, Math.ceil(this.vm.state.goal - this.vm.state.time)))).fontColor(SemanticColors.textSecondary) }
-      } else if (CHESS_IDS.includes(this.gameId) || POKER_IDS.includes(this.gameId) || CARD_IDS.includes(this.gameId)) {
+        if (this.gameId === 'melody') { Text($r('app.string.expansion_errors', this.vm.state.errors)).fontColor(SemanticColors.warningText) }
+      } else if (CHESS_IDS.includes(this.gameId) || this.gameId === 'spider' || this.gameId === 'freecell') {
         Text($r('app.string.expansion_moves', this.vm.state.moves)).fontColor(SemanticColors.textSecondary)
       } else if (ACTION_IDS.includes(this.gameId) || SPORTS_IDS.includes(this.gameId)) {
-        if (['shooter', 'tanks', 'fortress', 'survival'].includes(this.gameId)) {
-          if (this.gameId !== 'fortress') { Text($r('app.string.expansion_health', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary) }
+        if (['shooter', 'tanks', 'survival'].includes(this.gameId)) {
+          Text($r('app.string.expansion_health', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary)
           Text($r('app.string.expansion_progress', this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textSecondary)
-          if (this.gameId === 'fortress') {
-            Text($r('app.string.fortress_firepower', this.vm.state.next, this.vm.state.data[1])).fontColor(SemanticColors.textSecondary).id('fortress-coins')
-          }
         }
-        if (this.gameId === 'penalty') { Text($r('app.string.expansion_penalty_score', this.vm.state.data[0], this.vm.state.data[1])).fontColor(SemanticColors.textPrimary) }
         if (['pingpong', 'airhockey'].includes(this.gameId)) { Text($r('app.string.expansion_match_score', this.vm.state.data[0], this.vm.state.data[1])).fontColor(SemanticColors.textPrimary) }
-        if (['fruitslice', 'flappy', 'bowling', 'billiards'].includes(this.gameId)) { Text($r('app.string.expansion_progress', this.gameId === 'fruitslice' ? this.vm.state.moves : this.vm.state.cursor, this.vm.state.goal)).fontColor(SemanticColors.textPrimary) }
+        if (['fruitslice', 'flappy'].includes(this.gameId)) { Text($r('app.string.expansion_progress', this.gameId === 'fruitslice' ? this.vm.state.moves : this.vm.state.cursor, this.vm.state.goal)).fontColor(SemanticColors.textPrimary) }
         if (['platformer', 'grapple', 'hillclimb'].includes(this.gameId)) { Text($r('app.string.expansion_progress', Math.floor(this.vm.state.pieces[0].x), this.vm.state.goal)).fontColor(SemanticColors.textPrimary) }
         if (this.gameId === 'platformer') {
           Progress({ value: this.vm.state.pieces[0].x, total: this.vm.state.goal, type: ProgressType.Linear })
             .width('70%').color(SemanticColors.primary).id('platformer-progress')
         }
         if (this.gameId === 'drift') { Text($r('app.string.expansion_time', Math.max(0, Math.ceil(this.vm.state.goal - this.vm.state.time)))).fontColor(SemanticColors.textPrimary) }
-        if (this.gameId === 'golf') { Text($r('app.string.expansion_strokes', this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary) }
         if (this.gameId === 'fruitslice') {
           Text($r('app.string.expansion_fruitslice_errors', this.vm.state.errors)).id('fruitslice-misses')
             .fontSize(FontTokens.sizeBodyLarge).fontWeight(FontWeight.Medium)
@@ -326,22 +286,21 @@ export struct ExpansionPage {
             .backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.md)
             .padding({ left: SpacingTokens.md, right: SpacingTokens.md, top: SpacingTokens.xs, bottom: SpacingTokens.xs })
         }
-        if (this.gameId === 'billiards') { Text($r('app.string.expansion_billiards_fouls', this.vm.state.errors, BILLIARDS_FOUL_LIMIT)).fontColor(SemanticColors.warningText) }
       } else if (this.gameId === 'blockfit' || this.gameId === 'runner') {
         Text($r('app.string.expansion_target', this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
         if (this.gameId === 'blockfit') { Text($r('app.string.expansion_controls_hint')).fontColor(SemanticColors.textSecondary) }
         else { Text($r('app.string.runner_lane', this.vm.state.cursor + 1)).fontColor(SemanticColors.textSecondary).id('runner-current-lane') }
       } else if (this.gameId === 'untangle') {
         Text($r('app.string.expansion_crossings', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary)
-      } else if (['buscolor', 'yarn', 'sand'].includes(this.gameId)) {
+      } else if (this.gameId === 'buscolor') {
         Text($r('app.string.expansion_progress', this.vm.state.cursor, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
       } else if (this.gameId === 'blackhole') {
         Row({ space: SpacingTokens.base }) {
           Text($r('app.string.expansion_progress', this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary).id('blackhole-progress')
           Text($r('app.string.expansion_time', Math.max(0, Math.ceil(BlackholeLevels.limit(this.vm.state) - this.vm.state.time)))).fontColor(SemanticColors.textSecondary)
         }
-      } else if (['fisheat', 'differences', 'characters', 'rhythm', 'restaurant', 'roomdefense', 'basketball'].includes(this.gameId)) {
-        Text($r('app.string.expansion_progress', this.gameId === 'basketball' ? this.vm.state.data[0] : this.gameId === 'differences' ? this.vm.state.tray.length : this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
+      } else if (this.gameId === 'fisheat') {
+        Text($r('app.string.expansion_progress', this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
         if (this.gameId === 'fisheat' && this.vm.state.phase === 0) { Text($r('app.string.fisheat_steer')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary) }
       } else if (this.gameId === 'bubbleshooter') {
         Row({ space: SpacingTokens.md }) {
@@ -371,7 +330,7 @@ export struct ExpansionPage {
       } else {
         Text($r('app.string.expansion_remaining', this.remaining(), this.vm.state.moves)).fontColor(SemanticColors.textPrimary)
       }
-      if (['arrowclear', 'differences', 'characters'].includes(this.gameId)) { Text($r('app.string.expansion_errors', this.vm.state.errors)).fontColor(SemanticColors.warningText) }
+      if (this.gameId === 'arrowclear') { Text($r('app.string.expansion_errors', this.vm.state.errors)).fontColor(SemanticColors.warningText) }
       if (this.gameId === 'screwout' && this.vm.state.phase === 0 && this.vm.state.tray.length === 3) {
         Text($r('app.string.expansion_full')).fontColor(SemanticColors.warningText)
       }
@@ -392,16 +351,11 @@ export struct ExpansionPage {
                 } else {
                   GameArtTile({ image: this.cellArt(row * this.vm.state.cols + col),
                     description: $r('app.string.expansion_cell', row + 1, col + 1, this.cellText(row * this.vm.state.cols + col)),
-                    selected: this.gameId === 'pipes' && this.vm.state.tray.includes(row * this.vm.state.cols + col),
                     onTap: () => { this.vm.tap(row * this.vm.state.cols + col); } })
-                }
-                if (this.gameId === 'pipes' && (row * this.vm.state.cols + col === 0 || row * this.vm.state.cols + col === this.vm.state.cursor)) {
-                  Text('●').fontSize(FontTokens.sizeCaption).fontColor(row * this.vm.state.cols + col === 0 ? SemanticColors.primary : SemanticColors.successText).padding(2)
                 }
               }.width('100%').height('100%')
             }.layoutWeight(1).height('100%').padding(0).borderRadius(RadiusTokens.sm)
-              .backgroundColor(this.gameId === 'pipes' ? (this.vm.state.tray.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight : SemanticColors.surface) :
-                this.gameId === 'arrowclear' ? SemanticColors.surface : this.color(this.value(row * this.vm.state.cols + col)))
+                .backgroundColor(this.gameId === 'arrowclear' ? SemanticColors.surface : this.color(this.value(row * this.vm.state.cols + col)))
               .opacity(['arrowclear', 'tilestack'].includes(this.gameId) && this.value(row * this.vm.state.cols + col) === 0 ? 0.25 : 1)
               .accessibilityText($r('app.string.expansion_cell', row + 1, col + 1, this.cellText(row * this.vm.state.cols + col)))
           }, (col: number) => col.toString())
@@ -420,29 +374,6 @@ export struct ExpansionPage {
       .border({ width: 1, color: SemanticColors.border }).enabled(this.value(index) > 0).opacity(this.value(index) > 0 ? 1 : 0)
       .id('clear-arrow-' + index).accessibilityText($r('app.string.expansion_cell', Math.floor(index / this.vm.state.cols) + 1, index % this.vm.state.cols + 1, this.cellText(index)))
       .onClick(() => { Haptics.tap(); this.vm.tap(index); })
-  }
-  @Builder
-  Differences() {
-    Row({ space: SpacingTokens.sm }) { this.Scene(false); this.Scene(true) }.width('100%')
-  }
-  @Builder
-  Scene(right: boolean) {
-    Column({ space: SpacingTokens.xs }) {
-      Text(right ? $r('app.string.expansion_changed') : $r('app.string.expansion_reference')).fontColor(SemanticColors.textSecondary).fontSize(FontTokens.sizeCaption)
-      Column({ space: SpacingTokens.xs }) {
-        ForEach(range(5), (row: number) => {
-          Row({ space: 2 }) {
-            ForEach(range(5), (col: number) => {
-              Column() {
-                GameArtTile({ image: ExpansionArt.object((this.vm.state.board[row * 5 + col] - 1 + (right && this.vm.state.target.includes(row * 5 + col) ? 1 : 0)) % 6),
-                  description: $r('app.string.expansion_cell', row + 1, col + 1, this.scenery(row * 5 + col, right)),
-                  selected: right && this.vm.state.tray.includes(row * 5 + col), onTap: () => { if (right) { this.vm.tap(row * 5 + col); } } })
-              }.layoutWeight(1).height('100%')
-            }, (col: number) => col.toString())
-          }.layoutWeight(1).width('100%')
-        }, (row: number) => row.toString())
-      }.width('100%').aspectRatio(1).padding(SpacingTokens.xs).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.sm)
-    }.layoutWeight(1)
   }
   @Builder
   BlockTray() {
@@ -537,25 +468,6 @@ export struct ExpansionPage {
       }, (tube: number) => tube.toString())
     }.width('100%')
   }
-  towerLevel(slot: number): number {
-    return this.vm.state.pieces.find((piece: ExpansionPiece) => piece.kind === 14 && piece.owner === slot)?.color ?? 0;
-  }
-  @Builder
-  TowerSite(slot: number) {
-    Button({ type: ButtonType.Normal }) {
-      Column() {
-        Blank()
-        Text(this.towerLevel(slot) === 3 ? $r('app.string.room_tower_max') : this.towerLevel(slot) === 0 ?
-          $r('app.string.room_tower_build', ExpansionArcade.towerCost(this.towerLevel(slot))) : $r('app.string.room_tower_upgrade', ExpansionArcade.towerCost(this.towerLevel(slot))))
-          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textPrimary).backgroundColor(SemanticColors.surface)
-          .borderRadius(RadiusTokens.xs).padding({ left: 2, right: 2 })
-      }.width('100%').height('100%')
-    }.width(74 * this.arenaScale()).height(62 * this.arenaScale()).padding(0)
-      .backgroundColor(Color.Transparent).border({ width: 1, color: this.towerLevel(slot) > 0 ? SemanticColors.primary : SemanticColors.textSecondary })
-      .borderRadius(RadiusTokens.md).enabled(this.towerLevel(slot) < 3 && this.vm.state.data[0] >= ExpansionArcade.towerCost(this.towerLevel(slot)))
-      .translate({ x: (33 + slot % 2 * 220) * this.arenaScale(), y: (94 + Math.floor(slot / 2) * 95) * this.arenaScale() })
-      .id('room-tower-' + slot).accessibilityText($r('app.string.expansion_tower', slot + 1)).onClick(() => { this.vm.tap(slot); })
-  }
   @Builder
   Arena() {
     Stack({ alignContent: Alignment.TopStart }) {
@@ -631,13 +543,6 @@ export struct ExpansionPage {
             .translate({ x: (rendered.piece.x - this.arenaRadius(rendered.piece)) * this.arenaScale(), y: (rendered.piece.y - this.arenaRadius(rendered.piece)) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
         }
       }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
-      if (this.gameId === 'roomdefense') {
-        ForEach(range(6), (slot: number) => {
-          this.TowerSite(slot)
-        }, (slot: number) => slot.toString())
-        Progress({ value: this.vm.state.data[1], total: 100, type: ProgressType.Linear }).width(72 * this.arenaScale())
-          .color(SemanticColors.success).translate({ x: 144 * this.arenaScale(), y: 445 * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
-      }
     }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).clip(true)
       .onAreaChange((previous: Area, current: Area) => { this.measureArena(current); })
       .onTouch((event: TouchEvent) => {

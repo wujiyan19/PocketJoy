@@ -1,4 +1,5 @@
 const fs=require('node:fs');
+const { resolveSvg }=require('./svg-resource-utils.cjs');
 const assert=require('node:assert/strict');
 const {fixture}=require('./test-performance.cjs');
 const manifest=JSON.parse(fs.readFileSync('docs/art/expansion-art-manifest.json','utf8'));
@@ -27,7 +28,7 @@ test('all 60 available game icons exist, with retained expansion gameplay resour
  }
 });
 test('every generated SVG is self-contained with valid local paint references',()=>{
- for(const theme of ['base','dark'])for(const asset of manifest.assets){const s=fs.readFileSync(`entry/src/main/resources/${theme}/media/${asset.name}.svg`,'utf8');assert(!/NaN|undefined|<text|<filter|https?:\/\/(?!www.w3.org)/.test(s),asset.name);const ids=new Set([...s.matchAll(/id="([^"]+)"/g)].map(m=>m[1]));for(const m of s.matchAll(/url\(#([^)]+)\)/g))assert(ids.has(m[1]),`${asset.name}/${m[1]}`);}
+ for(const theme of ['base','dark'])for(const asset of manifest.assets){const s=fs.readFileSync(resolveSvg(theme,asset.name),'utf8');assert(!/NaN|undefined|<text|<filter|https?:\/\/(?!www.w3.org)/.test(s),asset.name);const ids=new Set([...s.matchAll(/id="([^"]+)"/g)].map(m=>m[1]));for(const m of s.matchAll(/url\(#([^)]+)\)/g))assert(ids.has(m[1]),`${asset.name}/${m[1]}`);}
 });
 test('all media references resolve and new strings cover every locale',()=>{
  const walk=dir=>fs.readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(dir+'/'+e.name):[dir+'/'+e.name]);

@@ -59,20 +59,24 @@ test('mahjong matching removes both tiles and undo restores the pair', () => {
   vm.undo(); for (const id of pair) assert.equal(rendered(vm, id).piece.alive, true); liveChildren(vm);
 });
 
-test('mahjong rearrange updates every retained tile snapshot; restart also refreshes them', () => {
+test('mahjong rearrange and restart publish current tiles without mutating captured states', () => {
   const vm = restore(model('mahjongsolitaire')), children = [...vm.worldPieces];
   const oldPieces = children.map(child => child.piece);
+  const original = JSON.stringify(oldPieces);
   vm.action(); liveChildren(vm);
-  children.forEach((child, index) => {
+  children.forEach(child => {
     assert.strictEqual(rendered(vm, child.id), child);
-    assert.notStrictEqual(child.piece, oldPieces[index]);
+    assert.deepEqual(child.piece, vm.state.pieces.find(p => p.id === child.id));
   });
+  assert.equal(JSON.stringify(oldPieces), original);
   const afterShuffle = children.map(child => child.piece);
+  const shuffled = JSON.stringify(afterShuffle);
   vm.startGame(); liveChildren(vm);
-  children.forEach((child, index) => {
+  children.forEach(child => {
     assert.strictEqual(rendered(vm, child.id), child);
-    assert.notStrictEqual(child.piece, afterShuffle[index]);
+    assert.deepEqual(child.piece, vm.state.pieces.find(p => p.id === child.id));
   });
+  assert.equal(JSON.stringify(afterShuffle), shuffled);
 });
 
 test('untangle drag updates the retained node, matches the edges and supports undo', () => {

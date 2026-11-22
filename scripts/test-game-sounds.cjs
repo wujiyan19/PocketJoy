@@ -55,29 +55,37 @@ function audioFixture(options = {}) {
   return { f, sound, E, player, pools, opened, closed, requested };
 }
 
-test('all 60 available games have sounds and withdrawn and merged games retain their resources', () => {
-  const f = fixture();
-  const withdrawnWithSounds = ['hiddenobjects', 'farm', 'decorate', 'characters', 'idiom',
-    'wordtower', 'backpack', 'differences', 'onestroke', 'golf',
-    'billiards', 'basketball', 'penalty', 'jumpjump', 'slotpair', 'missing', 'sand', 'linerescue', 'bowling', 'pipes',
-    'yarn', 'restaurant', 'roomdefense', 'fortress', 'compare', 'sequence', 'binary', 'targetsum', 'beatjump'];
-  assert.equal(manifest.games.length, 89);
-  const ids = new Set(manifest.games.map(game => game.id));
-  assert.equal(ids.size, 89);
-  for (const game of f.data().getAllGames()) { assert(ids.has(game.id), game.id); }
-  const availableIds = f.data().getAllGames().map(game => game.id);
-  assert.equal(availableIds.length, 60);
-  assert.deepEqual([...ids].sort(), availableIds.concat(withdrawnWithSounds).sort());
-  assert.equal(fs.readdirSync('entry/src/main/resources/rawfile/sounds').length, 182);
-  const available = f.load(base + 'common/GameAvailability.ets').isGameAvailable;
-  for (const id of withdrawnWithSounds) {
-    assert.equal(available(id), false); assert(ids.has(id));
-    for (const event of ['action', 'reward']) { assert(fs.existsSync('entry/src/main/resources/rawfile/sounds/' + id + '_' + event + '.wav')); }
+test('only published games, their child modes and shared cues are packaged', () => {
+  const f = fixture(), { modesForGame } = f.load(base + 'common/GameModes.ets');
+  const games = f.data().getAllGames();
+  const activeModes = games.flatMap(game => modesForGame(game.id));
+  assert.equal(games.length, 60); assert.equal(activeModes.length, 65);
+  assert.deepEqual(manifest.games.map(game => game.id).sort(), activeModes.sort());
+  const paths = manifest.games.flatMap(game => [game.action.path, game.reward.path]).concat(manifest.shared.map(cue => cue.path));
+  const packaged = fs.readdirSync('entry/src/main/resources/rawfile/sounds').map(name => 'sounds/' + name);
+  assert.equal(packaged.length, 134); assert.deepEqual(packaged.sort(), paths.sort());
+});
+
+test('child modes load and play their own cues across switches and continuation', async () => {
+  const a = audioFixture(), bus = a.f.load(base + 'common/GameLifecycleBus.ets').GameLifecycleBus;
+  for (const [name, parent, modes] of [['CollectionViewModel','arithmetic',['compare','sequence','binary','targetsum']],
+    ['ExpansionViewModel','rhythm',['beatjump']]]) {
+    const vm = a.f.vm(name);
+    vm.init(parent); bus.attach(vm); vm.startGame();
+    for (const mode of modes) {
+      vm.changeMode(mode); await settle();
+      assert.deepEqual(a.requested.slice(-6, -4), ['sounds/' + mode + '_action.wav', 'sounds/' + mode + '_reward.wav']);
+      const pool = a.pools.at(-1);
+      if (parent === 'arithmetic') vm.choose(vm.state.choices.indexOf(vm.state.answer)); else vm.activate();
+      assert(pool.played.length > 0, mode);
+      const snapshot = vm.exportContinuation();
+      vm.changeMode(parent); await settle();
+      assert(vm.importContinuation(snapshot)); await settle();
+      assert.equal(a.requested.at(-6), 'sounds/' + mode + '_action.wav');
+    }
+    bus.detach(vm); vm.dispose(); await settle();
   }
-  for (const id of ['tictactoe', 'gomoku', 'reversi', 'fourline', 'nim', 'dots', 'tug', 'doudizhu', 'guandan', 'mahjong', 'ludo']) {
-    assert.equal(available(id), false); assert(!ids.has(id));
-    for (const event of ['action', 'reward']) { assert(!fs.existsSync('entry/src/main/resources/rawfile/sounds/' + id + '_' + event + '.wav')); }
-  }
+  await a.player.dispose();
 });
 
 test('every WAV is mono 44.1 kHz PCM with nonzero audio, fade edges, no clipping and matching hash', () => {
@@ -227,6 +235,21 @@ test('collection illegal taps are silent, results play once, and restored games 
   assert.equal(a.events.at(-1).event, a.E.WIN); const count = a.events.length;
   vm.tap(8); assert.equal(a.events.length, count);
   assert(vm.importContinuation(vm.exportContinuation())); assert.equal(a.events.length, count); vm.dispose();
+});
+
+test('xiangqi and chess result sounds agree with the displayed draw, win or loss', () => {
+  for (const id of ['xiangqi', 'chess']) {
+    const f = fixture(), vm = f.vm('ExpansionViewModel'), a = capture(f, id);
+    vm.init(id);
+    for (const [outcome, drawFlag, event] of [[1, 1, a.E.DRAW], [1, 0, a.E.WIN], [2, 0, a.E.LOSE]]) {
+      vm.startGame();
+      vm.model.state.outcome = outcome; vm.model.state.data[8] = drawFlag;
+      vm.sync();
+      assert.equal(vm.isDraw(), event === a.E.DRAW);
+      assert.equal(a.events.at(-1).event, event);
+    }
+    vm.dispose();
+  }
 });
 
 test('expansion successful moves/rewards play, undo/restore stay quiet, and melody keeps its original notes', () => {

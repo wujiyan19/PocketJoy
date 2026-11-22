@@ -98,10 +98,12 @@
 
   ```bash
   cd E:/lianxi/LittleGames
-  node scripts/build-hap.cjs
-  # Release 编译模式
+  node scripts/build-hap.cjs              # Debug 增量构建
+  node scripts/build-hap.cjs debug --clean # Debug 全量重编
+  # Release 全量构建
   node scripts/build-hap.cjs release
   ```
 
   构建入口默认使用新版 IDE 内的 Node/Hvigor/SDK/JBR（本机 JBR 25.0.2 已通过签名构建）；可通过 `LITTLEGAMES_TOOLCHAIN_ROOT` 指定独立 `command-line-tools` 路径，通过 `JAVA_HOME` 指定其他兼容 JDK。产物在 `entry/build/default/outputs/default/`。迁移备份、工具和长期验证证据不要放在 `entry/build` 下，Hvigor 迁移/清理任务可能删除该目录。
 - 废弃 API 已统一改为 `this.getUIContext().xxx`（如 `animateTo`、`getRouter()`、`px2vp`）。
+- 桌面回归使用 `node scripts/run-regressions.cjs`，默认把汇总和各套件日志存入 `.local-tools/regressions/`。可通过 `LITTLEGAMES_REGRESSION_OUTPUT` 指定输出目录，通过 `LITTLEGAMES_REGRESSION_JOBS=1` 串行复现问题。

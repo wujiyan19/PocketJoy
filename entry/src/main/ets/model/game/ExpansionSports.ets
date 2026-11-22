@@ -1,3 +1,4 @@
+import { ExpansionPieceKind } from './ExpansionStateCodes';
 import { ExpansionState, ExpansionPiece } from './ExpansionState';
 import { RandomSource } from './RandomSource';
 import { ContinuationValidation as V } from '../../common/GameSessionTransfer';
@@ -22,22 +23,22 @@ export class ExpansionSports {
     s.cols = 6; s.rows = 6; s.data = [0, 0];
     if (s.id === 'tug') { s.data = [50, 0]; s.goal = 100; return; }
     if (s.id === 'dots') { s.cols = 3 + s.level; s.rows = s.cols; s.board = new Array<number>(2 * s.cols * (s.cols + 1)).fill(0); s.data = new Array<number>(s.cols * s.cols).fill(0); s.goal = s.cols * s.cols; return; }
-    const ball: ExpansionPiece = this.piece(s, ['drift', 'hillclimb'].includes(s.id) ? 36 : 32, 180, 390); ball.color = 1;
+    const ball: ExpansionPiece = this.piece(s, ['drift', 'hillclimb'].includes(s.id) ? ExpansionPieceKind.Vehicle : ExpansionPieceKind.Ball, 180, 390); ball.color = 1;
     if (s.id === 'billiards') {
       ball.x = 100; ball.y = 340; ball.r = 12; s.goal = 5;
-      for (let i: number = 0; i < 5; i++) { const other: ExpansionPiece = this.piece(s, 32, 150 + i % 3 * 27, 120 + Math.floor(i / 3) * 27, 12); other.color = 2 + i; }
+      for (let i: number = 0; i < 5; i++) { const other: ExpansionPiece = this.piece(s, ExpansionPieceKind.Ball, 150 + i % 3 * 27, 120 + Math.floor(i / 3) * 27, 12); other.color = 2 + i; }
       [25, 335].forEach((x: number) => { [25, 230, 435].forEach((y: number) => { this.piece(s, 42, x, y, 19); }); });
     } else if (s.id === 'penalty') { const keeper: ExpansionPiece = this.piece(s, 44, 180, 95, 26); keeper.vx = 70 + s.level * 25; s.goal = 5; }
     else if (s.id === 'pingpong' || s.id === 'airhockey') {
       ball.y = 230; ball.r = s.id === 'airhockey' ? 12 : 8; ball.vx = 80; ball.vy = 170;
-      const human: ExpansionPiece = this.piece(s, 39, 180, 420, s.id === 'airhockey' ? 24 : 0); human.w = 84; human.h = 12;
-      const bot: ExpansionPiece = this.piece(s, 39, 180, 40, s.id === 'airhockey' ? 24 : 0); bot.w = 84; bot.h = 12; bot.owner = 1; s.goal = s.id === 'airhockey' ? 5 : 7;
+      const human: ExpansionPiece = this.piece(s, ExpansionPieceKind.Paddle, 180, 420, s.id === 'airhockey' ? 24 : 0); human.w = 84; human.h = 12;
+      const bot: ExpansionPiece = this.piece(s, ExpansionPieceKind.Paddle, 180, 40, s.id === 'airhockey' ? 24 : 0); bot.w = 84; bot.h = 12; bot.owner = 1; s.goal = s.id === 'airhockey' ? 5 : 7;
     } else if (s.id === 'bowling') {
       for (let row: number = 0; row < 4; row++) { for (let col: number = 0; col <= row; col++) { this.piece(s, 37, 180 + (col - row / 2) * 27, 130 - row * 24, 13); } } s.goal = 8 + s.level;
     } else if (s.id === 'golf') {
       ball.x = 45; ball.y = 410; ball.r = 9; this.piece(s, 43, 310, 55, 14); s.goal = 20;
-      const a: ExpansionPiece = this.piece(s, 26, 80, 150, 0); a.w = 220; a.h = 14;
-      const b: ExpansionPiece = this.piece(s, 26, 0, 285, 0); b.w = 200; b.h = 14;
+      const a: ExpansionPiece = this.piece(s, ExpansionPieceKind.Wall, 80, 150, 0); a.w = 220; a.h = 14;
+      const b: ExpansionPiece = this.piece(s, ExpansionPieceKind.Wall, 0, 285, 0); b.w = 200; b.h = 14;
     } else if (s.id === 'drift') { DriftLevels.start(s, this.random); }
     else {
       s.variant = s.level === 0 ? 1 : 2;
@@ -95,7 +96,7 @@ export class ExpansionSports {
     if (p.y > 450 - p.r) { p.y = 450 - p.r; p.vy = -Math.abs(p.vy) * restitution; }
   }
   private billiards(s: ExpansionState, dt: number): void {
-    const balls: ExpansionPiece[] = s.pieces.filter((p: ExpansionPiece) => p.kind === 32 && p.alive);
+    const balls: ExpansionPiece[] = s.pieces.filter((p: ExpansionPiece) => p.kind === ExpansionPieceKind.Ball && p.alive);
     balls.forEach((p: ExpansionPiece) => {
       p.x += p.vx * dt; p.y += p.vy * dt;
       if (s.pieces.some((hole: ExpansionPiece) => hole.kind === 42 && Math.hypot(p.x - hole.x, p.y - hole.y) < hole.r)) {
@@ -170,7 +171,7 @@ export class ExpansionSports {
   private golf(s: ExpansionState, dt: number): void {
     const ball: ExpansionPiece = s.pieces[0]; const oldX: number = ball.x; const oldY: number = ball.y; ball.x += ball.vx * dt; ball.y += ball.vy * dt;
     this.walls(ball, 0.7); ball.vx *= Math.exp(-0.8 * dt); ball.vy *= Math.exp(-0.8 * dt);
-    s.pieces.filter((p: ExpansionPiece) => p.kind === 26).forEach((p: ExpansionPiece) => {
+    s.pieces.filter((p: ExpansionPiece) => p.kind === ExpansionPieceKind.Wall).forEach((p: ExpansionPiece) => {
       if (ball.x + ball.r > p.x && ball.x - ball.r < p.x + p.w && ball.y + ball.r > p.y && ball.y - ball.r < p.y + p.h) {
         if (oldY + ball.r <= p.y || oldY - ball.r >= p.y + p.h) { ball.vy *= -0.65; } else { ball.vx *= -0.65; } ball.x = oldX; ball.y = oldY;
       }
@@ -215,11 +216,11 @@ export class ExpansionSports {
     if (s.id === 'tug') { return s.phase === 0 && s.goal === 100 && s.data[0] <= 100 && s.pieces.length === 0 && s.cursor <= 1; }
     if (s.pieces.length === 0 || s.pieces.some((p: ExpansionPiece) => !p.alive || p.id >= s.serial || p.kind < 26 || p.kind > 44 || p.x < -40 || p.x > 1900 || p.y < -40 || p.y > 490 || p.r < 0 || p.r > 30)) { return false; }
     if (s.id === 'drift' && !DriftLevels.valid(s)) { return false; }
-    if (s.id === 'billiards') { return s.goal === 5 && s.pieces.length === 12 - s.cursor && s.cursor <= 5 && s.errors <= BILLIARDS_FOUL_LIMIT && s.pieces[0].kind === 32 && s.pieces.filter((p: ExpansionPiece) => p.kind === 42).length === 6; }
+    if (s.id === 'billiards') { return s.goal === 5 && s.pieces.length === 12 - s.cursor && s.cursor <= 5 && s.errors <= BILLIARDS_FOUL_LIMIT && s.pieces[0].kind === ExpansionPieceKind.Ball && s.pieces.filter((p: ExpansionPiece) => p.kind === 42).length === 6; }
     if (s.id === 'penalty') { return s.goal === 5 && s.pieces.length === 2 && s.data[0] <= 8 && s.data[1] <= s.data[0] && s.pieces[1].kind === 44; }
-    if (s.id === 'pingpong' || s.id === 'airhockey') { return s.pieces.length === 3 && s.pieces[0].kind === 32 && s.pieces.slice(1).every((p: ExpansionPiece) => p.kind === 39) && s.goal === (s.id === 'pingpong' ? 7 : 5) && s.data[0] <= s.goal && s.data[1] <= s.goal; }
-    if (s.id === 'bowling') { return s.goal === 8 + s.level && s.pieces.length === 11 - s.cursor && s.cursor <= 10 && s.data[0] <= 3 && s.pieces[0].kind === 32; }
+    if (s.id === 'pingpong' || s.id === 'airhockey') { return s.pieces.length === 3 && s.pieces[0].kind === ExpansionPieceKind.Ball && s.pieces.slice(1).every((p: ExpansionPiece) => p.kind === ExpansionPieceKind.Paddle) && s.goal === (s.id === 'pingpong' ? 7 : 5) && s.data[0] <= s.goal && s.data[1] <= s.goal; }
+    if (s.id === 'bowling') { return s.goal === 8 + s.level && s.pieces.length === 11 - s.cursor && s.cursor <= 10 && s.data[0] <= 3 && s.pieces[0].kind === ExpansionPieceKind.Ball; }
     if (s.id === 'golf') { return s.goal === 20 && s.pieces.length === 4 && s.moves <= 20 && s.pieces[1].kind === 43; }
-    return s.pieces.length === 1 && s.pieces[0].kind === 36 && s.goal === (s.id === 'drift' ? 30 + s.level * 10 : 1200 + s.level * 300) && (s.id !== 'hillclimb' || s.data[0] <= 100);
+    return s.pieces.length === 1 && s.pieces[0].kind === ExpansionPieceKind.Vehicle && s.goal === (s.id === 'drift' ? 30 + s.level * 10 : 1200 + s.level * 300) && (s.id !== 'hillclimb' || s.data[0] <= 100);
   }
 }

@@ -7,10 +7,10 @@
 `progress.json` 是实时进度的依据。只有 `completedGames` 为 89、`settlements` 至少为 267，且图标和界面截图全部复核，才能声明本任务完成。运行器策略存在不代表已验证通过；`attempts` 中的失败可能是脚本定位问题、系统遮挡或产品问题，需要结合对应截图判断。
 
 ```powershell
-node scripts/device-three-settlements.cjs status
-node scripts/device-three-settlements.cjs run
+node scripts/device/three-settlements/device-three-settlements.cjs status
+node scripts/device/three-settlements/device-three-settlements.cjs run
 # 仅补测指定游戏；已完成三次的游戏会跳过
-node scripts/device-three-settlements.cjs run snake sudoku
+node scripts/device/three-settlements/device-three-settlements.cjs run snake sudoku
 ```
 
 默认设备为 `FMR0224521016052`。可通过 `LITTLEGAMES_ART_TARGET` 指定另一台设备，通过 `LITTLEGAMES_THREE_OUTPUT` 指定另一证据目录。启动时要求手机已解锁，应用已启动。本机 Codex 沙盒无法发现真实 USB HDC 连接，因此本次执行在沙盒外进行。

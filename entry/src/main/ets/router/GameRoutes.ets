@@ -12,7 +12,7 @@
  *      .navDestination(this.PageMap)
  *
  * 新增一款游戏的登记步骤：
- *   ① model/GameData.ets 的 catalog 数组加数据，并检查 GameAvailability 上架策略
+ *   ① model/ClassicCatalog.ets 或对应的合集目录加数据，并检查 GameAvailability 上架策略
  *   ② GameRouteRegistry.PATHS 加一条「id → 路由名」；合集游戏通过 COLLECTION_IDS 注册
  *   ③ GamePageMap 的 if-else 里加一个组件分支（ArkTS 不支持把组件当值存表，此链无法消除）
  *   ④ 首页 Tab 卡片由数据驱动；合集玩法共用 CollectionPage 分支
@@ -30,7 +30,6 @@ import { SlidePuzzlePage } from '../pages/puzzle/SlidePuzzlePage';
 import { KlotskiPage } from '../pages/puzzle/KlotskiPage';
 import { GuessNumberPage } from '../pages/puzzle/GuessNumberPage';
 import { MemoryCardPage } from '../pages/puzzle/MemoryCardPage';
-import { JumpJumpPage } from '../pages/classic/JumpJumpPage';
 import { BrickBreakerPage } from '../pages/classic/BrickBreakerPage';
 import { Match3Page } from '../pages/puzzle/Match3Page';
 import { SettingsPage } from '../pages/settings/SettingsPage';
@@ -65,8 +64,6 @@ export function GamePageMap(name: string, pathStack: NavPathStack, onDataChanged
     GuessNumberPage({ pathStack: pathStack })
   } else if (name === 'MemoryCardPage') {
     MemoryCardPage({ pathStack: pathStack })
-  } else if (name === 'JumpJumpPage') {
-    JumpJumpPage({ pathStack: pathStack })
   } else if (name === 'BrickBreakerPage') {
     BrickBreakerPage({ pathStack: pathStack })
   } else if (name === 'Match3Page') {

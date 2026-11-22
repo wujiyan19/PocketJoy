@@ -9,7 +9,7 @@
  * cardStyle = true 使用紧凑间距（记忆翻牌 / 猜数字 / 扩展游戏）。
  * 组件常规填充色可能带透明度，不能用作覆盖棋盘的弹窗底色。
  *
- * 次按钮（secondaryText）留空即不渲染——数独、华容道等页面只保留一个主操作。
+ * showSecondary 控制次操作是否出现；页面通过 onSecondary 处理返回或重试。
  */
 import { SemanticColors, FontTokens, RadiusTokens, ShadowTokens, SpacingTokens } from '../common/DesignTokens';
 import { Haptics } from '../common/Haptics';
@@ -72,7 +72,7 @@ export struct GameResultDialog {
   private actionTimer: number = -1;
 
   aboutToAppear(): void {
-    Haptics.success();
+    if (this.celebrate) { Haptics.success(); } else { Haptics.tap(); }
   }
   appear(): void {
     if (this.shareGameId.length > 0 && canIUse('SystemCapability.Collaboration.HarmonyShare')) {

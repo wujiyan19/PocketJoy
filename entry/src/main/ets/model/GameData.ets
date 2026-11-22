@@ -1,9 +1,9 @@
 import { GameCategory, GameInfo } from '../common/GameConstants';
+import { classicGames } from './ClassicCatalog';
+import { GamePreferences } from './GamePreferences';
 import { collectionGames } from './CollectionCatalog';
 import { expansionGames } from './ExpansionCatalog';
-import { preferences } from '@kit.ArkData';
 import { Context } from '@kit.AbilityKit';
-import { BusinessError } from '@kit.BasicServicesKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { GameDifficulty } from '../common/GameDifficulty';
 import { GameSound, gameSound } from '../common/GameSound';
@@ -25,8 +25,6 @@ const KEY_SAVED_SUDOKU = 'savedGameSudoku';
 const MAX_SAVED_GAME_LENGTH: number = 8192;
 /** JavaScript Date 支持的最大 Unix 毫秒时间，避免历史日期格式化失败。 */
 const MAX_DATE_TIMESTAMP_MS = 8640000000000000;
-/** 落盘防抖窗口（ms）：合并同窗口期内的多次变更，避免重复全量序列化 */
-const PERSIST_DEBOUNCE_MS = 200;
 
 /** 完整游玩历史的一项；旧记录未知的最近游玩时间为 0。 */
 export class PlayedGameRecord {
@@ -44,13 +42,7 @@ export class PlayedGameRecord {
  * 最高分 / 累计游玩毫秒通过 Preferences 持久化，应用重启后保留
  */
 export class GameDataManager {
-  private static store: preferences.Preferences | null = null;
-  /** API 读取失败的字段保留原值，本次进程不以缺省值覆盖它们。 */
-  private static unreadKeys: Set<string> = new Set<string>();
-  /** 防抖定时器句柄，-1 表示无待落盘任务 */
-  private static flushTimer: number = -1;
-  private static dirty: boolean = false;
-  private static pendingFlushes: number = 0;
+  private static persistence: GamePreferences = new GamePreferences((): void => GameDataManager.writeSnapshot());
   private static saved2048: string = '';
   private static savedSudoku: string = '';
   private static savedGamesDirty: boolean = false;
@@ -72,180 +64,23 @@ export class GameDataManager {
   private static modeRecordsDirty: boolean = false;
   /** 完整登记目录用于保留撤下玩法的旧战绩，只有 games 对外提供上架内容。 */
   private static catalog: GameInfo[] = [
-    {
-      id: 'snake',
-      name: $r('app.string.game_snake_name'),
-      category: GameCategory.CLASSIC,
-      icon: $r('app.media.game_snake'),
-      description: $r('app.string.game_snake_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_snake_score_label'),
-    },
-    {
-      id: 'tetris',
-      name: $r('app.string.game_tetris_name'),
-      category: GameCategory.CLASSIC,
-      icon: $r('app.media.game_tetris'),
-      description: $r('app.string.game_tetris_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_tetris_score_label'),
-    },
-    {
-      id: '2048',
-      name: $r('app.string.game_2048_name'),
-      category: GameCategory.NUMBER,
-      icon: $r('app.media.game_2048'),
-      description: $r('app.string.game_2048_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_2048_score_label'),
-    },
-    {
-      id: 'whackmole',
-      name: $r('app.string.game_whackmole_name'),
-      category: GameCategory.REACTION,
-      icon: $r('app.media.game_whackmole'),
-      description: $r('app.string.game_whackmole_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_whackmole_score_label'),
-    },
-    {
-      id: 'minesweeper',
-      name: $r('app.string.game_minesweeper_name'),
-      category: GameCategory.PUZZLE,
-      icon: $r('app.media.game_minesweeper'),
-      description: $r('app.string.game_minesweeper_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_minesweeper_score_label'),
-    },
-    {
-      id: 'sudoku',
-      name: $r('app.string.game_sudoku_name'),
-      category: GameCategory.NUMBER,
-      icon: $r('app.media.game_sudoku'),
-      description: $r('app.string.game_sudoku_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_sudoku_score_label'),
-    },
-    {
-      id: 'slidepuzzle',
-      name: $r('app.string.game_slidepuzzle_name'),
-      category: GameCategory.PUZZLE,
-      icon: $r('app.media.game_slidepuzzle'),
-      description: $r('app.string.game_slidepuzzle_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_slidepuzzle_score_label'),
-    },
-    {
-      id: 'klotski',
-      name: $r('app.string.game_klotski_name'),
-      category: GameCategory.PUZZLE,
-      icon: $r('app.media.game_klotski'),
-      description: $r('app.string.game_klotski_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_klotski_score_label'),
-    },
-    {
-      id: 'guessnumber',
-      name: $r('app.string.game_guessnumber_name'),
-      category: GameCategory.NUMBER,
-      icon: $r('app.media.game_guessnumber'),
-      description: $r('app.string.game_guessnumber_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_guessnumber_score_label'),
-    },
-    {
-      id: 'memorycard',
-      name: $r('app.string.game_memorycard_name'),
-      category: GameCategory.MEMORY,
-      icon: $r('app.media.game_memorycard'),
-      description: $r('app.string.game_memorycard_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_memorycard_score_label'),
-    },
-    {
-      id: 'jumpjump',
-      name: $r('app.string.game_jumpjump_name'),
-      category: GameCategory.REACTION,
-      icon: $r('app.media.game_jumpjump'),
-      description: $r('app.string.game_jumpjump_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_jumpjump_score_label'),
-    },
-    {
-      id: 'brickbreaker',
-      name: $r('app.string.game_brickbreaker_name'),
-      category: GameCategory.CLASSIC,
-      icon: $r('app.media.game_brickbreaker'),
-      description: $r('app.string.game_brickbreaker_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_brickbreaker_score_label'),
-    },
-    {
-      id: 'match3',
-      name: $r('app.string.game_match3_name'),
-      category: GameCategory.PUZZLE,
-      icon: $r('app.media.game_match3'),
-      description: $r('app.string.game_match3_desc'),
-      highScore: 0,
-      playTimeMs: 0,
-      scoreLabel: $r('app.string.game_match3_score_label'),
-    },
+    ...classicGames(),
     ...collectionGames(),
     ...expansionGames()
   ];
   private static games: GameInfo[] = GameDataManager.catalog.filter((game: GameInfo): boolean => isGameAvailable(game.id));
 
   static init(context: Context): void {
-    GameDataManager.unreadKeys.clear();
-    try {
-      GameDataManager.store = preferences.getPreferencesSync(context, { name: GAME_DATA_STORE_NAME });
-    } catch (e) {
-      // 初始化失败后 store 为 null，此后所有最高分都会静默丢失，必须留痕
-      hilog.error(0x0000, 'LittleGames', 'Failed to init preferences, high scores will NOT persist');
-      GameDataManager.store = null;
-    }
-    GameDataManager.restore();
+    if (GameDataManager.persistence.open(context, GAME_DATA_STORE_NAME)) { GameDataManager.restore(); }
     gameSound.setEnabled(GameDataManager.getSetting('soundEnabled', true));
     gameSound.setVolume(GameDataManager.getSoundVolume());
   }
 
-  /** Preferences 是外部边界；内容类型校验和 API 异常隔离只在这里完成。 */
-  private static readText(key: string): string {
-    if (!GameDataManager.store) { return ''; }
-    try {
-      const value = GameDataManager.store.getSync(key, '');
-      return typeof value === 'string' ? value : '';
-    } catch (e) {
-      GameDataManager.unreadKeys.add(key);
-      hilog.error(0x0000, 'LittleGames', 'Failed to read preferences key %{public}s; original value retained', key);
-      return '';
-    }
-  }
-
-  private static writeText(key: string, value: string): void {
-    if (GameDataManager.store && !GameDataManager.unreadKeys.has(key)) {
-      GameDataManager.store.putSync(key, value);
-    }
-  }
-
   private static restore(): void {
-    if (!GameDataManager.store) { return; }
     GameDataManager.modeRecords = {};
     GameDataManager.modeRecordsDirty = false;
     try {
-      const records: Record<string, number> = JSON.parse(GameDataManager.readText(KEY_MODE_RECORDS) || '{}') as Record<string, number>;
+      const records: Record<string, number> = JSON.parse(GameDataManager.persistence.read(KEY_MODE_RECORDS) || '{}') as Record<string, number>;
       const keys: string[] = Object.keys(records);
       for (let i: number = 0; i < keys.length; i++) {
         const value: number | undefined = records[keys[i]];
@@ -254,32 +89,32 @@ export class GameDataManager {
         }
       }
     } catch (e) { /* A damaged new record cannot erase the original score maps. */ }
-    GameDataManager.saved2048 = GameDataManager.readText(KEY_SAVED_2048);
-    GameDataManager.savedSudoku = GameDataManager.readText(KEY_SAVED_SUDOKU);
-    const scoreJson = GameDataManager.readText(KEY_HIGH_SCORES);
+    GameDataManager.saved2048 = GameDataManager.persistence.read(KEY_SAVED_2048);
+    GameDataManager.savedSudoku = GameDataManager.persistence.read(KEY_SAVED_SUDOKU);
+    const scoreJson = GameDataManager.persistence.read(KEY_HIGH_SCORES);
     GameDataManager.applyMap(scoreJson, (g: GameInfo, v: number): void => {
       if (GameDataManager.validHighScore(v)) { g.highScore = v; }
     });
-    const timeJson = GameDataManager.readText(KEY_PLAY_TIMES);
+    const timeJson = GameDataManager.persistence.read(KEY_PLAY_TIMES);
     GameDataManager.applyMap(timeJson, (g: GameInfo, v: number): void => {
       if (Number.isFinite(v) && v >= 0 && v <= Number.MAX_SAFE_INTEGER) { g.playTimeMs = Math.floor(v); }
     });
     GameDataManager.gameStarts = {};
     GameDataManager.gameStartsDirty = false;
-    const startsJson = GameDataManager.readText(KEY_GAME_STARTS);
+    const startsJson = GameDataManager.persistence.read(KEY_GAME_STARTS);
     GameDataManager.applyMap(startsJson, (g: GameInfo, v: number): void => {
       if (Number.isSafeInteger(v) && v > 0) { GameDataManager.gameStarts[g.id] = v; }
     });
-    const playedJson = GameDataManager.readText(KEY_PLAYED_GAMES);
+    const playedJson = GameDataManager.persistence.read(KEY_PLAYED_GAMES);
     GameDataManager.playedGameIds = GameDataManager.restoreGameIds(playedJson);
     if (playedJson.length === 0) {
       // 旧次数只用于保留「已玩游戏」数量，无法换算为时长。
-      const countJson = GameDataManager.readText(KEY_PLAY_COUNTS);
+      const countJson = GameDataManager.persistence.read(KEY_PLAY_COUNTS);
       GameDataManager.applyMap(countJson, (g: GameInfo, v: number): void => {
         if (Number.isFinite(v) && v > 0) { GameDataManager.markPlayed(g.id); }
       });
     }
-    const recentJson = GameDataManager.readText(KEY_RECENT_GAMES);
+    const recentJson = GameDataManager.persistence.read(KEY_RECENT_GAMES);
     GameDataManager.recentGameIds = GameDataManager.restoreGameIds(recentJson);
     for (let i = 0; i < GameDataManager.recentGameIds.length; i++) {
       GameDataManager.markPlayed(GameDataManager.recentGameIds[i]);
@@ -290,7 +125,7 @@ export class GameDataManager {
     }
     // 旧版本只保存已玩标记、最近顺序或累计时长，无法推算真实游玩日期。
     GameDataManager.lastPlayedAtByGame = {};
-    const lastPlayedJson = GameDataManager.readText(KEY_LAST_PLAYED_AT);
+    const lastPlayedJson = GameDataManager.persistence.read(KEY_LAST_PLAYED_AT);
     GameDataManager.applyMap(lastPlayedJson, (g: GameInfo, v: number): void => {
       if (Number.isFinite(v) && v > 0 && v <= MAX_DATE_TIMESTAMP_MS) {
         GameDataManager.lastPlayedAtByGame[g.id] = Math.floor(v);
@@ -298,7 +133,7 @@ export class GameDataManager {
       }
     });
     // 恢复用户设置
-    const settingsJson = GameDataManager.readText(KEY_SETTINGS);
+    const settingsJson = GameDataManager.persistence.read(KEY_SETTINGS);
     if (settingsJson.length > 0) {
       try {
         const parsed = JSON.parse(settingsJson) as Record<string, boolean | string | number>;
@@ -355,89 +190,37 @@ export class GameDataManager {
     }
   }
 
-  /**
-   * 标记数据变更，合并防抖窗口内的多次写入后统一落盘。
-   * 合并开局记录、最高分和时长的连续变更，
-   * 若各自立即落盘，等于一次开局做两遍全量序列化 + 两次磁盘 IO。
-   */
-  private static markDirty(): void {
-    GameDataManager.dirty = true;
-    if (!GameDataManager.store) { return; }
-    if (GameDataManager.flushTimer !== -1) {
-      clearTimeout(GameDataManager.flushTimer);
+  private static writeSnapshot(): void {
+    const scores: Record<string, number> = {};
+    const times: Record<string, number> = {};
+    // 撤下只影响展示与启动；设置或其他战绩落盘不能删除这些玩法的旧记录。
+    for (let i = 0; i < GameDataManager.catalog.length; i++) {
+      const game: GameInfo = GameDataManager.catalog[i];
+      scores[game.id] = game.highScore;
+      times[game.id] = game.playTimeMs;
     }
-    GameDataManager.flushTimer = setTimeout(() => {
-      GameDataManager.flushTimer = -1;
-      GameDataManager.persist();
-    }, PERSIST_DEBOUNCE_MS);
-  }
-
-  /** 实际落盘：全量序列化游戏数据。关键操作使用同步刷盘。 */
-  private static persist(sync: boolean = false): void {
-    if (!GameDataManager.store) { return; }
-    if (!GameDataManager.dirty && (!sync || GameDataManager.pendingFlushes === 0)) { return; }
-    try {
-      if (GameDataManager.dirty) {
-        const scores: Record<string, number> = {};
-        const times: Record<string, number> = {};
-        // 撤下只影响展示与启动；设置或其他战绩落盘不能删除这些玩法的旧记录。
-        for (let i = 0; i < GameDataManager.catalog.length; i++) {
-          const game: GameInfo = GameDataManager.catalog[i];
-          scores[game.id] = game.highScore;
-          times[game.id] = game.playTimeMs;
-        }
-        GameDataManager.writeText(KEY_HIGH_SCORES, JSON.stringify(scores));
-        if (GameDataManager.modeRecordsDirty || Object.keys(GameDataManager.modeRecords).length > 0) {
-          GameDataManager.writeText(KEY_MODE_RECORDS, JSON.stringify(GameDataManager.modeRecords));
-          GameDataManager.modeRecordsDirty = false;
-        }
-        GameDataManager.writeText(KEY_PLAY_TIMES, JSON.stringify(times));
-        if (GameDataManager.gameStartsDirty) {
-          GameDataManager.writeText(KEY_GAME_STARTS, JSON.stringify(GameDataManager.gameStarts));
-          GameDataManager.gameStartsDirty = false;
-        }
-        GameDataManager.writeText(KEY_PLAYED_GAMES, JSON.stringify(GameDataManager.playedGameIds));
-        GameDataManager.writeText(KEY_SETTINGS, JSON.stringify(GameDataManager.settings));
-        GameDataManager.writeText(KEY_RECENT_GAMES, JSON.stringify(GameDataManager.recentGameIds));
-        GameDataManager.writeText(KEY_LAST_PLAYED_AT, JSON.stringify(GameDataManager.lastPlayedAtByGame));
-        if (GameDataManager.savedGamesDirty) {
-          GameDataManager.writeText(KEY_SAVED_2048, GameDataManager.saved2048);
-          GameDataManager.writeText(KEY_SAVED_SUDOKU, GameDataManager.savedSudoku);
-          GameDataManager.savedGamesDirty = false;
-        }
-        GameDataManager.dirty = false;
-      }
-      if (sync) {
-        GameDataManager.store.flushSync();
-      } else {
-        const flush: Promise<void> = GameDataManager.store.flush();
-        GameDataManager.pendingFlushes++;
-        flush.then(() => {
-          GameDataManager.pendingFlushes--;
-        }).catch((err: BusinessError) => {
-          GameDataManager.pendingFlushes--;
-          GameDataManager.dirty = true;
-          hilog.error(0x0000, 'LittleGames', 'Failed to flush preferences: %{public}d', err.code);
-        });
-      }
-    } catch (e) {
-      GameDataManager.dirty = true;
-      // 写入失败不影响游戏流程
-      hilog.error(0x0000, 'LittleGames', 'Failed to persist game data');
+    GameDataManager.persistence.write(KEY_HIGH_SCORES, JSON.stringify(scores));
+    if (GameDataManager.modeRecordsDirty || Object.keys(GameDataManager.modeRecords).length > 0) {
+      GameDataManager.persistence.write(KEY_MODE_RECORDS, JSON.stringify(GameDataManager.modeRecords));
+      GameDataManager.modeRecordsDirty = false;
+    }
+    GameDataManager.persistence.write(KEY_PLAY_TIMES, JSON.stringify(times));
+    if (GameDataManager.gameStartsDirty) {
+      GameDataManager.persistence.write(KEY_GAME_STARTS, JSON.stringify(GameDataManager.gameStarts));
+      GameDataManager.gameStartsDirty = false;
+    }
+    GameDataManager.persistence.write(KEY_PLAYED_GAMES, JSON.stringify(GameDataManager.playedGameIds));
+    GameDataManager.persistence.write(KEY_SETTINGS, JSON.stringify(GameDataManager.settings));
+    GameDataManager.persistence.write(KEY_RECENT_GAMES, JSON.stringify(GameDataManager.recentGameIds));
+    GameDataManager.persistence.write(KEY_LAST_PLAYED_AT, JSON.stringify(GameDataManager.lastPlayedAtByGame));
+    if (GameDataManager.savedGamesDirty) {
+      GameDataManager.persistence.write(KEY_SAVED_2048, GameDataManager.saved2048);
+      GameDataManager.persistence.write(KEY_SAVED_SUDOKU, GameDataManager.savedSudoku);
+      GameDataManager.savedGamesDirty = false;
     }
   }
 
-  /**
-   * 立即落盘（取消防抖待执行的任务）。
-   * 应用退到后台时应调用，否则防抖窗口内的变更可能因进程被杀而丢失。
-   */
-  static flushNow(): void {
-    if (GameDataManager.flushTimer !== -1) {
-      clearTimeout(GameDataManager.flushTimer);
-      GameDataManager.flushTimer = -1;
-    }
-    GameDataManager.persist(true);
-  }
+  static flushNow(): void { GameDataManager.persistence.flushNow(); }
 
   static getAllGames(): GameInfo[] {
     return GameDataManager.games.map((game: GameInfo) => GameDataManager.summaryGame(game));
@@ -475,7 +258,7 @@ export class GameDataManager {
     if (gameId === '2048') { GameDataManager.saved2048 = payload; }
     else { GameDataManager.savedSudoku = payload; }
     GameDataManager.savedGamesDirty = true;
-    GameDataManager.markDirty();
+    GameDataManager.persistence.schedule();
   }
 
   /** Clearing data invalidates snapshots held by an already-open game page. */
@@ -495,7 +278,7 @@ export class GameDataManager {
     const game = GameDataManager.games.find(g => g.id === id);
     if (game && score > game.highScore) {
       game.highScore = score;
-      GameDataManager.markDirty();
+      GameDataManager.persistence.schedule();
     }
   }
 
@@ -541,7 +324,7 @@ export class GameDataManager {
       GameDataManager.markPlayed(id);
       GameDataManager.lastPlayedAtByGame[id] = Date.now();
       GameDataManager.recentGameIds = [id].concat(GameDataManager.recentGameIds.filter((recentId: string) => recentId !== id));
-      GameDataManager.markDirty();
+      GameDataManager.persistence.schedule();
     }
   }
 
@@ -552,7 +335,7 @@ export class GameDataManager {
     if (elapsed > Number.MAX_SAFE_INTEGER - game.playTimeMs) { return; }
     game.playTimeMs += elapsed;
     GameDataManager.markPlayed(id);
-    GameDataManager.markDirty();
+    GameDataManager.persistence.schedule();
   }
 
   static getTotalPlayTimeMs(): number {
@@ -671,7 +454,7 @@ export class GameDataManager {
       GameDataManager.modeRecords[id + ':' + difficulty + ':count'] = best === 0 ? count : Math.min(best, count);
     }
     GameDataManager.modeRecordsDirty = true;
-    GameDataManager.markDirty();
+    GameDataManager.persistence.schedule();
   }
   static archivedModeScore(mode: string): number {
     const game: GameInfo | undefined = GameDataManager.catalog.find((item: GameInfo) => item.id === mode);
@@ -684,14 +467,13 @@ export class GameDataManager {
       const best: number = GameDataManager.getModeTime(mode, difficulty);
       GameDataManager.modeRecords[key + ':time'] = best === 0 ? elapsedMs : Math.min(best, elapsedMs);
     }
-    GameDataManager.markDirty();
+    GameDataManager.persistence.schedule();
   }
 
   static setTextSetting(key: string, value: string): void {
     if (GameDataManager.settings[key] === value) { return; }
     GameDataManager.settings[key] = value;
-    GameDataManager.dirty = true;
-    GameDataManager.flushNow();
+    GameDataManager.persistence.flushNow(true);
   }
 
   static getSoundVolume(): number {
@@ -706,7 +488,7 @@ export class GameDataManager {
     if (GameDataManager.settings.soundVolume !== volume) {
       GameDataManager.settings.soundVolume = volume;
       gameSound.setVolume(volume);
-      GameDataManager.markDirty();
+      GameDataManager.persistence.schedule();
     }
     if (commit) { GameDataManager.flushNow(); }
   }
@@ -719,8 +501,7 @@ export class GameDataManager {
     };
     gameSound.setEnabled(true);
     gameSound.setVolume(GameSound.DEFAULT_VOLUME);
-    GameDataManager.dirty = true;
-    GameDataManager.flushNow();
+    GameDataManager.persistence.flushNow(true);
   }
 
   /** 清空战绩和最近游玩列表，保留用户设置。调用前由设置页确认。 */
@@ -728,7 +509,7 @@ export class GameDataManager {
     // 用户明确清空战绩时才允许替换读取失败的战绩字段；偏好设置继续保留。
     [KEY_HIGH_SCORES, KEY_MODE_RECORDS, KEY_PLAY_TIMES, KEY_GAME_STARTS, KEY_PLAYED_GAMES,
       KEY_RECENT_GAMES, KEY_LAST_PLAYED_AT, KEY_SAVED_2048, KEY_SAVED_SUDOKU].forEach((key: string) => {
-      GameDataManager.unreadKeys.delete(key);
+      GameDataManager.persistence.allowOverwrite(key);
     });
     GameDataManager.modeRecords = {};
     GameDataManager.modeRecordsDirty = true;
@@ -745,8 +526,7 @@ export class GameDataManager {
     GameDataManager.savedSudoku = '';
     GameDataManager.savedGamesDirty = true;
     GameDataManager.savedGameRevision++;
-    GameDataManager.dirty = true;
-    GameDataManager.flushNow();
+    GameDataManager.persistence.flushNow(true);
   }
 
   /** 设置开关立即同步刷盘，避免快速结束进程时丢失。 */
@@ -754,7 +534,6 @@ export class GameDataManager {
     if (GameDataManager.settings[key] === value) { return; }
     GameDataManager.settings[key] = value;
     if (key === 'soundEnabled') { gameSound.setEnabled(value); }
-    GameDataManager.dirty = true;
-    GameDataManager.flushNow();
+    GameDataManager.persistence.flushNow(true);
   }
 }

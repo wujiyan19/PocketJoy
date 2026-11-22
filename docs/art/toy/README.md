@@ -27,6 +27,8 @@ node scripts/test-toy-scenes.cjs
 
 离线渲染默认使用本机 Edge，可通过 `TOY_ART_BROWSER` 指向其他 Chromium 浏览器。工具依赖保存在被忽略的 `.local-tools` 中。
 
+跳一跳下架后，它的两套 [GLB 模型](../../../archive/jumpjump/resources/rawfile/toy/) 随工程归档。滚动球和黑洞仍各自加载浅色、深色场景。导出时，同一 GLB 内内容相同的顶点或索引数据共用字节区间，模型各自的颜色、节点与相机保持原设计。历史预览使用的插画可在[离线美术源](../source-media/)中找到。
+
 构建仍使用 `node scripts/build-hap.cjs` 和 `node scripts/build-hap.cjs release`，目标 API 26、兼容 API 24。新增接口已经核对本机 SDK 与华为官方文档：
 
 - [Component3D](https://developer.huawei.com/consumer/en/doc/harmonyos-references/ts-basic-components-component3d)

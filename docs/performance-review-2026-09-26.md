@@ -19,7 +19,7 @@
 
 ## 1. 高频位移使用图形变换
 
-- [跳一跳角色](../entry/src/main/ets/pages/classic/JumpJumpPage.ets#L149)每约 16ms 更新一次 offset；平台落地归一化时也更新 offset。
+- [跳一跳角色](../archive/jumpjump/JumpJumpPage.ets#L149)每约 16ms 更新一次 offset；平台落地归一化时也更新 offset。
 - [打砖块](../entry/src/main/ets/pages/classic/BrickBreakerPage.ets#L140)挡板随拖动更新 offset，小球每约 30ms 更新 offset。
 - [2048](../entry/src/main/ets/pages/classic/Game2048Page.ets#L308)对 offset 做隐式动画。
 - [数独](../entry/src/main/ets/pages/puzzle/SudokuPage.ets#L157)双指缩放时同步修改 offset。
@@ -42,7 +42,7 @@
 
 ## 3. 跳一跳平台使用有界窗口
 
-[ensurePlatforms](../entry/src/main/ets/viewmodel/JumpJumpViewModel.ets#L150)每次追加 6 个平台，从不删除历史平台；[normalize](../entry/src/main/ets/viewmodel/JumpJumpViewModel.ets#L163)每次落地遍历全部平台，逐个修改带 @Trace 的 centerX。[页面](../entry/src/main/ets/pages/classic/JumpJumpPage.ets#L131)虽只创建可见图片，ForEach 输入仍是全部平台，屏外判断不能清理数组数据。
+[ensurePlatforms](../entry/src/main/ets/viewmodel/JumpJumpViewModel.ets#L150)每次追加 6 个平台，从不删除历史平台；[normalize](../entry/src/main/ets/viewmodel/JumpJumpViewModel.ets#L163)每次落地遍历全部平台，逐个修改带 @Trace 的 centerX。[页面](../archive/jumpjump/JumpJumpPage.ets#L131)虽只创建可见图片，ForEach 输入仍是全部平台，屏外判断不能清理数组数据。
 
 桌面逻辑验证模拟 1000 次成功落地后，数组仍保留 1008 个平台。这会让内存、状态更新和落地遍历成本随游戏时长增长。
 

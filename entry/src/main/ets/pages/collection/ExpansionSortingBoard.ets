@@ -42,8 +42,6 @@ export struct ExpansionSortingBoard {
   build() {
     Column({ space: SpacingTokens.base }) {
       if (this.gameId === 'buscolor') { this.Buses() }
-      if (this.gameId === 'yarn') { this.Yarn() }
-      if (this.gameId === 'sand') { this.Sand() }
       if (this.gameId === 'untangle') { this.Knots() }
     }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
   }
@@ -107,84 +105,6 @@ export struct ExpansionSortingBoard {
           }.layoutWeight(1)
         }, (lane: number) => lane.toString())
       }.width('100%').alignItems(VerticalAlign.Top)
-    }.width('100%')
-  }
-  @Builder
-  Yarn() {
-    Column({ space: SpacingTokens.base }) {
-      Row({ space: SpacingTokens.xs }) {
-        ForEach(range(this.vm.state.cols), (col: number) => {
-          Button({ type: ButtonType.Normal }) {
-            Column({ space: SpacingTokens.xs }) {
-              ForEach(range(8), (row: number) => {
-                Stack() {
-                  Image(ExpansionArt.yarn(this.vm.state.board[col * 8 + 7 - row] - 1)).width('100%').height('100%').objectFit(ImageFit.Fill)
-                  Text(this.symbol(this.vm.state.board[col * 8 + 7 - row]))
-                    .fontSize(FontTokens.sizeCaption).fontColor($r('app.color.play_color_piece_text'))
-                    .padding({ left: SpacingTokens.xs, right: SpacingTokens.xs })
-                    .backgroundColor($r('app.color.color_cue_background')).borderRadius(RadiusTokens.xs)
-                }.width('100%').height(24).opacity(this.vm.state.board[col * 8 + 7 - row] > 0 ? 1 : 0)
-                  .borderRadius(RadiusTokens.xs).border({ width: this.vm.state.board[col * 8 + 7 - row] > 0 &&
-                    (row === 0 || this.vm.state.board[col * 8 + 8 - row] === 0) ? 2 : 0, color: SemanticColors.primary })
-              }, (row: number) => row.toString())
-
-            }.width('100%').padding(SpacingTokens.xs)
-          }.layoutWeight(1).padding(0).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
-            .id('yarn-column-' + col).accessibilityText($r('app.string.expansion_unwind_column', col + 1)).onClick(() => { this.vm.tap(col); })
-        }, (col: number) => col.toString())
-      }.width('100%')
-      Text($r('app.string.expansion_choose_reel')).fontColor(SemanticColors.textSecondary)
-      Row({ space: SpacingTokens.sm }) {
-        ForEach(range(3), (reel: number) => {
-          Button({ type: ButtonType.Normal }) {
-            Column({ space: SpacingTokens.xs }) {
-              Image(this.vm.state.tray[reel * 2] > 0 ? ExpansionArt.reel(this.vm.state.tray[reel * 2] - 1) : $r('app.media.exp_empty')).width(50).height(50).objectFit(ImageFit.Contain)
-              Text(this.symbol(this.vm.state.tray[reel * 2])).fontColor(this.vm.state.tray[reel * 2] > 0 ? this.color(this.vm.state.tray[reel * 2]) : SemanticColors.textSecondary)
-              Text($r('app.string.expansion_capacity', this.vm.state.tray[reel * 2 + 1], 8)).fontColor(SemanticColors.textPrimary)
-            }.padding(SpacingTokens.sm)
-          }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
-            .border({ width: this.vm.state.selected === reel ? 2 : 1, color: this.vm.state.selected === reel ? SemanticColors.primary : SemanticColors.border })
-            .id('yarn-reel-' + reel).accessibilityText($r('app.string.expansion_reel', reel + 1)).onClick(() => { this.vm.choose(reel); })
-        }, (reel: number) => reel.toString())
-      }.width('100%')
-    }.width('100%')
-  }
-  @Builder
-  Sand() {
-    Column({ space: SpacingTokens.base }) {
-      Column({ space: 2 }) {
-        ForEach(range(this.vm.state.rows), (row: number) => {
-          Row({ space: 2 }) {
-            ForEach(range(8), (col: number) => {
-              Button({ type: ButtonType.Normal }) {
-                Stack() {
-                  Image(ExpansionArt.sand(this.vm.state.board[row * 8 + col] - 1)).width('100%').height('100%').objectFit(ImageFit.Fill)
-                  Text(this.symbol(this.vm.state.board[row * 8 + col])).fontSize(FontTokens.sizeCaption)
-                    .fontColor($r('app.color.play_color_piece_text')).padding({ left: SpacingTokens.xs, right: SpacingTokens.xs })
-                    .backgroundColor($r('app.color.color_cue_background')).borderRadius(RadiusTokens.xs)
-                }.width('100%').height('100%')
-              }.layoutWeight(1).height('100%').padding(0).backgroundColor(this.color(this.vm.state.board[row * 8 + col]))
-                .opacity(this.vm.state.board[row * 8 + col] === 0 ? 0.15 : 1).borderRadius(RadiusTokens.xs)
-                .accessibilityText($r('app.string.expansion_cell', row + 1, col + 1, this.symbol(this.vm.state.board[row * 8 + col])))
-                .onClick(() => { this.vm.tap(row * 8 + col); })
-            }, (col: number) => col.toString())
-          }.layoutWeight(1).width('100%')
-        }, (row: number) => row.toString())
-      }.width('100%').aspectRatio(8 / this.vm.state.rows).padding(SpacingTokens.sm).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-      Text($r('app.string.expansion_choose_pump')).fontColor(SemanticColors.textSecondary)
-      Row({ space: SpacingTokens.xs }) {
-        ForEach(range(this.vm.state.data.length), (color: number) => {
-          Button({ type: ButtonType.Normal }) {
-            Column({ space: SpacingTokens.xs }) {
-              Image(ExpansionArt.nozzle(color)).width(42).height(42).objectFit(ImageFit.Contain)
-              Text(this.symbol(color + 1)).fontColor(this.color(color + 1))
-              Text($r('app.string.expansion_capacity', this.vm.state.data[color], 16)).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textPrimary)
-            }.padding(SpacingTokens.xs)
-          }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
-            .border({ width: this.vm.state.selected === color ? 2 : 1, color: this.vm.state.selected === color ? SemanticColors.primary : SemanticColors.border })
-            .accessibilityText(this.colorName(color + 1)).onClick(() => { this.vm.choose(color); })
-        }, (color: number) => color.toString())
-      }.width('100%')
     }.width('100%')
   }
   knotDiameter(point: ExpansionPiece): number {

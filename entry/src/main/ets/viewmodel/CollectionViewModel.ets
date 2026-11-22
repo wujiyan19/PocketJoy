@@ -1,8 +1,8 @@
 import { GameDifficulty } from '../common/GameConstants';
-import { GameLifecycleObserver } from '../common/GameLifecycleBus';
+import { GameLifecycleBus, GameLifecycleObserver } from '../common/GameLifecycleBus';
 import { ContinuationValidation as V } from '../common/GameSessionTransfer';
 import { GameDataManager } from '../model/GameData';
-import { CollectionModel, CollectionState, COLLECTION_IDS } from '../model/game/CollectionModel';
+import { CollectionModel, CollectionState, COLLECTION_IDS, sameCollectionState, snapshotCollection } from '../model/game/CollectionModel';
 import { GameSoundEvent, gameSound } from '../common/GameSound';
 import { modesForGame } from '../common/GameModes';
 import { systemDateTime } from '@kit.BasicServicesKit';
@@ -28,7 +28,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
   private timer: number = -1;
   private recorded: boolean = false;
   private id: string = '';
-  private initialProgress: string = '';
+  private initialState: CollectionState | null = null;
   private elapsedTimer: number = -1;
   private elapsedStart: number = -1;
 
@@ -42,11 +42,11 @@ export class CollectionViewModel implements GameLifecycleObserver {
     this.modeId = mode; GameDataManager.setTextSetting('mode_' + this.id, mode); this.startGame();
   }
   startGame(): void {
-    gameSound.stop(this.id);
+    GameLifecycleBus.selectSoundMode(this, this.modeId);
     this.dispose(); this.confirmExit = false; this.checked = false; this.recorded = false; this.feedback = '';
     const level: number = this.difficulty === GameDifficulty.EASY ? 0 : this.difficulty === GameDifficulty.HARD ? 2 : 1;
     this.model.start(this.modeId, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
-    this.initialProgress = JSON.stringify(this.state);
+    this.initialState = this.state;
     this.startElapsed();
   }
   private startElapsed(): void {
@@ -72,17 +72,17 @@ export class CollectionViewModel implements GameLifecycleObserver {
   private sync(feedback: boolean = true): void {
     const previous: CollectionState = this.state;
     // Replace the snapshot so ArkUI observes mutations of arrays and scalar model fields.
-    this.state = JSON.parse(JSON.stringify(this.model.state)) as CollectionState;
+    this.state = snapshotCollection(this.model.state, previous);
     if (feedback && previous.id === this.modeId && previous.outcome === 0) {
       if (this.state.outcome !== 0) {
-        gameSound.play(this.id, this.model.isDuel() ? (this.state.outcome === 3 ? GameSoundEvent.DRAW : GameSoundEvent.WIN) :
+        gameSound.play(this.modeId, this.model.isDuel() ? (this.state.outcome === 3 ? GameSoundEvent.DRAW : GameSoundEvent.WIN) :
           this.state.outcome === 1 ? GameSoundEvent.WIN : GameSoundEvent.LOSE);
       } else if (this.model.isQuiz() && this.state.round > previous.round) {
-        gameSound.play(this.id, this.state.score > previous.score ? GameSoundEvent.REWARD : GameSoundEvent.ERROR);
+        gameSound.play(this.modeId, this.state.score > previous.score ? GameSoundEvent.REWARD : GameSoundEvent.ERROR);
       } else if (this.state.score > previous.score || this.state.phase === 2 && previous.phase === 1 && this.id === 'reaction') {
-        gameSound.play(this.id, GameSoundEvent.REWARD);
+        gameSound.play(this.modeId, GameSoundEvent.REWARD);
       } else if (this.state.moves !== previous.moves || this.state.selected !== previous.selected ||
-        this.state.cursor !== previous.cursor || this.state.phase !== previous.phase) { gameSound.play(this.id); }
+        this.state.cursor !== previous.cursor || this.state.phase !== previous.phase) { gameSound.play(this.modeId); }
     }
     this.isFinished = this.state.outcome !== 0;
     const recordLevel: string = this.id === 'reaction' ? 'standard' : this.difficulty;
@@ -126,7 +126,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
   action(): void {
     if (this.confirmExit) { return; }
     this.model.action(); this.checked = this.state.id === 'nonogram'; this.sync();
-    if (this.checked && this.state.outcome === 0) { gameSound.play(this.id, GameSoundEvent.ERROR); }
+    if (this.checked && this.state.outcome === 0) { gameSound.play(this.modeId, GameSoundEvent.ERROR); }
   }
   move(direction: number): void { this.tap(this.model.neighbor(this.state.cursor, direction)); }
   isDuel(): boolean { return this.model.isDuel(); }
@@ -161,7 +161,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
     return discs.join('\n');
   }
   onAppHidden(): void {
-    gameSound.stop(this.id);
+    gameSound.stop(this.modeId);
     this.dispose();
     if (this.id === 'reaction' && this.state.outcome === 0) { this.model.state.phase = 0; this.model.state.signalAt = 0; this.sync(false); }
   }
@@ -169,7 +169,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
   onBackRequested(): boolean { return this.requestBack(); }
   requestBack(): boolean {
     if (this.state.outcome !== 0 || !GameDataManager.getSetting('confirmExitEnabled', true)) { return false; }
-    this.onAppHidden(); gameSound.stop(this.id); this.confirmExit = true; return true;
+    this.onAppHidden(); gameSound.stop(this.modeId); this.confirmExit = true; return true;
   }
   dismissExitConfirm(): void { this.confirmExit = false; this.onAppShown(); }
   dispose(): void {
@@ -184,7 +184,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
     return this.state.id.length > 0 && this.state.outcome === 0 && !this.confirmExit;
   }
 
-  hasProgress(): boolean { return this.state.outcome === 0 && JSON.stringify(this.state) !== this.initialProgress; }
+  hasProgress(): boolean { return this.state.outcome === 0 && (!this.initialState || !sameCollectionState(this.state, this.initialState)); }
 
   continuationGameId(): string { return this.id; }
   exportContinuation(): string {
@@ -245,6 +245,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
           !s.target.includes(s.answer) || s.board.includes(s.answer) || new Set<number>(s.board).size !== s.board.length ||
           s.board.some((value: number) => !s.target.includes(value)) || s.choices.some((value: number) => !s.target.includes(value)))) { return false; }
       this.dispose(); this.model.state = s; this.modeId = s.id;
+      GameLifecycleBus.selectSoundMode(this, this.modeId);
       this.difficulty = s.level === 0 ? GameDifficulty.EASY : s.level === 2 ? GameDifficulty.HARD : GameDifficulty.NORMAL;
       // A restored result must not award its score a second time.
       this.recorded = snapshot.recorded || s.outcome !== 0;

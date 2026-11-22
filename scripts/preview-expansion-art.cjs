@@ -1,5 +1,6 @@
 /* Raster compatibility check and contact sheets from real game state. These are not device screenshots. */
 const fs=require('node:fs');
+const { resolveSvg }=require('./svg-resource-utils.cjs');
 const path=require('node:path');
 const sharp=require('sharp');
 const {fixture}=require('./test-performance.cjs');
@@ -29,7 +30,7 @@ async function main(){
  for(const theme of ['base','dark']){
   const dark=theme==='dark',suffix=dark?'dark':'light',ink=dark?'#DEEAFF':'#304A69',bg=dark?'#111D2F':'#F0F5FA',panel=dark?'#22344B':'#FFFFFF';
   const images={};
-  for(const name of allNames){const file=path.join(root,'entry/src/main/resources',theme,'media',name+'.svg');images[name]=(await sharp(file).png().toBuffer()).toString('base64');checked++;}
+  for(const name of allNames){const file=resolveSvg(theme,name);images[name]=(await sharp(file).png().toBuffer()).toString('base64');checked++;}
   const img=(name,x,y,w,h=w)=>{name=name.replace('app.media.','');if(!images[name])throw Error('Missing preview asset '+name);return `<image x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="none" xlink:href="data:image/png;base64,${images[name]}"/>`;};
   let icons=rect(0,0,1280,1670,bg)+text('67 款游戏 · 原创入口美术',30,42,25,ink,'start')+text('浅深色矢量资源 / '+suffix+' / 素材预览，非设备截图',30,70,14,ink,'start');
   manifest.games.forEach((g,i)=>{const x=20+i%8*157,y=95+Math.floor(i/8)*173;icons+=rect(x,y,145,161,panel,18)+img(g.icon,x+19,y+7,106)+text(g.name,x+73,y+136,14,ink)+text(g.id,x+73,y+153,10,ink);});

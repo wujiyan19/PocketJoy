@@ -31,6 +31,11 @@
 *.keystore
 
 # 历史验收原始输出保留本地；提交进度、结论和选定画面
+/docs/screenshots/*.jpeg
+/docs/screenshots/*.jpg
+/docs/screenshots/*.png
+/docs/device-acceptance/**/raw/
+/docs/device-acceptance/**/current-layout.json
 /docs/device-acceptance/three-settlements-2026-10-14/*
 !/docs/device-acceptance/three-settlements-2026-10-14/README.md
 !/docs/device-acceptance/three-settlements-2026-10-14/REPORT.md

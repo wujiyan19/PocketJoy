@@ -2046,7 +2046,7 @@
     },
     {
       "name": "game_rhythm_rules",
-      "value": "Choose four-lane notes or three-key beat jumps. Hit the indicated lane at the line, or the indicated direction within the beat window. Five misses end the round. Modes keep separate records."
+      "value": "Start the sequence and tap the matching lane key as a note reaches the line. Closer timing earns more points. Complete the sequence to win; five missed or incorrect taps end the game."
     },
     {
       "name": "game_restaurant_name",

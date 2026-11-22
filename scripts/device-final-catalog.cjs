@@ -16,7 +16,7 @@ const modeSource = c.fs.readFileSync('entry/src/main/ets/common/GameModes.ets', 
 const mergedSource = modeSource.match(/MERGED_GAME_IDS:\s*string\[\]\s*=\s*\[([^\]]+)\]/);
 c.assert(mergedSource, 'Merged modes policy not found');
 const retiredIds = [...(retiredSource[1] + mergedSource[1]).matchAll(/'([a-z0-9]+)'/g)].map(match => match[1]);
-const gameIds = ['GameData', 'CollectionCatalog', 'ExpansionCatalog'].flatMap(file => {
+const gameIds = ['ClassicCatalog', 'CollectionCatalog', 'ExpansionCatalog'].flatMap(file => {
   const source = c.fs.readFileSync('entry/src/main/ets/model/' + file + '.ets', 'utf8');
   return [...source.matchAll(/\bid:\s*'([a-z0-9]+)'\s*,\s*name:\s*\$r\('app\.string\.game_[a-z0-9]+_name'\)/g)]
     .map(match => match[1]);

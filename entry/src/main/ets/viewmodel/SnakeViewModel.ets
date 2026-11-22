@@ -63,8 +63,7 @@ export class SnakeViewModel implements GameLifecycleObserver {
   private occupied: Set<number> = new Set<number>();
   private direction: Direction = Direction.RIGHT;
   readonly cells: SnakeCellData[] = [];
-  private nextKinds: Int8Array = new Int8Array(COLS * ROWS);
-  private nextRotations: Int16Array = new Int16Array(COLS * ROWS);
+  @Trace visibleCells: SnakeCellData[] = [];
   // 方向输入缓冲：每个 tick 只应用一次转向，防止一个 tick 内连按两键造成 180° 反向自杀
   private pendingTurn: Direction | null = null;
   private timer: number = -1;
@@ -104,9 +103,13 @@ export class SnakeViewModel implements GameLifecycleObserver {
   }
 
   private updateCells(): void {
-    this.nextKinds.fill(SnakeCellKind.EMPTY);
-    this.nextRotations.fill(0);
-    if (this.food.x >= 0) { this.nextKinds[this.food.y * COLS + this.food.x] = SnakeCellKind.FOOD; }
+    const foodIndex: number = this.food.x >= 0 ? this.food.y * COLS + this.food.x : -1;
+    for (const cell of this.visibleCells) {
+      if (!this.occupied.has(cell.id) && cell.id !== foodIndex) {
+        cell.kind = SnakeCellKind.EMPTY; cell.rotation = 0;
+      }
+    }
+    const visible: SnakeCellData[] = [];
     for (let i = 0; i < this.snake.length; i++) {
       const segment: Point = this.snake[i];
       const index: number = segment.y * COLS + segment.x;
@@ -137,15 +140,17 @@ export class SnakeViewModel implements GameLifecycleObserver {
           }
         }
       }
-      this.nextKinds[index] = kind;
-      this.nextRotations[index] = rotation;
-    }
-    for (let i = 0; i < this.cells.length; i++) {
-      const cell: SnakeCellData = this.cells[i];
-      const kind: SnakeCellKind = this.nextKinds[i] as SnakeCellKind;
+      const cell: SnakeCellData = this.cells[index];
       if (cell.kind !== kind) { cell.kind = kind; }
-      if (cell.rotation !== this.nextRotations[i]) { cell.rotation = this.nextRotations[i]; }
+      if (cell.rotation !== rotation) { cell.rotation = rotation; }
+      visible.push(cell);
     }
+    if (foodIndex >= 0) {
+      const food: SnakeCellData = this.cells[foodIndex];
+      food.kind = SnakeCellKind.FOOD; food.rotation = 0;
+      visible.push(food);
+    }
+    this.visibleCells = visible;
   }
 
   getMoveInterval(): number {

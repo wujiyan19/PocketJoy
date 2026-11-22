@@ -1,30 +1,54 @@
-/* One entry point for the current single-player suites. Native build and device checks are separate. */
+/* Run desktop suites in isolated Node processes. Native and device checks have separate entry points. */
 const fs = require('node:fs');
 const path = require('node:path');
-const cp = require('node:child_process');
+const os = require('node:os');
+const { execFile } = require('node:child_process');
+
 const root = path.resolve(__dirname, '..');
 const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, 'regression-suites.json'), 'utf8'));
-const suites = manifest.suites;
-const directory = process.env.LITTLEGAMES_REGRESSION_OUTPUT || path.join(root, 'entry/build/iteration-20261013/regressions');
+const directory = process.env.LITTLEGAMES_REGRESSION_OUTPUT || path.join(root, '.local-tools', 'regressions');
+const cache = path.join(root, '.local-tools', 'regression-transpilation');
+const jobs = Number(process.env.LITTLEGAMES_REGRESSION_JOBS || Math.min(4, os.availableParallelism()));
+if (!Number.isSafeInteger(jobs) || jobs < 1) throw new Error('LITTLEGAMES_REGRESSION_JOBS must be a positive integer');
 fs.mkdirSync(directory, { recursive: true });
-const report = { startedAt: new Date().toISOString(), scope: 'Single-player desktop regression; no native/device claims', excludedSuites: manifest.excludedSuites, results: [] };
-for (const script of suites) {
-  const result = cp.spawnSync(process.execPath, [path.join(__dirname, script + '.cjs')], {
-    cwd: root, encoding: 'utf8', timeout: 120000
+fs.mkdirSync(cache, { recursive: true });
+
+function run(script) {
+  return new Promise(resolve => {
+    execFile(process.execPath, [path.join(__dirname, script + '.cjs')], {
+      cwd: root, env: { ...process.env, LITTLEGAMES_REGRESSION_CACHE: cache },
+      timeout: 120000, windowsHide: true
+    }, (error, stdout, stderr) => {
+      const output = stdout + stderr;
+      fs.writeFileSync(path.join(directory, script + '.log'), output);
+      const counts = output.match(/(\d+)\/(\d+)[^\n]*(?:passed|通过)/i) || output.match(/(?:Passed\s+)?(\d+)[^\n]*checks(?:\s+passed)?/i);
+      const passed = counts ? Number(counts[1]) : null;
+      const total = counts ? Number(counts[2] || counts[1]) : null;
+      console.log(`${error ? 'FAIL' : 'PASS'} ${script}: ${passed ?? '?'}/${total ?? '?'}`);
+      if (error) console.error(output.slice(-3000));
+      resolve({ script, exitCode: error ? error.code ?? null : 0, passed, total, error: error?.message ?? null });
+    });
   });
-  const output = (result.stdout || '') + (result.stderr || '');
-  fs.writeFileSync(path.join(directory, script + '.log'), output);
-  const counts = output.match(/(\d+)\/(\d+)[^\n]*(?:passed|通过)/i) || output.match(/(?:Passed\s+)?(\d+)[^\n]*checks(?:\s+passed)?/i);
-  const passed = counts ? Number(counts[1]) : null;
-  const total = counts ? Number(counts[2] || counts[1]) : null;
-  report.results.push({ script, exitCode: result.status, passed, total, error: result.error?.message || null });
-  console.log(`${result.status === 0 ? 'PASS' : 'FAIL'} ${script}: ${passed ?? '?'}/${total ?? '?'}`);
-  if (result.status !== 0) console.error(output.slice(-3000));
 }
-report.completedAt = new Date().toISOString();
-report.complete = report.results.every(result => result.exitCode === 0);
-report.passed = report.results.reduce((sum, result) => sum + (result.passed || 0), 0);
-report.total = report.results.reduce((sum, result) => sum + (result.total || 0), 0);
-fs.writeFileSync(path.join(directory, 'verification.json'), JSON.stringify(report, null, 2) + '\n');
-console.log(`${report.passed}/${report.total} checks; ${report.results.length} suites; ${report.complete ? 'all passed' : 'failures remain'}.`);
-if (!report.complete) process.exitCode = 1;
+
+async function main() {
+  const startedAt = new Date().toISOString();
+  const results = new Array(manifest.suites.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: Math.min(jobs, manifest.suites.length) }, async () => {
+    while (next < manifest.suites.length) {
+      const index = next++;
+      results[index] = await run(manifest.suites[index]);
+    }
+  }));
+  const complete = results.every(result => result.exitCode === 0);
+  const passed = results.reduce((sum, result) => sum + (result.passed || 0), 0);
+  const total = results.reduce((sum, result) => sum + (result.total || 0), 0);
+  const report = { startedAt, completedAt: new Date().toISOString(), scope: 'Single-player desktop regression; no native/device claims',
+    excludedSuites: manifest.excludedSuites, jobs, results, complete, passed, total };
+  fs.writeFileSync(path.join(directory, 'verification.json'), JSON.stringify(report, null, 2) + '\n');
+  console.log(`${passed}/${total} checks; ${results.length} suites; ${complete ? 'all passed' : 'failures remain'}.`);
+  if (!complete) process.exitCode = 1;
+}
+
+main().catch(error => { console.error(error); process.exitCode = 1; });
