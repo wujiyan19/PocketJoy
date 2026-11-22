@@ -1,89 +1,49 @@
-<p align="center">
-  <img src="docs/readme/cover.svg" alt="玩趣盒品牌插画：蓝青色的小盒子里，装着棋盘、方块与一点好玩的想法" width="100%">
-</p>
+# 玩趣盒 · PocketJoy
 
-<div align="center">
+玩趣盒把 60 款单人小游戏装在一起。在鸿蒙手机或平板上，可以离线推箱子、拆螺丝、下象棋，也可以把没做完的数独留到下次继续。玩游戏无需注册账号，游玩记录和成绩都保存在当前设备。
 
-# 玩趣盒 · LittleGames
+**适用设备**　HarmonyOS 6.1.1 及以上的手机和平板。
 
-**把零碎时间，留给一点好玩。**
+**[下载玩趣盒 v1.1.0（未签名 HAP，约 10 MB）](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.0/LittleGames-1.1.0-release-unsigned.hap)** · [下载与安装](#下载与安装) · [玩法目录](#玩法目录)
 
-一个基于 ArkTS / ArkUI 的 HarmonyOS 原生单人小游戏合集。<br>
-本地游玩，原生交互，把每次进步留在自己的设备上。
+## 下载与安装
 
-**60 个入口** &nbsp; · &nbsp; **65 个原有玩法** &nbsp; · &nbsp; **6 大分类**
+**推荐用轻启·安装器（QSStore）。** 下载的 HAP 需要先签名，手机的文件管理器无法直接安装。用轻启选中这个文件后，它会用你账号下的调试证书签名，再装到本机。[轻启项目主页](https://github.com/thx853068675-dev/QSStore)
 
-HarmonyOS API 26 / 最低兼容 API 24<br>
-简体中文 / English
+### 已经装好轻启
 
-[下载 v1.1.0 开发包（60 个入口，65 个玩法）](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.1.0) · [版本说明](docs/release/v1.1.0.md) · [签名安装与覆盖升级](docs/release/v1.1.0-INSTALL.zh-CN.md)
+1. 在准备玩游戏的设备上下载文件 **`LittleGames-1.1.0-release-unsigned.hap`**。[下载 HAP](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.0/LittleGames-1.1.0-release-unsigned.hap)
+2. 第一次用轻启签装时，在轻启的**「我的」**登录华为开发者账号。按提示开启系统无线调试，在轻启中输入系统显示的端口并连接本机，再按系统提示确认信任。已经配置过的设备可直接进行下一步。
+3. 在轻启点**「本地」→「从本地签装」→「选择安装文件」**，选中刚下载的 HAP。确认显示的是「玩趣盒」和版本 **1.1.0**，点**「安装」**。完成后，从桌面打开玩趣盒。
 
-[体验画面](#体验画面) &nbsp; / &nbsp; [玩法目录](#玩法目录) &nbsp; / &nbsp; [运行项目](#运行项目) &nbsp; / &nbsp; [文档导航](#文档导航)
+### 还没装轻启
 
-</div>
+轻启作者提供过手机邀测安装，旧邀请已有人反馈过期，可先看作者是否更新了入口。GitHub 上的轻启安装包也需要签名，手边有电脑的话，可以直接按电脑指南安装玩趣盒。[轻启作者的首次安装说明](https://github.com/thx853068675-dev/QSStore/issues/1#issuecomment-6119712334) · [用电脑安装玩趣盒](docs/release/v1.1.0-INSTALL.zh-CN.md)
 
-> [!IMPORTANT]
-> **开发验证中，尚未上架。** 华为开发者联盟已答复，暂不支持所咨询的小游戏合集形态上架。当前 60 入口版本未获得新的准入确认。仓库展示工程实现与验证进展，具体范围见[发布状态](docs/release/status-2026-10-27.md)。
+装好轻启后，按上面的[「已经装好轻启」](#已经装好轻启)步骤选择玩趣盒安装包。
 
-## 体验画面
+### 从旧版升级并保留存档
 
-简洁的造型、柔和的配色和固定镜头，让棋盘与操作成为主角。
+覆盖安装需要沿用给旧版签名的那张证书。如果上次是用轻启安装，请先登录原来的华为开发者账号。遇到**「确认清除应用数据」**时，选**「保留并跳过」**，旧版和存档会留在设备上，等换回原签名后再升级。
 
-<table>
-  <tr>
-    <td align="center" width="33%">
-      <a href="docs/device-acceptance/screwout-difficulty-2026-10-19-emulator/README.md"><img src="docs/device-acceptance/screwout-difficulty-2026-10-19-emulator/new-screwout-ready.jpeg" alt="拆螺丝：交叠的彩色板材、带数字的螺丝与同色回收槽" width="240"></a><br>
-      <strong>拆螺丝</strong><br>
-      <sub>层叠遮挡 · 同色回收</sub>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/device-acceptance/toy-chase-2026-10-21-emulator/README.md"><img src="docs/device-acceptance/toy-chase-2026-10-21-emulator/blackhole-ready.jpeg" alt="黑洞吞噬：固定镜头下的玩具场景，绿圈标示当前可吞噬物体" width="240"></a><br>
-      <strong>黑洞吞噬</strong><br>
-      <sub>原生三维 · 逐步成长</sub>
-    </td>
-    <td align="center" width="33%">
-      <a href="docs/device-acceptance/toy-chase-2026-10-21-emulator/README.md"><img src="docs/device-acceptance/toy-chase-2026-10-21-emulator/drift-light-ready.jpeg" alt="单键漂移：玩具小车、连续赛道与单键换向操作" width="240"></a><br>
-      <strong>单键漂移</strong><br>
-      <sub>观察弯道 · 把握换向</sub>
-    </td>
-  </tr>
-</table>
+## 打开后玩什么
 
-<p align="center"><sub>以上为 API 26 模拟器历史画面：拆螺丝摄于 2026-10-19，黑洞与漂移摄于 2026-10-21。点击画面查看对应验证记录；截图不代表当前版本完整验收。</sub></p>
+| 精选与续玩 | 推箱子 | 大鱼吃小鱼 |
+| :---: | :---: | :---: |
+| <img src="docs/readme/featured.jpeg" width="220" alt="精选页显示 2048 和数独的继续对局入口"> | <img src="docs/readme/warehouse.jpeg" width="220" alt="推箱子第一关，需要把两个箱子推到左上角的目标"> | <img src="docs/readme/fish.jpeg" width="220" alt="金环小鱼是玩家，红色虚线环标出危险的大鱼"> |
 
-## 不止是开一局
-
-<table>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>随手开始</h3>
-      <p>无需游戏账号，本机单人游玩。推荐可换批，目录可搜索；中国象棋与国际象棋支持离线电脑对战。</p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>留住进步</h3>
-      <p>成绩、时长与游玩历史留在本机。数独和 2048 可续玩；合并模式的旧记录承接到主入口。</p>
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <h3>舒服地玩</h3>
-      <p>浅深主题、音效、震动与退出确认。部分场景使用玩具风格素材或 ArkGraphics 3D 原生绘制。</p>
-    </td>
-    <td width="50%" valign="top">
-      <h3>融入系统</h3>
-      <p>推荐与续玩卡片、成绩图片分享、API 26 原生材质。真实跨设备接续与碰一碰传输仍待验收。</p>
-    </td>
-  </tr>
-</table>
+- **想解一道题**　推箱子有 12 道固定关和随机关卡。箱子只能往前推，哪只先动很重要。喜欢数字的话，数独填满后会标出重复的位置，方便回头检查。
+- **想动动手**　拖动带金环的小鱼觅食，绕开带红色虚线环的大鱼。也可以试试钩索摆荡，抓住锚点后挑准时机松手，看看能飞多远。
+- **想下盘棋**　中国象棋和国际象棋都可以离线对战电脑。想找某一款，在**「分类」**里直接搜名字；想接着玩 2048 或数独，在**「精选」**点**「继续对局」**。
 
 ## 玩法目录
 
-当前源码开放 **60 个独立入口**。其中数学挑战有五种题型，节奏落键有两种模式，按原有规则模式合计 **65 个玩法**。
+共有 **60 款游戏、65 种玩法**。数学挑战里可以选心算、比大小、数列、二进制或补数，节奏落键里可以选四轨落键或三键节拍跳跃。
 
 <details>
-<summary><strong>展开六大分类与完整入口清单</strong></summary>
+<summary>查看全部 60 款游戏</summary>
 
-| 分类 | 入口 | 游戏 |
+| 分类 | 款数 | 游戏 |
 | --- | ---: | --- |
 | 街机休闲 | 13 | 贪吃蛇、俄罗斯方块、打砖块、彩泡弹射、落果合成、黑洞吞噬、大鱼吃小鱼、滚动球闯关、纵向战机、坦克对战、自动攻击生存、爬坡越野、休闲钓鱼 |
 | 逻辑解谜 | 23 | 扫雷、滑动拼图、华容道、宝石三消、十字熄灯、色块归一、迷宫寻路、汉诺塔、跳子独留、数字绘格、方块拼填、堆叠三消、倒水排序、箭头清除、拆螺丝、停车场挪车、推箱子、连连看、麻将接龙、点击群消、乘客上车、绳结解开、图片拼图 |
@@ -92,115 +52,6 @@ HarmonyOS API 26 / 最低兼容 API 24<br>
 | 记忆专注 | 4 | 记忆翻牌、数字寻序、顺序记忆、旋律记忆 |
 | 反应节奏 | 11 | 打地鼠、信号反应、跑酷闯关、节奏落键、横版跳跃闯关、钩索摆荡、飞行穿柱、切水果、挡板对战、单键漂移、空气曲棍球 |
 
-数学挑战包含心算、比大小、数列、二进制、补数；节奏落键包含四轨落键和三键节拍跳跃。新成绩按模式与适用难度分别保存。
-
-目录以 [GameAvailability.ets](entry/src/main/ets/common/GameAvailability.ets)、[GameModes.ets](entry/src/main/ets/common/GameModes.ets) 和 `GameDataManager.getAllGames()` 为准。暂撤项保留底层模型、资源与原始战绩，不再作为当前公开入口。
-
 </details>
 
-推箱子的 12 道固定关附有逐关来源、候选布局和最短解校验。[固定关卡制作记录](docs/art/warehouse-box-level-origins.md)
-
-2026-11-22 从公开目录撤下毛线收卷、迷你餐厅、房间塔防和射击守城。各款玩法、复玩性、同类热度和权利问题见[调整前 64 款游戏的逐项审核](docs/game-retention-gemini-2026-11-22.md)。此前合并 5 个入口、改进 26 款玩法的过程见[10 月整改执行记录](docs/game-retention-implementation-2026-10-27.md)。
-
-## 运行项目
-
-### 1. 准备工具
-
-使用 **DevEco Studio 26.0.0.851 / API 26 SDK**，打开仓库根目录并完成工程同步。编译与目标版本为 `26.0.0`，最低兼容版本为 `6.1.1(24)`；旧版 API 24 SDK 无法构建当前工程。
-
-本机默认工具链位于 `C:/Program Files/Huawei/DevEco Studio/`。命令行入口会使用其中的 Node、Hvigor、SDK、ohpm 与 JBR；工程根目录没有 `hvigorw`。
-
-### 2. 构建与运行
-
-在仓库根目录执行：
-
-```powershell
-# Debug
-node scripts/build-hap.cjs
-
-# Release 编译模式
-node scripts/build-hap.cjs release
-```
-
-产物位于 `entry/build/default/outputs/default/`。共享配置不包含个人签名；本机签名保存在已忽略的 `signing.local.json`，由根目录 Hvigor 插件在内存中注入。其结构为 `signingConfigs` 数组与 `products` 数组（每项包含 `name`、`signingConfig`），字段内容沿用 DevEco 签名配置。未提供该文件时生成 unsigned HAP。也可启动 Local Emulator，在 IDE 中选择设备后运行。
-
-Release HAP 构建与正式上架 App Pack、发布签名及市场准入是不同步骤，当前发布限制见[发布状态](docs/release/status-2026-10-27.md)。
-
-<details>
-<summary>独立工具链与环境配置</summary>
-
-- `LITTLEGAMES_TOOLCHAIN_ROOT`：指定独立 `command-line-tools` 目录；本机保留 `.local-tools/harmonyos-26.0.0.851/command-line-tools/`。
-- `JAVA_HOME`：指定其他兼容 JDK。本机 IDE 内置 JBR 25.0.2 已有签名构建记录。
-- 构建入口仅为子进程配置环境。证书、私钥、Profile 和口令保留本地，不随源码分发。
-- API 26 升级与工具链详情见[升级实施记录](docs/api26-upgrade-implementation-2026-10-18.md)和 [IDE 验证记录](docs/device-acceptance/api26-upgrade-2026-10-18/ide/REPORT.md)。
-
-</details>
-
-### 3. 运行桌面检查
-
-```powershell
-# 将验证输出留在构建清理范围之外
-$env:LITTLEGAMES_REGRESSION_OUTPUT = "$PWD/.local-tools/regressions"
-node scripts/run-regressions.cjs
-```
-
-运行器按[回归清单](scripts/regression-suites.json)执行转换后的 Model / ViewModel，以测试服务和时钟验证规则与状态流转。可用 `ARKTS_TYPESCRIPT_PATH` 指定工具链中的 `ohpm/node_modules/typescript/lib/typescript.js`。
-
-## 验证进展
-
-v1.1.0 的发布包校验与覆盖升级记录见[发布回执](docs/release/v1.1.0-verification.json)。下表保留 v1.0.1 业务修复时的验证范围。
-
-| 验证层次 | 最近记录 | 适用范围 |
-| --- | --- | --- |
-| 桌面逻辑 | 2026-11-04 · 34 套，1425/1425 通过 | 64 入口版本；含 13 项本轮缺陷回归、9 份升级前关卡快照及 12 项模拟 Socket 检查。部分检查仍覆盖暂撤模型。 |
-| 原生构建 | 2026-11-04 · API 26 Debug 签名成功 | 11 月 5 日已在独立 API 26 模拟器安装同一哈希修复包。 |
-| 真实界面 | 2026-11-05 · 修复版模拟器复验 | 当时的 64 入口版本已测贴底旋转、巴士死局/撤销/再结算、重启成绩、方向键、拆螺丝撤销与两张桌面卡片。详见[模拟器报告](docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md)。 |
-
-1.0.1 的修复与复核情况见[审查问题修复记录](docs/review-fixes-2026-11-04.md)。历史结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
-
-仍待补齐：当前版本逐款真机操作与结算、音效试听、长局帧率与内存、温升耗电、英文与最大字体、无障碍、窗口变化，以及真实跨设备接续／传输。工程声明支持 phone / tablet，实际覆盖以设备报告为准。
-
-## 工程一览
-
-```text
-AppScope/                  应用身份与品牌图标
-entry/src/main/
-├── ets/
-│   ├── common/            目录策略、模式、主题、声音与共享能力
-│   ├── components/        共用界面与原生三维场景
-│   ├── model/             游戏目录、规则与本地数据
-│   ├── pages/             精选、分类、游戏、战绩与设置
-│   └── router/            导航与入口映射
-└── resources/             多语言、浅深主题、音效与美术
-scripts/                   构建、规则回归、素材与设备验证工具
-docs/                      产品审阅、实现说明与分版本证据
-```
-
-主界面采用 `@ComponentV2`、`@Local`、`Navigation / NavPathStack` 与 `GridRow`。运行时没有第三方依赖，当前模块仅声明振动权限；不提供真人多人、局域网房间或开发者自建云存档。
-
-## 文档导航
-
-| 想了解什么 | 从这里开始 |
-| --- | --- |
-| 当前玩法与整改 | [11 月 22 日逐款审核](docs/game-retention-gemini-2026-11-22.md) · [10 月整改记录](docs/game-retention-implementation-2026-10-27.md) · [10 月去留审核](docs/game-retention-audit-2026-10-27.md) |
-| 画面、素材与声音 | [玩具风格](docs/art/toy/README.md) · [黑洞与漂移](docs/art/toy/chase/README.md) · [游戏音效](docs/game-sounds.md) · [美术索引](docs/art/README.md) |
-| 系统能力 | [API 26 升级](docs/api26-upgrade-implementation-2026-10-18.md) · [卡片、光感与分享](docs/device-acceptance/api26-features-2026-10-18/REPORT.md) · [接续说明](docs/harmonyos-continuation-immersive-light.md) |
-| 设备与发布 | [设备证据索引](docs/device-acceptance/README.md) · [发布状态](docs/release/status-2026-10-27.md) |
-
-<details>
-<summary>历史版本与开发过程</summary>
-
-- [2026-10-19：76 款目录与提交验证](docs/delivery-2026-10-19.md)
-- [2026-10-19：游戏去留审阅](docs/game-retirement-review-2026-10-19.md)
-- [2026-10-13：单人功能迭代](docs/feature-iteration-2026-10-13.md)
-- [2026-10-12：89 款单人范围](docs/single-player-scope-2026-10-12.md)
-- [早期 100 款扩充与验证](docs/game-expansion-100/verification.md)
-- [2026-10-14：发布与激励调研](docs/release/publishing-and-incentive-guide-2026-10-14.md)
-
-历史文档中的 100 / 89 / 79 / 76 款数量、多人能力与发布计划，按各自日期理解；其中的旧状态不代表当前目录或平台准入结论。
-
-</details>
-
----
-
-<p align="center"><strong>认真做一点小小的好玩。</strong><br><sub>LittleGames · 玩趣盒 · 基于当前实现与分版本验证记录整理</sub></p>
+想了解这次更新了什么，可以查看 [v1.1.0 版本说明](docs/release/v1.1.0.md)。需要用 DevEco Studio 从源码运行，可按[安装指南中的源码运行步骤](docs/release/v1.1.0-INSTALL.zh-CN.md#用对应源码在-deveco-studio-运行)操作。
