@@ -1,6 +1,6 @@
 interface:
   display_name: "鸿蒙应用默认开发"
-  short_description: "沿用玩趣盒的原生风格，统一鸿蒙界面、动效、业务数据与配套后端开发"
-  default_prompt: "使用 $harmonyos-app-development，按默认鸿蒙风格完成本次应用功能及所需前后端实现，并验证关键流程。"
+  short_description: "以最小完整实现开发鸿蒙应用，统一原生界面、数据边界、兼容与验收"
+  default_prompt: "使用 $harmonyos-app-development，遵循目标工程规范，以最小完整实现完成本次鸿蒙应用任务，并验证相关关键流程。"
 policy:
   allow_implicit_invocation: true

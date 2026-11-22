@@ -52,12 +52,13 @@ export interface ItemRepository {
 
 ## API、资源与工程
 
-- 当前 LittleGames 配置为 HarmonyOS 6.1.1 / API 24，手机和平板。新工程读取自身 compile/compatible/target SDK，不自动升级或要求 API 24。
+- 本次核对 LittleGames 的 compile/target=`26.0.0`，compatible=`6.1.1(24)`，设备声明为手机和平板，并开启 `strictMode.apiCompatibilityCheck="error"`。新工程读取自身配置，不将这些版本当作通用要求。
 - 默认优先 HarmonyOS 官方 Kit、UI 组件、动画与示例。对任何不确定的 API/语法，搜索华为开发者官方文档，再核对本地目标 SDK `.d.ts`：名称、导入、重载、返回值、起始 API、系统能力与设备支持。不能将网页最新版直接套到较低 API。
 - UI 操作用实例 UIContext：`this.getUIContext().animateTo(...)`、`getRouter()`、`px2vp(...)` 等；对 Navigation 工程继续使用现有 NavPathStack，不混加一套 Router 页面栈。
 - ArkUI V2 组件内使用 `@Local` / `@Param`，ViewModel 使用 `@ObservedV2` / `@Trace`；事件声明先沿用目标项目，再核对 SDK 支持的 `@Event`。不在同一组件混写 V1/V2 状态装饰器。
 - 调用系统能力前检查所需 import 与权限，在模块 `module.json5` 中配置能力实际需要的权限及资源化理由。不能根据旧 README 判定当前权限。
-- LittleGames 当前 LAN 使用 `@kit.NetworkKit` 的 `connection` / `socket`，模块已声明 INTERNET、GET_NETWORK_INFO、VIBRATE；新业务按真实用途配置，不为纯离线应用预加网络权限。
+- LittleGames 当前只请求 VIBRATE；旧 LAN 网络权限已撤下。不能因保留了 NetworkKit 源码就声称网络已接线；新业务按真实用途配置，不为纯离线应用预加网络权限。
 - 依赖存在且版本兼容后才写入正确模块的 `oh-package.json5`。当前 entry 运行时依赖为空，优先沿用官方能力；测试用 `@ohos/hypium` 不等同于运行依赖。
 - 界面字符串放资源，新增值覆盖所有现有语言目录（LittleGames 是 base、zh_CN、en_US），变量用资源格式化；颜色/尺寸资源与语义令牌集中定义，新颜色与素材默认维护 base/dark 同名资源。
-- API 24 的 HDS 接口须核对 `@kit.UIDesignKit` 与 hds 声明；不要直接采用要求更高 target SDK 的新材质路线。查不到定义时不用猜造 API，以已核实的原生能力完成当前功能。
+- 高版本能力同时核对声明、起始 API、适用场景、metadata 与官方可识别的版本判断。LittleGames 的 `ImmersiveLight.ets` 使用 `deviceInfo.apiAvailable('26.0.0')` 分支接入 `uiMaterial.ImmersiveMaterial`，旧系统保留基础样式；HDS 页签仍走 `@kit.UIDesignKit`，两条路线不能混为一谈。`module.json5` 的 `ohos.arkui.UIMaterial.state` 是当前材质接入元数据，不是权限。照搬前仍须核对目标 SDK。
+- 兼容性检查报错时先检查具体重载和较低版本替代写法，不关闭严格检查或自动抬高最低版本。SDK 升级还可能改变系统弹窗、文本、阴影与材质行为，编译成功后仍需验证相关界面。
