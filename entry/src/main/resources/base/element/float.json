@@ -1,6 +1,14 @@
 {
   "float": [
     {
+      "name": "snake_key_width",
+      "value": "58vp"
+    },
+    {
+      "name": "snake_key_height",
+      "value": "52vp"
+    },
+    {
       "name": "guess_content_min_height",
       "value": "500vp"
     },

@@ -91,11 +91,6 @@ export struct ExpansionLifeBoard {
   @Builder
   Fishing() {
     Column({ space: SpacingTokens.base }) {
-      Text(this.fishingStatus()).fontSize(FontTokens.sizeSubtitle).fontColor(this.vm.state.data[0] === 2 ? SemanticColors.warningText : SemanticColors.textPrimary)
-      if (this.vm.state.variant === 1) {
-        Text($r('app.string.fishing_log', this.vm.state.target.filter((count: number) => count > 0).length)).fontColor(SemanticColors.textSecondary)
-        if (this.vm.state.data[0] > 0) { Text(this.fishSpecies()).fontColor(SemanticColors.textSecondary) }
-      }
       Stack() {
         Image(ExpansionArt.board('fishing')).width('100%').height('100%').objectFit(ImageFit.Fill).accessibilityLevel('no')
         Image(this.vm.state.data[0] === 2 ? $r('app.media.exp_bite') : this.vm.state.data[0] === 0 ? ExpansionArt.fish(3) : $r('app.media.exp_bobber'))
@@ -103,15 +98,39 @@ export struct ExpansionLifeBoard {
           .translate({ x: (this.vm.state.pieces[0].x - 180) * 0.7, y: 30 })
           .scale({ x: this.vm.state.data[0] === 2 ? 1.15 : 1, y: this.vm.state.data[0] === 2 ? 1.15 : 1 })
           .animation({ duration: 180, curve: Curve.FastOutSlowIn })
-      }.width('100%').height(180).backgroundColor(SemanticColors.primaryLight).borderRadius(RadiusTokens.base)
+        Column() {
+          Row({ space: SpacingTokens.sm }) {
+            Text(this.fishingStatus()).fontSize(FontTokens.sizeBodyLarge).fontWeight(FontWeight.Medium)
+              .fontColor(this.vm.state.data[0] === 2 ? SemanticColors.warningText : SemanticColors.textPrimary).id('fishing-phase')
+            if (this.vm.state.variant === 1 && this.vm.state.data[0] > 0) { Text(this.fishSpecies()).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary) }
+          }.padding(SpacingTokens.sm).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.md)
+          Blank().layoutWeight(1)
+          if (this.vm.state.data[0] === 3) {
+            Column({ space: SpacingTokens.sm }) {
+              Row({ space: SpacingTokens.sm }) {
+                Text($r('app.string.fishing_tension_points', this.vm.state.data[2])).id('fishing-tension')
+                  .fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textPrimary).layoutWeight(1)
+                Progress({ value: this.vm.state.data[2], total: 100, type: ProgressType.Linear })
+                  .color(this.vm.state.data[2] < 25 || this.vm.state.data[2] > 75 ? SemanticColors.warningText : SemanticColors.successText)
+                  .layoutWeight(1.25).id('fishing-tension-bar')
+              }.width('100%')
+              Row({ space: SpacingTokens.sm }) {
+                Text($r('app.string.fishing_reel_percent', this.vm.state.data[3].toString() + '%')).id('fishing-reel-percent')
+                  .fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textPrimary).layoutWeight(1)
+                Progress({ value: this.vm.state.data[3], total: 100, type: ProgressType.Linear })
+                  .color(SemanticColors.primary).layoutWeight(1.25).id('fishing-reel-bar')
+              }.width('100%')
+            }.width('88%').padding(SpacingTokens.sm).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.md)
+          }
+        }.width('100%').height('100%').padding({ top: SpacingTokens.sm, bottom: SpacingTokens.md }).hitTestBehavior(HitTestMode.None)
+      }.width('100%').aspectRatio(1.12).clip(true).backgroundColor(SemanticColors.primaryLight).borderRadius(RadiusTokens.base).id('fishing-water')
       if (this.vm.state.data[0] === 3) {
-        Text($r('app.string.expansion_tension', this.vm.state.data[2])).fontColor(SemanticColors.textPrimary)
-        Progress({ value: this.vm.state.data[2], total: 100, type: ProgressType.Linear }).color(this.vm.state.data[2] > 80 ? SemanticColors.error : SemanticColors.primary).width('100%')
-        Text($r('app.string.expansion_progress', this.vm.state.data[3], 100)).fontColor(SemanticColors.textSecondary)
-        Button($r('app.string.expansion_reel_hold')).width('100%').height($r('app.float.expansion_control_height')).onTouch((event: TouchEvent) => { this.hold(event); })
+        Button($r('app.string.expansion_reel_hold')).width('100%').height($r('app.float.expansion_control_height')).id('fishing-reel')
+          .onTouch((event: TouchEvent) => { this.hold(event); })
       } else {
         Button(this.vm.state.data[0] === 0 ? $r('app.string.expansion_cast') : $r('app.string.expansion_hook_fish')).enabled(this.vm.state.data[0] !== 1)
-          .width('100%').height($r('app.float.expansion_control_height')).onClick(() => { this.vm.tap(0); })
+          .width('100%').height($r('app.float.expansion_control_height')).id(this.vm.state.data[0] === 0 ? 'fishing-cast' : 'fishing-hook')
+          .onClick(() => { this.vm.tap(0); })
       }
     }.width('100%')
   }

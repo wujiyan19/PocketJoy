@@ -51,6 +51,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
 
   constructor(rng?: RandomSource) {
     this.rng = rng ?? new RealRandom();
+    this.holes = this.rules.initialHoles();
     this.highScore = GameDataManager.getGameById(GAME_ID)?.highScore ?? 0;
   }
 
@@ -65,6 +66,7 @@ export class WhackMoleViewModel implements GameLifecycleObserver {
     if (this.difficulty === d) { return; }
     this.settleCurrentScore(); this.score = 0;
     this.difficulty = d;
+    if (this.status === GameStatus.IDLE) { this.timeLeft = this.getGameTime(); return; }
     this.startGame();
   }
 

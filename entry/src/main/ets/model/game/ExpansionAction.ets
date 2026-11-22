@@ -3,6 +3,11 @@ import { RandomSource } from './RandomSource';
 import { ContinuationValidation as V } from '../../common/GameSessionTransfer';
 
 export const ACTION_IDS: string[] = ['platformer', 'grapple', 'flappy', 'fruitslice', 'rollingball', 'shooter', 'tanks', 'fortress', 'survival', 'backpack'];
+export function grappleAnchor(s: ExpansionState): ExpansionPiece | undefined {
+  const player: ExpansionPiece = s.pieces[0];
+  return s.pieces.find((p: ExpansionPiece) => p.kind === 28 && p.x >= player.x - 20 &&
+    p.x - player.x < 220 && Math.hypot(p.x - player.x, p.y - player.y) <= 300);
+}
 export class ExpansionAction {
   private random: RandomSource;
   constructor(random: RandomSource) { this.random = random; }
@@ -63,8 +68,8 @@ export class ExpansionAction {
     if (s.pieces.length >= 56) { return; } const bullet: ExpansionPiece = this.piece(s, 34, x, y, owner === 0 ? 5 : 6); bullet.vx = vx; bullet.vy = vy; bullet.owner = owner;
   }
   private attach(s: ExpansionState): void {
-    const player: ExpansionPiece = s.pieces[0]; const anchors: ExpansionPiece[] = s.pieces.filter((p: ExpansionPiece) => p.kind === 28 && p.x >= player.x - 20 && p.x - player.x < 220 && Math.hypot(p.x - player.x, p.y - player.y) <= 300);
-    if (anchors.length === 0) { return; } const anchor: ExpansionPiece = anchors[0]; s.selected = anchor.id; player.age = Math.hypot(player.x - anchor.x, player.y - anchor.y);
+    const player: ExpansionPiece = s.pieces[0]; const anchor: ExpansionPiece | undefined = grappleAnchor(s);
+    if (!anchor) { return; } s.selected = anchor.id; player.age = Math.hypot(player.x - anchor.x, player.y - anchor.y);
   }
   tap(s: ExpansionState, index: number): void {
     if (s.id === 'backpack') { this.pack(s, index); return; }
@@ -79,7 +84,10 @@ export class ExpansionAction {
       if (index === 0 || index === 1) { p.vx = index === 0 ? -130 : 130; }
       if (index === 2 && p.vy === 0) { p.vy = -330; s.moves++; } if (index === 3) { p.vx = 0; }
     } else if (s.id === 'grapple' && p) {
-      if (index === 0) { this.attach(s); } if (index === 1) { s.selected = -1; p.vx = Math.max(160, p.vx); p.vy = Math.min(-260, p.vy); s.moves++; }
+      if (index === 0) { this.attach(s); }
+      if (index === 1 && s.selected >= 0) {
+        s.selected = -1; p.vx = Math.max(160, p.vx); p.vy = Math.min(-260, p.vy); s.moves++;
+      }
     } else if (s.id === 'flappy' && index === 0 && p) { p.vy = -220; s.moves++; }
     else if (s.id === 'fortress' && index === 0 && s.data[1] >= 20) { s.data[1] -= 20; s.next = Math.min(5, s.next + 1); }
   }
@@ -102,10 +110,13 @@ export class ExpansionAction {
     if (cells.some((i: number) => s.board[i] !== 0)) { return; } cells.forEach((i: number) => { s.board[i] = item; }); s.data[0] -= cost[s.selected]; s.moves++;
   }
   private slice(s: ExpansionState, x: number, y: number): void {
-    const fromX: number = s.target.length === 2 ? s.target[0] : x; const fromY: number = s.target.length === 2 ? s.target[1] : y;
+    if (s.target.length === 0) { s.target = [Math.round(x), Math.round(y)]; return; }
+    const fromX: number = s.target[0]; const fromY: number = s.target[1];
     const dx: number = x - fromX; const dy: number = y - fromY; const length: number = dx * dx + dy * dy;
+    // Accumulate short movements from the last accepted point so slow swipes work too.
+    if (length < 36) { return; }
     s.pieces.forEach((p: ExpansionPiece) => {
-      const t: number = length === 0 ? 0 : Math.max(0, Math.min(1, ((p.x - fromX) * dx + (p.y - fromY) * dy) / length));
+      const t: number = Math.max(0, Math.min(1, ((p.x - fromX) * dx + (p.y - fromY) * dy) / length));
       if (p.alive && Math.hypot(p.x - fromX - t * dx, p.y - fromY - t * dy) < p.r + 5) {
         p.alive = false; if (p.kind === 31) { s.outcome = 2; } else { s.moves++; s.score += 50; if (s.moves >= s.goal && s.outcome !== 2) { s.outcome = 1; } }
       }
@@ -182,6 +193,11 @@ export class ExpansionAction {
     if (s.cursor < s.goal && s.time >= s.cursor * (s.id === 'survival' ? 1.05 - s.level * 0.1 : 1.6)) {
       const enemy: ExpansionPiece = this.piece(s, 33, 25 + this.pick(310), 20, 15);
       enemy.color = s.id === 'survival' && s.variant === 1 ? 2 + this.pick(3) : 2;
+      if (s.id === 'survival' && s.variant === 1 && s.level === 0 && s.cursor % 4 === 3) {
+        enemy.x = player.x < 180 ? 345 : 15;
+        enemy.y = 330;
+        enemy.color = 4;
+      }
       enemy.w = s.id === 'survival' ? (enemy.color === 4 ? 4 : 2) : 1 + Math.floor(s.level / 2); enemy.age = 1.5; s.cursor++;
     }
     if (s.id !== 'fortress' && player.age <= 0) {

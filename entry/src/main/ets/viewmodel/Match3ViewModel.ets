@@ -97,6 +97,16 @@ export class Match3ViewModel implements GameLifecycleObserver {
   }
 
   /** 执行相邻交换：有效则消除+连锁+扣步，无效则回退 */
+  slideFrom(row: number, col: number, dx: number, dy: number): void {
+    const r: number = row + dy;
+    const c: number = col + dx;
+    if (this.status !== GameStatus.PLAYING || r < 0 || r >= this.board.length || c < 0 || c >= this.board[r].length ||
+      !this.rules.isAdjacent(row, col, r, c)) { return; }
+    this.selectedRow = -1;
+    this.selectedCol = -1;
+    this.trySwap(row, col, r, c);
+  }
+
   private trySwap(r1: number, c1: number, r2: number, c2: number): void {
     const swapResult = this.rules.trySwap(this.board, r1, c1, r2, c2);
 

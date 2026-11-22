@@ -48,6 +48,7 @@ export struct GameResultDialog {
   @Param secondaryText: Resource | string = '';
   @Param showSecondary: boolean = false;
   @Param onSecondary: () => void = () => {};
+  @Param onExit: (() => void) | undefined = undefined;
   /** true = 紧凑内容间距；两种形态均有整页遮罩 */
   @Param cardStyle: boolean = false;
   @Param celebrate: boolean = false;
@@ -146,14 +147,14 @@ export struct GameResultDialog {
     }
   }
 
-  private choose(primary: boolean): void {
+  private choose(action: () => void): void {
     if (this.actionTaken) { return; }
     this.actionTaken = true;
     this.stopKnockShare();
     // 先退场但保留触摸遮罩。立即删除组件会使双击的第二次触摸穿到新棋盘。
     this.actionTimer = setTimeout(() => {
       this.actionTimer = -1;
-      if (primary) { this.onPrimary(); } else { this.onSecondary(); }
+      action();
     }, HarmonyMotion.value(this.getUIContext(), $r('app.float.motion_action_guard_duration'), 320));
   }
 
@@ -188,7 +189,7 @@ export struct GameResultDialog {
       .width('100%').height('100%')
       .backgroundColor(SemanticColors.scrim)
       // 遮罩绘制延伸至系统导航区，避免浅色主题下露出一截亮白底。
-      .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
+      .expandSafeArea([SafeAreaType.SYSTEM], this.onExit ? [SafeAreaEdge.TOP, SafeAreaEdge.BOTTOM] : [SafeAreaEdge.BOTTOM])
       .justifyContent(FlexAlign.Center)
       .opacity(this.actionTaken ? 0 : 1)
       .animation(HarmonyMotion.exit(this.getUIContext()))
@@ -202,23 +203,49 @@ export struct GameResultDialog {
     Column() {
       this.ResultContent()
 
-      if (this.shareGameId.length > 0) {
-        Button($r('app.string.result_share'))
-          .id('result-share-button').width('100%')
+      if (this.onExit) {
+        Button(resolveString(this.primaryText, this.getUIContext().getHostContext()))
+          .id('sokoban-result-primary').width('100%')
           .constraintSize({ minHeight: $r('app.float.home_action_min_height') })
-          .backgroundColor(SemanticColors.surfaceHover).fontColor(SemanticColors.primary)
-          .margin({ bottom: SpacingTokens.md }).enabled(!this.sharing && !this.actionTaken)
-          .onClick(() => { this.shareResult(); })
+          .fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
+          .backgroundColor(SemanticColors.primary).fontColor(SemanticColors.textOnPrimary)
+          .enabled(!this.actionTaken).onClick(() => { this.choose(this.onPrimary); })
+        Row({ space: SpacingTokens.sm }) {
+          if (this.showSecondary) {
+            Button(resolveString(this.secondaryText, this.getUIContext().getHostContext()))
+              .id('sokoban-result-replay').layoutWeight(1)
+              .constraintSize({ minHeight: $r('app.float.home_action_min_height') })
+              .backgroundColor(SemanticColors.surfaceHover).fontColor(SemanticColors.textPrimary)
+              .enabled(!this.actionTaken).onClick(() => { this.choose(this.onSecondary); })
+          }
+          Column() { this.ShareButton() }.layoutWeight(1)
+        }.width('100%').margin({ top: SpacingTokens.sm })
+        Button($r('app.string.exit_confirm_leave'), { buttonStyle: ButtonStyleMode.TEXTUAL })
+          .id('sokoban-result-exit').fontColor(SemanticColors.textSecondary)
+          .constraintSize({ minHeight: $r('app.float.home_action_min_height') })
+          .enabled(!this.actionTaken).onClick(() => { if (this.onExit) { this.choose(this.onExit); } })
+      } else {
+        if (this.shareGameId.length > 0) {
+          Column() { this.ShareButton() }.width('100%').margin({ bottom: SpacingTokens.md })
+        }
+        this.ResultActions()
       }
-
-      this.ResultActions()
     }.width('100%').alignItems(HorizontalAlign.Center)
+  }
+
+  @Builder
+  ShareButton() {
+    Button($r('app.string.result_share'))
+      .id('result-share-button').width('100%')
+      .constraintSize({ minHeight: $r('app.float.home_action_min_height') })
+      .backgroundColor(SemanticColors.surfaceHover).fontColor(SemanticColors.primary)
+      .enabled(!this.sharing && !this.actionTaken).onClick(() => { this.shareResult(); })
   }
 
   @Builder
   ResultContent() {
     Column() {
-      if (this.shareGameId.length > 0) {
+      if (this.shareGameId.length > 0 && !this.onExit) {
         Text(this.gameName()).fontFamily(FontTokens.family).fontSize(FontTokens.sizeBody)
           .fontColor(SemanticColors.textSecondary).margin({ bottom: SpacingTokens.md })
       }
@@ -274,8 +301,8 @@ export struct GameResultDialog {
           .clickEffect(HarmonyMotion.press(this.getUIContext()))
           .enabled(!this.actionTaken)
 
-          .accessibilityText($r('app.string.a11y_dialog_play_again'))
-          .onClick(() => { this.choose(true); })
+          .accessibilityText(resolveString(this.primaryText, this.getUIContext().getHostContext()))
+          .onClick(() => { this.choose(this.onPrimary); })
 
         if (this.showSecondary) {
           Button() {
@@ -290,8 +317,8 @@ export struct GameResultDialog {
             .borderRadius(RadiusTokens.md)
             .clickEffect(HarmonyMotion.press(this.getUIContext()))
             .enabled(!this.actionTaken)
-            .accessibilityText($r('app.string.a11y_dialog_back'))
-            .onClick(() => { this.choose(false); })
+            .accessibilityText(resolveString(this.secondaryText, this.getUIContext().getHostContext()))
+            .onClick(() => { this.choose(this.onSecondary); })
         }
       }
       .width('100%')

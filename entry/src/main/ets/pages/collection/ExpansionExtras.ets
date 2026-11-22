@@ -5,6 +5,7 @@ import { CHARACTER_PARTS, CHARACTER_RECIPES } from '../../model/game/ExpansionTa
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionArcade } from '../../model/game/ExpansionArcade';
 
 @ComponentV2
 export struct ExpansionExtras {
@@ -14,9 +15,13 @@ export struct ExpansionExtras {
     if (this.vm.state.pieces[card].w === 0) { return '▧'; }
     const rank: number = card % 13; return ['♤', '♡', '♢', '♧'][Math.floor(card / 13)] + ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'][rank];
   }
-  cardColor(card: number): Resource { const suit: number = Math.floor(card / 13); return suit === 1 || suit === 2 ? SemanticColors.error : SemanticColors.textPrimary; }
+  cardColor(card: number): Resource {
+    if (this.vm.state.pieces[card].w === 0) { return SemanticColors.textSecondary; }
+    const suit: number = Math.floor(card / 13);
+    return suit === 1 || suit === 2 ? SemanticColors.errorText : SemanticColors.textPrimary;
+  }
   top(pile: number): number { const cards: number[] = this.vm.state.piles[pile].cards; return cards.length > 0 ? cards[cards.length - 1] : -1; }
-  tableauHeight(): number { return Math.max(200, ...this.vm.state.piles.slice(2, 9).map((p: ExpansionPile) => p.cards.length * 24 + 36)); }
+  tableauHeight(): number { return Math.max(200, ...this.vm.state.piles.slice(2, 9).map((p: ExpansionPile) => p.cards.length * 28 + 45)); }
   food(index: number): Resource { return index === 0 ? $r('app.string.expansion_food_0') : index === 1 ? $r('app.string.expansion_food_1') : $r('app.string.expansion_food_2'); }
   build() {
     Column({ space: SpacingTokens.base }) {
@@ -25,18 +30,13 @@ export struct ExpansionExtras {
       if (this.gameId === 'restaurant') { this.Restaurant() }
       if (this.gameId === 'roomdefense') {
         Text($r('app.string.expansion_coins', this.vm.state.data[0], this.vm.state.data[1])).fontColor(SemanticColors.textPrimary)
-        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Center }) {
-          ForEach(range(6), (slot: number) => {
-            Button($r('app.string.expansion_tower', slot + 1)).width('47%').margin(SpacingTokens.xs)
-              .onClick(() => { this.vm.tap(slot); })
-          }, (slot: number) => slot.toString())
-        }.width('100%')
-        Button($r('app.string.expansion_repair')).onClick(() => { this.vm.tap(6); })
+        Button($r('app.string.expansion_repair')).enabled(this.vm.state.data[0] >= 25 && this.vm.state.data[1] < 100)
+          .onClick(() => { this.vm.tap(6); })
       }
       if (this.gameId === 'rhythm') {
         Row({ space: SpacingTokens.xs }) {
           ForEach(range(4), (lane: number) => {
-            Button($r('app.string.expansion_key', lane + 1)).layoutWeight(1).height($r('app.float.expansion_control_height'))
+            Button($r('app.string.expansion_key', lane + 1)).layoutWeight(1).height($r('app.float.expansion_control_height')).id('rhythm-key-' + lane)
               .onClick(() => { this.vm.tap(lane); })
           }, (lane: number) => lane.toString())
         }.width('100%')
@@ -50,7 +50,7 @@ export struct ExpansionExtras {
         Text(this.cardText(card)).fontSize(FontTokens.sizeBody).fontFamily(FontTokens.family).fontColor(this.cardColor(card))
           .padding({ top: SpacingTokens.xs, left: SpacingTokens.xs }).hitTestBehavior(HitTestMode.None)
       }.width('100%').height('100%')
-    }.width('100%').height(36).padding(0)
+    }.width('100%').height(45).padding(0)
       .backgroundImage(this.vm.state.pieces[card].w === 0 ? $r('app.media.exp_card_back') : $r('app.media.exp_card_front')).backgroundImageSize(ImageSize.Cover)
       .fontSize(FontTokens.sizeBody).fontColor(this.cardColor(card)).backgroundColor(SemanticColors.surface)
       .borderRadius(RadiusTokens.xs).border({ width: this.vm.state.selected === card ? 2 : 1, color: this.vm.state.selected === card ? SemanticColors.primary : SemanticColors.border })
@@ -60,14 +60,15 @@ export struct ExpansionExtras {
   Solitaire() {
     Column({ space: SpacingTokens.base }) {
       Row({ space: SpacingTokens.sm }) {
-        Button($r('app.string.expansion_stock', this.vm.state.piles[0].cards.length)).layoutWeight(1).onClick(() => { this.vm.tap(100); })
+        Button($r('app.string.expansion_stock', this.vm.state.piles[0].cards.length)).layoutWeight(1).id('solitaire-stock')
+          .onClick(() => { this.vm.tap(100); })
         Column() {
           if (this.vm.state.piles[1].cards.length > 0) {
             ForEach(this.vm.state.piles[1].cards.slice(-1), (card: number) => {
               this.Card(card)
             }, (card: number) => card.toString())
           } else { Text('○').fontColor(SemanticColors.textSecondary) }
-        }.layoutWeight(1)
+        }.layoutWeight(1).height(45).borderRadius(RadiusTokens.xs).border({ width: 1, color: SemanticColors.border }).id('solitaire-waste')
         Button($r('app.string.expansion_foundation')).layoutWeight(1).onClick(() => { this.vm.tap(101); })
       }.width('100%')
       Row({ space: SpacingTokens.sm }) {
@@ -77,13 +78,13 @@ export struct ExpansionExtras {
             .backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm).onClick(() => { this.vm.tap(109 + suit); })
         }, (suit: number) => suit.toString())
       }.width('100%')
-      Row({ space: SpacingTokens.xs }) {
+      Row({ space: 2 }) {
         ForEach(range(7), (col: number) => {
           Stack({ alignContent: Alignment.TopStart }) {
             Button('K', { type: ButtonType.Normal }).width('100%').height(36).padding(0).backgroundColor(SemanticColors.primaryLight)
               .fontColor(SemanticColors.textSecondary).borderRadius(RadiusTokens.xs).onClick(() => { this.vm.tap(102 + col); })
             ForEach(this.vm.state.piles[2 + col].cards, (card: number, pos: number) => {
-              Column() { this.Card(card) }.width('100%').translate({ y: pos * 24 })
+              Column() { this.Card(card) }.width('100%').translate({ y: pos * 28 })
             }, (card: number) => card.toString())
           }.layoutWeight(1).height(this.tableauHeight())
         }, (col: number) => col.toString())
@@ -119,9 +120,14 @@ export struct ExpansionExtras {
               Image(ExpansionArt.food(rendered.piece.color)).width(32).height(32).objectFit(ImageFit.Contain).accessibilityLevel('no')
               Text(this.food(rendered.piece.color)).fontColor(SemanticColors.textPrimary)
               Text($r('app.string.expansion_customer', rendered.piece.id, Math.ceil(rendered.piece.age))).fontSize(FontTokens.sizeCaption).fontColor(rendered.piece.age < 8 ? SemanticColors.warningText : SemanticColors.textSecondary)
+              Progress({ value: Math.max(0, rendered.piece.age), total: ExpansionArcade.customerPatience(this.vm.state.level), type: ProgressType.Linear })
+                .width('90%').color(rendered.piece.age < 8 ? SemanticColors.error : SemanticColors.success)
+              if (this.vm.state.board[rendered.piece.color] > 0) {
+                Text($r('app.string.restaurant_serve')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary)
+              }
             }.padding(SpacingTokens.sm)
           }.width('47%').margin(SpacingTokens.xs).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
-            .onClick(() => { this.vm.tap(100 + rendered.piece.id); })
+            .id('restaurant-customer-' + rendered.id).onClick(() => { this.vm.tap(100 + rendered.piece.id); })
         }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
       }.width('100%')
       Row({ space: SpacingTokens.sm }) {
@@ -132,8 +138,10 @@ export struct ExpansionExtras {
               Text(this.food(food)).fontColor(SemanticColors.textPrimary)
               Text($r('app.string.expansion_food_stock', this.vm.state.board[food])).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
               if (this.vm.state.pieces.some((p: ExpansionPiece) => p.kind === 20 && p.color === food)) { Text($r('app.string.expansion_cooking')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary) }
+              else { Text($r('app.string.restaurant_prepare')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary) }
             }.padding(SpacingTokens.sm)
-          }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base).onClick(() => { this.vm.tap(food); })
+          }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
+            .id('restaurant-cook-' + food).onClick(() => { this.vm.tap(food); })
         }, (food: number) => food.toString())
       }.width('100%')
     }.width('100%')

@@ -1,7 +1,7 @@
 const c=require('./device-acceptance-core.cjs');
 const {assert,layout,text,find,click,tap,open,back,capture,record,sleep,descendants,bounds}=c;
 let current,ev=[];const shot=tag=>{const id='play-mate60-all-'+current+'-'+tag;ev.push(id);return capture(id);};
-const name={guessnumber:'猜数字',slidepuzzle:'滑动拼图',sudoku:'数独',klotski:'华容道',memorycard:'记忆翻牌',minesweeper:'扫雷',match3:'消消乐','2048':'2048'};
+const name={guessnumber:'猜数字',slidepuzzle:'滑动拼图',sudoku:'数独',klotski:'华容道',memorycard:'记忆翻牌',minesweeper:'扫雷',match3:'宝石三消','2048':'2048'};
 const spec={};
 const headerRestart=()=>{click(layout().find(n=>n.type==='Button'&&bounds(n)[0]>1000&&bounds(n)[1]<300));sleep(300);};
 const grid=(ns=layout(),type='Stack')=>ns.filter(n=>n.type===type&&n.clickable==='true'&&bounds(n)[1]>550&&bounds(n)[3]<2350).sort((a,b)=>Math.abs(bounds(a)[1]-bounds(b)[1])<20?bounds(a)[0]-bounds(b)[0]:bounds(a)[1]-bounds(b)[1]);

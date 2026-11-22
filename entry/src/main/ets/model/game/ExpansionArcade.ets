@@ -2,6 +2,8 @@ import { ExpansionState, ExpansionPiece } from './ExpansionState';
 import { RandomSource } from './RandomSource';
 
 export class ExpansionArcade {
+  static towerCost(level: number): number { return level === 0 ? 30 : 20 * level; }
+  static customerPatience(level: number): number { return 30 - level * 5; }
   private random: RandomSource;
   constructor(random: RandomSource) { this.random = random; }
   private pick(n: number): number { return Math.min(n - 1, Math.max(0, Math.floor(this.random.next() * n))); }
@@ -22,7 +24,7 @@ export class ExpansionArcade {
       if (index > 6) { return; }
       if (index === 6) { if (s.data[0] >= 25 && s.data[1] < 100) { s.data[0] -= 25; s.data[1] = Math.min(100, s.data[1] + 40); } return; }
       const existing: ExpansionPiece | undefined = s.pieces.find((p: ExpansionPiece) => p.kind === 14 && p.owner === index);
-      const cost: number = existing ? 20 * existing.color : 30;
+      const cost: number = ExpansionArcade.towerCost(existing?.color ?? 0);
       if (s.data[0] < cost || (existing && existing.color >= 3)) { return; } s.data[0] -= cost;
       if (existing) { existing.color++; } else {
         const tower: ExpansionPiece = new ExpansionPiece(); tower.id = s.serial++; tower.kind = 14; tower.owner = index; tower.r = 19;
@@ -56,7 +58,7 @@ export class ExpansionArcade {
   }
   private customer(s: ExpansionState): void {
     if (s.pieces.filter((p: ExpansionPiece) => p.kind === 19 && p.alive).length >= 4) { return; }
-    const customer: ExpansionPiece = new ExpansionPiece(); customer.id = s.serial++; customer.kind = 19; customer.color = this.pick(3); customer.age = 30 - s.level * 5;
+    const customer: ExpansionPiece = new ExpansionPiece(); customer.id = s.serial++; customer.kind = 19; customer.color = this.pick(3); customer.age = ExpansionArcade.customerPatience(s.level);
     s.pieces.push(customer); s.cursor++;
   }
   step(s: ExpansionState, dt: number): void {

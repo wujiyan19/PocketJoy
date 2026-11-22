@@ -17,9 +17,13 @@ struct ToyScrewHead {
     return colors[(this.color - 1) % colors.length];
   }
   build() {
-    Stack({ alignContent: Alignment.Center }) {
-      Stack() {}.width('94%').height('94%').backgroundColor(this.colorResource()).borderRadius(RadiusTokens.full)
-      Image($r('app.media.toy_screw')).width('72%').height('72%').objectFit(ImageFit.Contain)
+    Stack({ alignContent: Alignment.BottomEnd }) {
+      Stack() {
+        Stack() {}.width('94%').height('94%').backgroundColor(this.colorResource()).borderRadius(RadiusTokens.full)
+        Image($r('app.media.toy_screw')).width('88%').height('88%').objectFit(ImageFit.Contain)
+        Text(['●', '▲', '✚', '◆', '★'][(this.color - 1) % 5]).fontSize(FontTokens.sizeBody)
+          .fontColor($r('app.color.toy_direction_ink')).backgroundColor(this.colorResource()).borderRadius(RadiusTokens.full)
+      }.width('100%').height('100%')
       Text(this.color.toString()).fontSize(FontTokens.sizeCaption).fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.toy_direction_ink')).backgroundColor(this.colorResource())
         .borderRadius(SpacingTokens.xs).padding({ left: 2, right: 2 }).align(Alignment.BottomEnd)
@@ -135,7 +139,7 @@ export struct ToyPuzzleBoard {
           .width(rendered.piece.color % 2 === 0 ? this.carWidth(rendered.piece) : this.carHeight(rendered.piece))
           .height(rendered.piece.color % 2 === 0 ? this.carHeight(rendered.piece) : this.carWidth(rendered.piece))
           .rotate({ angle: rendered.piece.color * 90 }).hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
-        Text(this.arrow(rendered.piece.color)).fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
+        Text(this.arrow(rendered.piece.color)).fontSize(FontTokens.sizeTitle).fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.toy_direction_ink')).hitTestBehavior(HitTestMode.None)
       }.width('100%').height('100%').renderGroup(true)
     }.width(this.carWidth(rendered.piece)).height(this.carHeight(rendered.piece))

@@ -15,4 +15,11 @@ function steerTank(model) {
   }
   model.aim(best[0],best[1]);
 }
-module.exports={steerTank};
+function paceHillClimb(model, frame) {
+  if (frame % 25 !== 0) return;
+  const safeSpeed = [145, 77, 65][model.state.level];
+  const speed = model.state.pieces[0].vx;
+  model.tap(speed > safeSpeed ? 1 : speed < safeSpeed - 9 ? 0 : 2);
+}
+
+module.exports={steerTank, paceHillClimb};

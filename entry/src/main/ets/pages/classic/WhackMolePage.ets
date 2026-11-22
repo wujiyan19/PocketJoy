@@ -43,7 +43,7 @@ export struct WhackMolePage {
       this.a11yEmpty = resolveString($r('app.string.a11y_whack_empty'), context);
     }
     GameLifecycleBus.attach(this.viewModel);
-    if (!GameSessionTransfer.restore(this.viewModel)) { this.viewModel.startGame(); }
+    GameSessionTransfer.restore(this.viewModel);
     this.playTimeStateChanged();
   }
 
@@ -79,7 +79,7 @@ export struct WhackMolePage {
   @Builder
   PageHeader() {
     GameHeader({ gameId: 'whackmole', pathStack: this.pathStack, hasProgress: (): boolean => this.viewModel.hasProgress(), gameTitle: $r('app.string.game_whackmole_name'), // 得分/最高分已由下方大字指标卡展示，关闭标题栏的小字重复显示
-          showScore: false,
+          showScore: false, showPause: this.viewModel.status !== GameStatus.IDLE,
           isPaused: this.viewModel.status === GameStatus.PAUSED,
           difficulty: this.viewModel.difficulty,
           onDifficultyChange: (d: GameDifficulty) => { this.viewModel.changeDifficulty(d); },
@@ -95,8 +95,6 @@ export struct WhackMolePage {
         .linearGradient({ angle: 180, colors: [[SemanticColors.gradientScreen[0], 0], [SemanticColors.gradientScreen[1], 0.5], [SemanticColors.gradientScreen[2], 1]] })
 
       Column() {
-        Text($r('app.string.record_mode_score', this.viewModel.modeBest()))
-          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
         if (this.viewModel.isLegacyRound()) {
           Text($r('app.string.whack_legacy_round')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
         }
@@ -104,8 +102,15 @@ export struct WhackMolePage {
           Column() {
             Text($r('app.string.score_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
             Text('' + this.viewModel.score).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
+              .id('whack-score')
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ left: 16 })
+          Column() {
+            Text($r('app.string.record_rule_best')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+            Text(this.viewModel.modeBest().toString()).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightMedium)
+              .fontColor(SemanticColors.textPrimary)
+          }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
+            .margin({ left: SpacingTokens.sm })
 
           Column() {
             Text($r('app.string.time_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
@@ -128,11 +133,15 @@ export struct WhackMolePage {
               }
             }, (row: number) => row.toString())
           }.width(this.holeWidth * 3).height(this.holeHeight * 3)
+          if (this.viewModel.status === GameStatus.IDLE) {
+            Button($r('app.string.whack_begin')).id('whack-start').height($r('app.float.home_action_min_height'))
+              .onClick(() => { this.viewModel.startGame(); })
+          }
         }.layoutWeight(1).width('100%')
           .constraintSize({ maxWidth: $r('app.float.whack_board_max') })
           .borderRadius(RadiusTokens.xl).clip(true)
           .onAreaChange((oldValue: Area, newValue: Area) => { this.updateHoleSize(newValue); })
-      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
+      }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom + SpacingTokens.base, left: SpacingTokens.sm, right: SpacingTokens.sm })
 
       if (this.viewModel.status === GameStatus.OVER) {
         GameResultDialog({ shareGameId: 'whackmole',
@@ -176,7 +185,7 @@ export struct WhackMolePage {
       Image($r('app.media.play_whack_hole'))
         .width('84%').height('43%').objectFit(ImageFit.Contain)
     }
-    .width(this.holeWidth).height(this.holeHeight)
+    .width(this.holeWidth).height(this.holeHeight).id('mole-hole-' + index)
     // 无障碍:读屏念出洞号与当前是否有地鼠
     .accessibilityText(this.a11yHoleFormat.replace('%1$d', '' + (index + 1)) + (this.viewModel.holes[index] ? this.a11yHasMole : this.a11yEmpty))
     // 按压仅使用原生缩放回弹，避免透明度状态残留在反复使用的洞位上。

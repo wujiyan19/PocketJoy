@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400"><defs><linearGradient id="paper" x1="0" y1="0" x2=".25" y2="1"><stop stop-color="#FFFAF0"/><stop offset="1" stop-color="#DCE8F1"/></linearGradient></defs><rect x="0" y="0" width="400" height="400" rx="24" fill="url(#paper)" stroke="none" stroke-width="2"/><path d="M0 332Q103 302 200 339Q299 312 400 329V400H0Z" fill="#D1E5DB" stroke="none" stroke-width="2" stroke-linejoin="round"/><path d="M28 365L33 350L39 365M350 378L357 358L365 377" fill="none" stroke="#A4C6B3" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs><linearGradient id="lawn" x2="0" y2="1"><stop stop-color="#E0EFCD"/><stop offset="1" stop-color="#CDE4B7"/></linearGradient></defs>
+  <rect width="400" height="400" rx="16" fill="url(#lawn)"/>
+  <path d="m17 46 4-8 4 8m337 34 4-9 4 9M35 221l4-8 4 8m320-34 4-8 4 8M90 368l4-9 4 9m231-13 4-7 4 7" fill="none" stroke="#87AE7C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

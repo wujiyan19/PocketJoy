@@ -1,6 +1,37 @@
 import { ExpansionState, ExpansionPiece } from './ExpansionState';
 import { RandomSource } from './RandomSource';
 import { BlackholeLevels } from './ToyLevelRules';
+import { SOKOBAN_LEVELS } from './SokobanLevels';
+
+export function isDangerousFish(playerRadius: number, fishRadius: number): boolean {
+  return fishRadius >= playerRadius + 2;
+}
+
+export enum WarehouseTile {
+  Floor = 0, Wall = 1, Goal = 2, StarGoal = 3, Up = 4, Right = 5, Down = 6, Left = 7
+}
+
+export function warehouseTile(symbol: string): WarehouseTile {
+  switch (symbol) {
+    case '#': return WarehouseTile.Wall;
+    case '.': return WarehouseTile.Goal;
+    case 'a': return WarehouseTile.StarGoal;
+    case '^': return WarehouseTile.Up;
+    case '>': return WarehouseTile.Right;
+    case 'v': return WarehouseTile.Down;
+    case '<': return WarehouseTile.Left;
+    default: return WarehouseTile.Floor;
+  }
+}
+
+export function warehouseBoxAt(s: ExpansionState, cell: number): ExpansionPiece | undefined {
+  return s.pieces.find((piece: ExpansionPiece) => piece.y * s.cols + piece.x === cell);
+}
+
+export function warehouseGoalsFilled(s: ExpansionState): number {
+  return s.pieces.filter((piece: ExpansionPiece) =>
+    s.board[piece.y * s.cols + piece.x] === (piece.color === 1 ? WarehouseTile.StarGoal : WarehouseTile.Goal)).length;
+}
 
 export class ExpansionAdventure {
   private random: RandomSource;
@@ -8,7 +39,9 @@ export class ExpansionAdventure {
   private pick(n: number): number { return Math.min(n - 1, Math.max(0, Math.floor(this.random.next() * n))); }
   start(s: ExpansionState): void {
     if (s.id === 'blackhole') { BlackholeLevels.start(s, this.random); return; }
-    if (s.id === 'sokoban') { this.makeWarehouse(s);
+    if (s.id === 'sokoban') {
+      if (s.sokobanLevel !== undefined) { this.loadWarehouse(s, SOKOBAN_LEVELS[s.sokobanLevel - 1].rows); }
+      else { this.makeWarehouse(s); }
     } else if (s.id === 'pipes') { this.makePipes(s);
     } else if (s.id === 'differences') {
       s.cols = 5; s.rows = 5; s.board = new Array<number>(25).fill(0).map(() => 1 + this.pick(6));
@@ -29,7 +62,27 @@ export class ExpansionAdventure {
     const offsets: number[] = [-s.cols, 1, s.cols, -1]; const to: number = at + offsets[direction];
     if (to < 0 || to >= s.board.length || Math.abs(to % s.cols - at % s.cols) > 1) { return -1; } return to;
   }
-  private box(s: ExpansionState, cell: number): ExpansionPiece | undefined { return s.pieces.find((p: ExpansionPiece) => p.y * s.cols + p.x === cell); }
+  private loadWarehouse(s: ExpansionState, rows: string[]): void {
+    s.cols = rows[0].length;
+    s.rows = rows.length;
+    for (let y: number = 0; y < s.rows; y++) {
+      for (let x: number = 0; x < s.cols; x++) {
+        const symbol: string = rows[y].charAt(x);
+        s.board.push(warehouseTile(symbol));
+        if (symbol === '@') { s.cursor = y * s.cols + x; }
+        if (symbol === '$' || symbol === 'A') {
+          const box: ExpansionPiece = new ExpansionPiece();
+          box.id = s.pieces.length;
+          box.kind = 5;
+          box.color = symbol === 'A' ? 1 : 0;
+          box.x = x;
+          box.y = y;
+          s.pieces.push(box);
+        }
+      }
+    }
+    s.goal = s.pieces.length;
+  }
   private makeWarehouse(s: ExpansionState): void {
     s.cols = 7; s.rows = 7; s.board = new Array<number>(49).fill(0);
     for (let i: number = 0; i < 49; i++) { if (i % 7 === 0 || i % 7 === 6 || i < 7 || i >= 42) { s.board[i] = 1; } }
@@ -45,8 +98,8 @@ export class ExpansionAdventure {
     const reverse: number[] = [];
     for (let i: number = 0; i < 140; i++) {
       const d: number = this.pick(4); const to: number = this.neighbor(s, s.cursor, d);
-      if (to < 0 || s.board[to] === 1 || this.box(s, to)) { continue; }
-      const behind: number = this.neighbor(s, s.cursor, (d + 2) % 4); const box: ExpansionPiece | undefined = this.box(s, behind);
+      if (to < 0 || s.board[to] === 1 || warehouseBoxAt(s, to)) { continue; }
+      const behind: number = this.neighbor(s, s.cursor, (d + 2) % 4); const box: ExpansionPiece | undefined = warehouseBoxAt(s, behind);
       if (box) { box.x = s.cursor % 7; box.y = Math.floor(s.cursor / 7); }
       s.cursor = to; reverse.push((d + 2) % 4);
     }
@@ -58,23 +111,33 @@ export class ExpansionAdventure {
         const b: ExpansionPiece = s.pieces[i]; const at: number = b.y * 7 + b.x;
         for (let d: number = 0; d < 4 && !pulled; d++) {
           const to: number = this.neighbor(s, at, d); const hero: number = this.neighbor(s, to, d);
-          if (to < 0 || hero < 0 || s.board[to] === 1 || s.board[hero] === 1 || this.box(s, to) || this.box(s, hero)) { continue; }
+          if (to < 0 || hero < 0 || s.board[to] === 1 || s.board[hero] === 1 || warehouseBoxAt(s, to) || warehouseBoxAt(s, hero)) { continue; }
           b.x = to % 7; b.y = Math.floor(to / 7); s.cursor = hero; s.target = [(d + 2) % 4]; pulled = true;
         }
       }
     }
     s.goal = goals.length;
   }
-  warehouseSolved(s: ExpansionState): boolean { return s.pieces.every((p: ExpansionPiece) => s.board[p.y * s.cols + p.x] === 2); }
+  warehouseSolved(s: ExpansionState): boolean { return warehouseGoalsFilled(s) === s.pieces.length; }
+  private canEnter(s: ExpansionState, cell: number, direction: number): boolean {
+    if (cell < 0) { return false; }
+    const tile: number = s.board[cell];
+    return tile !== WarehouseTile.Wall && (tile < WarehouseTile.Up || tile === WarehouseTile.Up + direction);
+  }
   move(s: ExpansionState, d: number): void {
-    const to: number = this.neighbor(s, s.cursor, d); if (to < 0 || s.board[to] === 1) { return; }
-    const b: ExpansionPiece | undefined = this.box(s, to);
+    const to: number = this.neighbor(s, s.cursor, d);
+    if (!this.canEnter(s, to, d)) { return; }
+    const b: ExpansionPiece | undefined = warehouseBoxAt(s, to);
     if (b) {
-      const next: number = this.neighbor(s, to, d); if (next < 0 || s.board[next] === 1 || this.box(s, next)) { return; }
+      const next: number = this.neighbor(s, to, d);
+      if (!this.canEnter(s, next, d) || warehouseBoxAt(s, next)) { return; }
       b.x = next % s.cols; b.y = Math.floor(next / s.cols);
     }
-    s.cursor = to; s.moves++; s.score = s.pieces.filter((p: ExpansionPiece) => s.board[p.y * s.cols + p.x] === 2).length * 100;
-    if (this.warehouseSolved(s)) { s.outcome = 1; s.score += Math.max(100, 1000 - s.moves * 3); }
+    s.cursor = to;
+    s.moves++;
+    const filled: number = warehouseGoalsFilled(s);
+    s.score = filled * 100;
+    if (filled === s.pieces.length) { s.outcome = 1; s.score += Math.max(100, 1000 - s.moves * 3); }
   }
   private makePipes(s: ExpansionState): void {
     s.cols = 4 + s.level; s.rows = s.cols; const n: number = s.cols * s.rows;
@@ -128,7 +191,10 @@ export class ExpansionAdventure {
     if (s.id === 'runner' || s.id === 'blackhole') { s.phase = 1; }
   }
   private spawnFish(s: ExpansionState): void {
-    const fish: ExpansionPiece = new ExpansionPiece(); fish.id = s.serial++; fish.kind = 11; fish.r = 6 + this.pick(10 + s.level * 6);
+    const playerRadius: number = s.pieces[0].r;
+    const predators: number = s.pieces.filter((p: ExpansionPiece) => p.kind === 11 && isDangerousFish(playerRadius, p.r)).length;
+    const fish: ExpansionPiece = new ExpansionPiece(); fish.id = s.serial++; fish.kind = 11;
+    fish.r = predators < 2 + s.level ? Math.ceil(playerRadius + 2) + this.pick(6) : 6 + this.pick(Math.floor(playerRadius) - 6);
     fish.color = 1 + this.pick(6); fish.x = this.pick(2) === 0 ? -fish.r : 360 + fish.r; fish.y = 25 + this.pick(410);
     fish.vx = (fish.x < 0 ? 1 : -1) * (25 + this.pick(45) + s.level * 10); s.pieces.push(fish);
   }
@@ -151,7 +217,7 @@ export class ExpansionAdventure {
       } else {
         if (item.x < -50 || item.x > 410) { item.alive = false; }
         else if (distance < playerRadius + item.r * 0.7) {
-          if (item.r >= playerRadius + 2) { s.outcome = 2; }
+          if (isDangerousFish(playerRadius, item.r)) { s.outcome = 2; }
           else { item.alive = false; s.moves++; s.score += Math.round(item.r * 10); p.r = Math.min(50, p.r + 0.7); }
         }
       }

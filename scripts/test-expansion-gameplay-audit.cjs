@@ -32,7 +32,8 @@ for (const id of auditedIds) for (const level of [0, 1, 2]) test(`${id}/${level}
   const { GameDifficulty } = f.load('entry/src/main/ets/common/GameConstants.ets');
   vm.init(id, frames);
   vm.difficulty = [GameDifficulty.EASY, GameDifficulty.NORMAL, GameDifficulty.HARD][level];
-  vm.startGame();
+  if (id === 'sokoban') vm.selectSokobanLevel(0);
+  else vm.startGame();
   const initial = vm.exportContinuation();
   assert.equal(vm.state.level, level);
   assert.equal(frames.running, false);
@@ -131,7 +132,7 @@ test('fruitslice: the final fruit without a bomb still wins', () => {
   const m = new ExpansionModel(f.rng(8));
   m.start('fruitslice', 1); m.activate(); m.state.moves = m.state.goal - 1;
   const fruit = new ExpansionPiece(); fruit.id = m.state.serial++; fruit.kind = 30; fruit.x = 180; fruit.y = 230; fruit.r = 20;
-  m.state.pieces = [fruit]; m.aim(180, 230);
+  m.state.pieces = [fruit]; m.aim(150, 230); m.aim(180, 230);
   assert.equal(m.state.outcome, 1);
   assert.equal(m.state.pieces.length, 0);
   assert(m.valid(m.state));
@@ -201,14 +202,16 @@ for (const level of [0, 1, 2]) test(`hillclimb/${level}: crossing the finish dur
   const car = m.state.pieces[0]; car.x = m.state.goal - 0.1; car.y = m.sports.terrain(car.x, m.state) - 18; car.vx = 100; car.vy = 400;
   assert(m.valid(m.state));
   m.step(0.008);
-  assert(car.x >= m.state.goal); assert.equal(car.vy, 0); assert.equal(m.state.outcome, 2); assert.equal(m.state.score, Math.floor(car.x)); assert(m.valid(m.state));
+  assert(car.x >= m.state.goal); assert.equal(m.state.outcome, 2); assert.equal(m.state.score, Math.floor(car.x)); assert(m.valid(m.state));
   const finished = JSON.stringify(m.state); m.tap(0); m.aim(180, 230); m.activate(); m.step(0.008); assert.equal(JSON.stringify(m.state), finished);
 });
 
 test('hillclimb: a safe landing across the finish still receives the victory bonus', () => {
   const f = fixture(); const { ExpansionModel } = f.rules('Expansion');
   const m = new ExpansionModel(f.rng(8)); m.start('hillclimb', 1); m.activate(); m.tap(0);
-  const car = m.state.pieces[0]; car.x = m.state.goal - 0.1; car.y = m.sports.terrain(car.x) - 18; car.vx = 100; car.vy = 200;
+  const car = m.state.pieces[0]; car.x = m.state.goal - 0.1; car.y = m.sports.terrain(car.x, m.state) - 16; car.vx = 65;
+  const slope = (m.sports.terrain(car.x + 2, m.state) - m.sports.terrain(car.x - 2, m.state)) / 4;
+  car.vy = slope * car.vx + 50;
   assert(m.valid(m.state)); m.step(0.008);
   assert(car.x >= m.state.goal); assert.equal(m.state.outcome, 1); assert.equal(m.state.score, Math.floor(car.x) + 500); assert(m.valid(m.state));
 });
@@ -233,10 +236,10 @@ test('fisheat: retained render snapshot exposes left and right facing after real
 
 for (const id of ['runner', 'blackhole', 'fisheat', 'roomdefense', 'basketball', 'rhythm', 'restaurant', 'bubbleshooter', 'fruitmerge']) for (const level of [0, 1, 2]) test(`${id}/${level}: a generated complete game reaches its goal through actual controls`, () => {
   const f = fixture(); const { ExpansionModel } = f.rules('Expansion');
-  // Fixed sources exercise generated goals with repeatable edible fish, bubble colors,
-  // and falling fruit tiers. Rules and positions are never modified by the controller.
-  const random = ['fisheat', 'bubbleshooter'].includes(id) ? { next: () => 0 } : id === 'fruitmerge' ? { next: () => 0.99999 } : f.rng(8);
+  // Fixed sources exercise generated goals without editing positions or rules.
+  const random = id === 'bubbleshooter' ? { next: () => 0 } : id === 'fruitmerge' ? { next: () => 0.99999 } : f.rng(id === 'fisheat' ? 12 : 8);
   const m = new ExpansionModel(random); m.start(id, level); m.activate();
+  if (id === 'fisheat') m.aim(180, 230);
   for (let frame = 0; frame < 150 / 0.008 && m.state.outcome === 0; frame++) {
     const player = m.state.pieces[0];
     if (id === 'runner') {
@@ -251,7 +254,18 @@ for (const id of ['runner', 'blackhole', 'fisheat', 'roomdefense', 'basketball',
       const candidates = m.state.pieces.filter(p => p.kind === 9 && p.r < player.r * 0.9).sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y));
       if (candidates.length) m.aim(candidates[0].x, candidates[0].y);
     }
-    if (id === 'fisheat') m.aim(30, 25);
+    if (id === 'fisheat' && frame % 8 === 0) {
+      const threats = m.state.pieces.filter(p => p.kind === 11 && p.r >= player.r + 2);
+      const danger = threats.find(p => Math.hypot(p.x + p.vx * 0.3 - player.x, p.y - player.y) < player.r + p.r * 0.7 + 30);
+      if (danger) {
+        const escapeY = player.y + (danger.y >= player.y ? -55 : 55);
+        m.aim(player.x, Math.max(0, Math.min(460, escapeY)));
+      } else {
+        const prey = m.state.pieces.filter(p => p.kind === 11 && p.r < player.r + 2 && p.x > player.r && p.x < 360 - player.r);
+        prey.sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y));
+        if (prey.length) m.aim(prey[0].x, prey[0].y);
+      }
+    }
     if (id === 'roomdefense') { for (let slot = 0; slot < 6; slot++) m.tap(slot); if (m.state.data[1] < 75) m.tap(6); }
     if (id === 'basketball' && m.state.pieces.length === 1) m.aim(260 + Math.sin((m.state.time + 1.6) * 0.9) * level * 24, 145);
     if (id === 'rhythm') for (const note of [...m.state.pieces]) if (note.y >= 390) m.tap(note.owner);

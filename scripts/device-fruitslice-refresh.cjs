@@ -2,7 +2,7 @@
 process.env.LITTLEGAMES_ART_TARGET ||= '49X0224C24001554';
 process.env.LITTLEGAMES_ART_OUTPUT ||= 'docs/device-acceptance/fruitslice-refresh-2026-10-03';
 const c = require('./device-art-review.cjs');
-c.names.fruitslice = '切水果'; c.names.pingpong = '乒乓球'; c.names.shooter = '雷电战机';
+c.names.fruitslice = '切水果'; c.names.pingpong = '乒乓球'; c.names.shooter = '纵向战机';
 const mode = process.argv[2] || 'light';
 const checks = [];
 const check = (name, details = {}) => { checks.push({ name, ...details }); c.log('fruitslice-check-passed', { mode, name, ...details }); console.log('PASS ' + name); };

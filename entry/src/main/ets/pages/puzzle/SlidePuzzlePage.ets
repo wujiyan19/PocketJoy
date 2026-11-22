@@ -76,7 +76,7 @@ export struct SlidePuzzlePage {
     const v = this.viewModel.cellAt(r, c);
     if (v === 0) { return $r('app.color.play_board_background'); }
     if (v === r * this.viewModel.getSize() + c + 1) { return $r('app.color.play_success_background'); }
-    return $r('app.color.play_selection_background');
+    return this.viewModel.canMove(r, c) ? $r('app.color.play_selection_background') : $r('app.color.play_cell_background');
   }
 
   getCellOpacity(r: number, c: number): number {
@@ -95,7 +95,7 @@ export struct SlidePuzzlePage {
     GameHeader({ gameId: 'slidepuzzle', pathStack: this.pathStack, hasProgress: (): boolean => this.viewModel.hasProgress(), gameTitle: $r('app.string.game_slidepuzzle_name'),
           showScore: false,
           showPause: false,
-          subtitle: $r('app.string.game_slidepuzzle_subtitle'),
+          subtitle: $r('app.string.slide_order_goal', this.viewModel.getSize() * this.viewModel.getSize() - 1),
           difficulty: this.viewModel.difficulty,
           onDifficultyChange: (d: GameDifficulty) => { this.changeDifficulty(d); },
           onBack: () => { this.requestExit(); },
@@ -115,16 +115,20 @@ export struct SlidePuzzlePage {
         Row() {
           Column() {
             Text($r('app.string.steps_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text('' + this.viewModel.steps).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
+            Text('' + this.viewModel.steps).id('slide-steps').fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ left: 16 })
           Column() {
-            Text($r('app.string.best_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text(this.viewModel.getBestText()).fontSize(FontTokens.sizeHeadline)
+            Text($r('app.string.puzzle_difficulty_best')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
+            Text(this.viewModel.getBestText()).id('slide-level-best').fontSize(FontTokens.sizeHeadline)
               .fontWeight(FontTokens.weightBold).fontColor(SemanticColors.textPrimary)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ left: 8, right: 16 })
         }.margin({ top: 12, bottom: 12 })
+        if (this.viewModel.unclassifiedScore > 0) {
+          Text($r('app.string.puzzle_legacy_score', this.viewModel.unclassifiedScore))
+            .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary).id('slide-legacy-best')
+        }
 
         Column() {
           Column() {
@@ -143,6 +147,16 @@ export struct SlidePuzzlePage {
                   }.width(this.cell).height(this.cell).margin(2)
                   .backgroundColor(this.getCellBg(r, c))
                   .borderRadius(RadiusTokens.base)
+                  .id('slide-cell-' + r + '-' + c)
+                  .border({ width: this.viewModel.canMove(r, c) ? 2 : 0, color: SemanticColors.primary })
+                  .gesture(PanGesture({ fingers: 1, direction: PanDirection.All, distance: SpacingTokens.md })
+                    .onActionEnd((event: GestureEvent) => {
+                      const horizontal: boolean = Math.abs(event.offsetX) > Math.abs(event.offsetY);
+                      const row: number = r + (horizontal ? 0 : event.offsetY > 0 ? 1 : -1);
+                      const col: number = c + (horizontal ? event.offsetX > 0 ? 1 : -1 : 0);
+                      const n: number = this.viewModel.getSize();
+                      if (row >= 0 && row < n && col >= 0 && col < n && this.viewModel.cellAt(row, col) === 0) { this.viewModel.tapCell(r, c); }
+                    }))
 
                   .opacity(this.getCellOpacity(r, c))
                   .accessibilityText(
@@ -154,7 +168,7 @@ export struct SlidePuzzlePage {
                 }, (c: number) => c.toString())
               }
             }, (r: number) => r.toString())
-          }.backgroundColor($r('app.color.play_board_background')).borderRadius(RadiusTokens.base).padding(4)
+          }.backgroundColor($r('app.color.play_board_background')).borderRadius(RadiusTokens.base).padding(4).id('slide-board')
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
@@ -165,6 +179,8 @@ export struct SlidePuzzlePage {
               this.refreshLayout();
             }
           })
+        Text($r('app.string.slide_move_legend')).fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textSecondary)
+          .padding({ top: SpacingTokens.xs, bottom: SpacingTokens.base })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {

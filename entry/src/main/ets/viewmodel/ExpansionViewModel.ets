@@ -3,6 +3,7 @@ import { GameLifecycleBus, GameLifecycleObserver } from '../common/GameLifecycle
 import { FrameLoop } from '../common/FrameLoop';
 import { GameDataManager } from '../model/GameData';
 import { ExpansionModel } from '../model/game/ExpansionModel';
+import { SOKOBAN_LEVELS } from '../model/game/SokobanLevels';
 import { ExpansionPiece, ExpansionState } from '../model/game/ExpansionState';
 import { CHESS_IDS } from '../model/game/ExpansionChess';
 import { ExpansionRenderPiece } from './ExpansionRenderPiece';
@@ -22,6 +23,7 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   @Trace confirmExit: boolean = false;
   @Trace isFinished: boolean = false;
   @Trace canUndo: boolean = false;
+  @Trace puzzleStuck: boolean = false;
   @Trace dragging: boolean = false;
   @Trace legalTargets: number[] = [];
   @Trace feedbackSerial: number = 0;
@@ -36,6 +38,8 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   @Trace chessAnimating: boolean = false;
   @Trace modeId: string = '';
   @Trace modeHighScore: number = 0;
+  @Trace sokobanLevel: number = 0;
+  @Trace sokobanCompleted: number = 0;
   private model: ExpansionModel = new ExpansionModel();
   private frame: FrameLoop | null = null;
   private id: string = '';
@@ -54,7 +58,26 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     this.id = id; this.frame = frame; this.difficulty = GameDataManager.getInitialDifficulty(id);
     const mode: string = GameDataManager.getTextSetting('mode_' + id, id);
     this.modeId = modesForGame(id).includes(mode) ? mode : id;
+    this.sokobanLevel = 0;
+    if (id === 'sokoban') {
+      this.sokobanCompleted = Math.min(GameDataManager.getModeScore(id, 'campaign'), SOKOBAN_LEVELS.length);
+      this.sokobanLevel = GameDataManager.getTextSetting('sokobanMode', 'campaign') === 'random' ? 0 : this.sokobanUnlocked();
+    }
     this.model.deferComputerTurns = true;
+  }
+  sokobanUnlocked(): number { return Math.min(this.sokobanCompleted + 1, SOKOBAN_LEVELS.length); }
+  private rememberSokobanCompleted(completed: number): void {
+    if (completed > this.sokobanCompleted) {
+      this.sokobanCompleted = completed;
+      GameDataManager.recordMode(this.id, 'campaign', completed);
+      GameDataManager.flushNow();
+    }
+  }
+  selectSokobanLevel(level: number): void {
+    if (this.id !== 'sokoban' || !Number.isInteger(level) || level < 0 || level > this.sokobanUnlocked() || level === this.sokobanLevel) { return; }
+    this.sokobanLevel = level;
+    GameDataManager.setTextSetting('sokobanMode', level === 0 ? 'random' : 'campaign');
+    this.startGame();
   }
   changeMode(mode: string): void {
     if (!modesForGame(this.id).includes(mode) || mode === this.modeId) { return; }
@@ -68,16 +91,20 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++;
     const level: number = this.difficulty === GameDifficulty.EASY ? 0 : this.difficulty === GameDifficulty.HARD ? 2 : 1;
     this.effectsEnabled = this.visible && !this.confirmExit;
-    this.model.start(this.modeId, level); GameDataManager.recordGameStarted(this.id); this.sync(false);
+    if (this.sokobanLevel > 0) { this.model.startSokobanLevel(this.sokobanLevel); }
+    else { this.model.start(this.modeId, level); }
+    GameDataManager.recordGameStarted(this.id); this.sync(false);
     this.initialProgress = JSON.stringify(this.state);
   }
   changeDifficulty(d: GameDifficulty): void {
-    if (d === this.difficulty) { return; } this.difficulty = d;
+    if (d === this.difficulty || this.sokobanLevel > 0) { return; } this.difficulty = d;
     GameDataManager.rememberGameDifficulty(this.id, d); this.startGame();
   }
   private sync(feedback: boolean = true, interaction: boolean = false): void {
     const previous: ExpansionState = this.state;
     this.state = JSON.parse(JSON.stringify(this.model.state)) as ExpansionState; this.canUndo = this.model.canUndo();
+    this.puzzleStuck = this.state.outcome === 0 && ((this.id === 'watersort' && !this.model.puzzle.hasWaterMove(this.state)) ||
+      (this.id === 'mahjongsolitaire' && !this.model.matching.canContinueMahjong(this.state)));
     this.syncChessAnimation(previous, feedback);
     this.syncWorldPieces();
     this.isFinished = this.state.outcome !== 0;
@@ -107,7 +134,12 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     if (CHESS_IDS.includes(this.state.id) && this.state.selected >= 0) {
       for (let to: number = 0; to < this.state.board.length; to++) { if (this.model.chess.legal(this.model.state, this.state.selected, to)) { this.legalTargets.push(to); } }
     }
-    if (this.state.outcome !== 0 && !this.recorded) {
+    if (this.sokobanLevel > 0) {
+      // An in-flight continuation also brings the progress needed to reach that level.
+      const completed: number = this.state.outcome === 1 ? this.sokobanLevel : this.sokobanLevel - 1;
+      this.rememberSokobanCompleted(completed);
+      this.recorded = this.state.outcome !== 0;
+    } else if (this.state.outcome !== 0 && !this.recorded) {
       this.recorded = true; this.stop(); GameDataManager.updateHighScore(this.id, this.state.score);
       GameDataManager.recordMode(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard', this.state.score);
       this.modeHighScore = GameDataManager.getModeScore(recordId, hasDifficultyRules(this.modeId) ? this.difficulty : 'standard');
@@ -147,11 +179,16 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   }
   tap(index: number): void {
     if (this.chessAnimating || this.computerThinking || this.blocked()) { return; }
+    if (this.puzzleStuck && (this.id === 'watersort' || !this.model.matching.canContinueMahjong(this.state))) { return; }
     if (this.state.id === 'melody' && this.state.phase === 0 && this.state.outcome === 0 && index >= 0 && index < 4) { this.tone(index); }
     this.model.tap(index); this.sync(true, true); this.run();
   }
   activate(): void { if (this.blocked()) { return; } this.model.activate(); this.sync(true, true); this.run(); }
-  action(): void { if (this.blocked()) { return; } this.model.action(); this.sync(true, true); }
+  action(): void {
+    if (this.blocked()) { return; }
+    const completed: boolean = this.model.action(); this.sync(true, true);
+    if (!completed && this.id === 'mahjongsolitaire' && this.state.outcome === 0) { this.puzzleStuck = true; }
+  }
   choose(index: number): void { if (this.chessAnimating || this.computerThinking || this.blocked()) { return; } this.model.choose(index); this.sync(true, true); }
   undo(): void {
     if (this.blocked() || !this.model.canUndo()) { return; }
@@ -164,8 +201,9 @@ export class ExpansionViewModel implements GameLifecycleObserver {
   private blocked(): boolean { return this.paused || this.confirmExit || !this.visible; }
   setDragging(active: boolean): void {
     this.dragging = active && !this.blocked();
+    if (this.dragging && this.state.id === 'fruitslice') { this.model.releaseControls(); }
     if (!active && this.state.id === 'untangle') { this.model.releaseNode(); this.sync(); }
-    if (!active && ['platformer', 'fruitslice', 'hillclimb', 'fishing'].includes(this.state.id)) { this.model.releaseControls(); this.sync(); }
+    if (!active && ['platformer', 'fruitslice', 'hillclimb', 'airhockey', 'fishing'].includes(this.state.id)) { this.model.releaseControls(); this.sync(); }
   }
   terrain(x: number): number { return this.model.sports.terrain(x, this.model.state); }
   mahjongCan(command: number): boolean { return this.model.cards.mahjongCan(this.state, command); }
@@ -207,7 +245,10 @@ export class ExpansionViewModel implements GameLifecycleObserver {
     return this.state.id.length > 0 && this.state.outcome === 0 && !this.paused && !this.confirmExit;
   }
 
-  hasProgress(): boolean { return this.state.outcome === 0 && JSON.stringify(this.state) !== this.initialProgress; }
+  hasProgress(): boolean {
+    if (this.id === 'sokoban') { return this.state.outcome === 0 && this.state.moves > 0; }
+    return this.state.outcome === 0 && JSON.stringify(this.state) !== this.initialProgress;
+  }
 
   hasComputerOpponent(): boolean { return COMPUTER_GAME_IDS.includes(this.id); }
   private cancelComputerTurn(): void {
@@ -244,7 +285,13 @@ export class ExpansionViewModel implements GameLifecycleObserver {
       if (!expected.valid(snapshot.state)) { return false; }
       this.modeId = snapshot.state.id;
       this.stop(); this.model.restore(snapshot.state); this.recorded = snapshot.recorded || snapshot.state.outcome !== 0;
-      this.difficulty = snapshot.state.level === 0 ? GameDifficulty.EASY : snapshot.state.level === 2 ? GameDifficulty.HARD : GameDifficulty.NORMAL;
+      this.sokobanLevel = this.id === 'sokoban' ? this.model.state.sokobanLevel ?? 0 : 0;
+      if (this.sokobanLevel > 0 && snapshot.state.sokobanLevel !== undefined && snapshot.state.outcome === 1 && this.model.state.outcome === 0) {
+        this.rememberSokobanCompleted(snapshot.state.sokobanLevel);
+      }
+      if (this.sokobanLevel === 0) {
+        this.difficulty = snapshot.state.level === 0 ? GameDifficulty.EASY : snapshot.state.level === 2 ? GameDifficulty.HARD : GameDifficulty.NORMAL;
+      }
       this.paused = snapshot.paused || (this.model.realtime() && snapshot.state.phase !== 0);
       this.confirmExit = false; this.dragging = false; this.effectsEnabled = !this.blocked();
       this.feedbackKind = 0; this.feedbackGain = 0; this.feedbackSerial++; this.sync(false); return true;

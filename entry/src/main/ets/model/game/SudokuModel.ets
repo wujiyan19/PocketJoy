@@ -303,7 +303,7 @@ export class SudokuRules {
     return candidate;
   }
 
-  private isValidAt(grid: number[], r: number, c: number, v: number): boolean {
+  isValidAt(grid: number[], r: number, c: number, v: number): boolean {
     for (let i = 0; i < 9; i++) {
       if (i !== c && grid[r * 9 + i] === v) { return false; }
       if (i !== r && grid[i * 9 + c] === v) { return false; }

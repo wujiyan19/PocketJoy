@@ -30,7 +30,12 @@ export struct ExpansionSortingBoard {
     if (event.touches.length === 0) { return; }
     const x: number = event.touches[0].x / this.arenaScale(); const y: number = event.touches[0].y / this.arenaScale();
     if (event.type === TouchType.Down) {
-      const node: ExpansionPiece | undefined = this.vm.state.pieces.find((p: ExpansionPiece) => Math.hypot(p.x - x, p.y - y) < 28);
+      let nearest: number = Math.max(32, 24 / this.arenaScale());
+      let node: ExpansionPiece | undefined = undefined;
+      for (const piece of this.vm.state.pieces) {
+        const distance: number = Math.hypot(piece.x - x, piece.y - y);
+        if (distance < nearest) { nearest = distance; node = piece; }
+      }
       if (node) { this.vm.setDragging(false); this.vm.tap(node.id); this.vm.setDragging(true); }
     } else if (event.type === TouchType.Move && this.vm.dragging) { this.vm.aim(x, y); }
   }
@@ -45,26 +50,30 @@ export struct ExpansionSortingBoard {
   @Builder
   Bus(index: number, parked: boolean) {
     Column({ space: SpacingTokens.xs }) {
-      Image(ExpansionArt.bus(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color - 1)).width('100%').height(55).objectFit(ImageFit.Contain)
-        .accessibilityText(this.colorName(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color))
-      Text(this.symbol(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color))
-        .fontColor(SemanticColors.textPrimary).fontSize(FontTokens.sizeBodyLarge)
       Row({ space: SpacingTokens.xs }) {
-        ForEach(range(3), (seat: number) => {
-          Text(seat < this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].w ? '●' : '○')
-            .fontColor(this.color(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color)).fontSize(FontTokens.sizeSubtitle)
-        }, (seat: number) => seat.toString())
+        Image(ExpansionArt.bus(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color - 1))
+          .width(40).height(32).objectFit(ImageFit.Contain)
+        Text(this.symbol(this.vm.state.pieces[parked ? this.vm.state.tray[index] : index].color))
+          .fontColor(SemanticColors.textPrimary).fontSize(FontTokens.sizeBodyLarge)
       }
-    }.width('100%').padding(SpacingTokens.sm).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
+      if (parked) {
+        Row({ space: SpacingTokens.xs }) {
+          ForEach(range(3), (seat: number) => {
+            Text(seat < this.vm.state.pieces[this.vm.state.tray[index]].w ? '●' : '○')
+              .fontColor(this.color(this.vm.state.pieces[this.vm.state.tray[index]].color)).fontSize(FontTokens.sizeCaption)
+          }, (seat: number) => seat.toString())
+        }
+      }
+    }.width('100%').padding(SpacingTokens.xs).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
   }
   @Builder
   Buses() {
-    Column({ space: SpacingTokens.base }) {
+    Column({ space: SpacingTokens.sm }) {
       Text($r('app.string.expansion_passenger_queue')).fontColor(SemanticColors.textSecondary)
       Row({ space: SpacingTokens.sm }) {
         ForEach(range(Math.min(9, this.vm.state.board.length - this.vm.state.cursor)), (index: number) => {
           Column({ space: SpacingTokens.xs }) {
-            Image(ExpansionArt.person(this.vm.state.board[this.vm.state.cursor + index] - 1)).objectFit(ImageFit.Contain).height(40).width('100%')
+            Image(ExpansionArt.person(this.vm.state.board[this.vm.state.cursor + index] - 1)).objectFit(ImageFit.Contain).height(30).width('100%')
             Text(this.symbol(this.vm.state.board[this.vm.state.cursor + index])).fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textPrimary)
           }.layoutWeight(1).accessibilityGroup(true)
             .accessibilityText(this.colorName(this.vm.state.board[this.vm.state.cursor + index]))
@@ -75,7 +84,7 @@ export struct ExpansionSortingBoard {
         ForEach(range(3), (slot: number) => {
           Column() {
             if (slot < this.vm.state.tray.length) { this.Bus(slot, true) }
-            else { Text('○').fontColor(SemanticColors.textSecondary).height(76).width('100%').textAlign(TextAlign.Center) }
+            else { Text('○').fontColor(SemanticColors.textSecondary).height(58).width('100%').textAlign(TextAlign.Center) }
           }.layoutWeight(1).border({ width: 1, color: SemanticColors.border }).borderRadius(RadiusTokens.sm)
         }, (slot: number) => slot.toString())
       }.width('100%')
@@ -88,7 +97,8 @@ export struct ExpansionSortingBoard {
               if (pos >= this.vm.state.data[lane]) {
                 Button({ type: ButtonType.Normal }) { this.Bus(lane * 4 + pos, false) }
                   .width('100%').padding(0).backgroundColor(SemanticColors.surface)
-                  .opacity(pos === this.vm.state.data[lane] ? 1 : 0.4)
+                  .borderRadius(RadiusTokens.sm).border({ width: pos === this.vm.state.data[lane] ? 2 : 0, color: SemanticColors.primary })
+                  .id('bus-lane-' + lane + '-' + pos)
                   .enabled(pos === this.vm.state.data[lane] && this.vm.state.tray.length < 3)
                   .accessibilityText($r('app.string.expansion_launch_bus', lane + 1, pos + 1))
                   .onClick(() => { this.vm.tap(lane); })
@@ -114,11 +124,13 @@ export struct ExpansionSortingBoard {
                     .padding({ left: SpacingTokens.xs, right: SpacingTokens.xs })
                     .backgroundColor($r('app.color.color_cue_background')).borderRadius(RadiusTokens.xs)
                 }.width('100%').height(24).opacity(this.vm.state.board[col * 8 + 7 - row] > 0 ? 1 : 0)
+                  .borderRadius(RadiusTokens.xs).border({ width: this.vm.state.board[col * 8 + 7 - row] > 0 &&
+                    (row === 0 || this.vm.state.board[col * 8 + 8 - row] === 0) ? 2 : 0, color: SemanticColors.primary })
               }, (row: number) => row.toString())
-              Text('↓').fontColor(SemanticColors.textPrimary)
+
             }.width('100%').padding(SpacingTokens.xs)
           }.layoutWeight(1).padding(0).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
-            .accessibilityText($r('app.string.expansion_unwind_column', col + 1)).onClick(() => { this.vm.tap(col); })
+            .id('yarn-column-' + col).accessibilityText($r('app.string.expansion_unwind_column', col + 1)).onClick(() => { this.vm.tap(col); })
         }, (col: number) => col.toString())
       }.width('100%')
       Text($r('app.string.expansion_choose_reel')).fontColor(SemanticColors.textSecondary)
@@ -132,7 +144,7 @@ export struct ExpansionSortingBoard {
             }.padding(SpacingTokens.sm)
           }.layoutWeight(1).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.sm)
             .border({ width: this.vm.state.selected === reel ? 2 : 1, color: this.vm.state.selected === reel ? SemanticColors.primary : SemanticColors.border })
-            .accessibilityText($r('app.string.expansion_reel', reel + 1)).onClick(() => { this.vm.choose(reel); })
+            .id('yarn-reel-' + reel).accessibilityText($r('app.string.expansion_reel', reel + 1)).onClick(() => { this.vm.choose(reel); })
         }, (reel: number) => reel.toString())
       }.width('100%')
     }.width('100%')
@@ -175,22 +187,34 @@ export struct ExpansionSortingBoard {
       }.width('100%')
     }.width('100%')
   }
+  knotDiameter(point: ExpansionPiece): number {
+    let diameter: number = 42;
+    for (const other of this.vm.state.pieces) {
+      if (other.id !== point.id) { diameter = Math.min(diameter, Math.hypot(other.x - point.x, other.y - point.y)); }
+    }
+    return Math.max(36, diameter);
+  }
   @Builder
   Knots() {
     Stack({ alignContent: Alignment.TopStart }) {
       ForEach(range(this.vm.state.board.length / 2), (edge: number) => {
         Line().width('100%').height('100%').startPoint(this.point(this.vm.state.board[edge * 2])).endPoint(this.point(this.vm.state.board[edge * 2 + 1]))
-          .strokeWidth(3).stroke(this.vm.crossingEdges().includes(edge * 2) ? SemanticColors.warning : SemanticColors.primary)
+          .strokeWidth(this.vm.dragging && (this.vm.state.board[edge * 2] === this.vm.state.selected ||
+            this.vm.state.board[edge * 2 + 1] === this.vm.state.selected) ? 6 : 3)
+          .stroke(this.vm.crossingEdges().includes(edge * 2) ? SemanticColors.warning : SemanticColors.primary)
           .hitTestBehavior(HitTestMode.None)
       }, (edge: number) => edge.toString())
       ForEach(this.vm.worldPieces, (rendered: ExpansionRenderPiece) => {
-        Text((rendered.id + 1).toString()).width(36 * this.arenaScale()).height(36 * this.arenaScale()).textAlign(TextAlign.Center)
-          .fontSize(FontTokens.sizeBodyLarge).fontColor(SemanticColors.textOnPrimary).backgroundColor(SemanticColors.primary)
-          .borderRadius(18 * this.arenaScale()).border({ width: this.vm.state.selected === rendered.id ? 3 : 0, color: SemanticColors.warning })
-          .translate({ x: (rendered.piece.x - 18) * this.arenaScale(), y: (rendered.piece.y - 18) * this.arenaScale() })
-          .accessibilityText($r('app.string.expansion_node', rendered.id + 1)).hitTestBehavior(HitTestMode.None)
+        Stack() {
+          Text((rendered.id + 1).toString()).width(this.knotDiameter(rendered.piece) * this.arenaScale()).aspectRatio(1).textAlign(TextAlign.Center)
+            .fontSize(Math.max(FontTokens.sizeBodyLarge, Math.min(FontTokens.sizeTitle, SpacingTokens.lg * this.arenaScale())))
+            .fontWeight(FontWeight.Bold).fontColor(SemanticColors.textOnPrimary).backgroundColor(SemanticColors.primary)
+            .borderRadius(RadiusTokens.full).border({ width: this.vm.state.selected === rendered.id ? 3 : 1, color: this.vm.state.selected === rendered.id ? SemanticColors.warning : SemanticColors.surface })
+            .id('knot-node-' + rendered.id).accessibilityText($r('app.string.expansion_node', rendered.id + 1))
+        }.width(42 * this.arenaScale()).height(42 * this.arenaScale())
+          .translate({ x: (rendered.piece.x - 21) * this.arenaScale(), y: (rendered.piece.y - 21) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
       }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
     }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
-      .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); }).onTouch((event: TouchEvent) => { this.touch(event); })
+      .id('knot-board').onAreaChange((oldArea: Area, area: Area) => { this.measure(area); }).onTouch((event: TouchEvent) => { this.touch(event); })
   }
 }

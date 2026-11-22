@@ -1,6 +1,78 @@
 {
   "string": [
     {
+      "name": "groupclear_points",
+      "value": "得分 %d / %d"
+    },
+    {
+      "name": "mahjong_pair_face_5",
+      "value": "中"
+    },
+    {
+      "name": "mahjong_pair_face_4",
+      "value": "东"
+    },
+    {
+      "name": "mahjong_pair_face_3",
+      "value": "三条"
+    },
+    {
+      "name": "mahjong_pair_face_2",
+      "value": "二筒"
+    },
+    {
+      "name": "mahjong_pair_face_1",
+      "value": "一万"
+    },
+    {
+      "name": "restaurant_prepare",
+      "value": "点此备餐"
+    },
+    {
+      "name": "restaurant_serve",
+      "value": "点此上菜"
+    },
+    {
+      "name": "rhythm_errors",
+      "value": "失误 %d / 5"
+    },
+    {
+      "name": "room_tower_max",
+      "value": "满级"
+    },
+    {
+      "name": "room_tower_upgrade",
+      "value": "升级 %d"
+    },
+    {
+      "name": "room_tower_build",
+      "value": "建造 %d"
+    },
+    {
+      "name": "fisheat_steer",
+      "value": "拖动金环小鱼，避开红色虚线环"
+    },
+    {
+      "name": "runner_lane",
+      "value": "跑道 %d / 3"
+    },
+    {
+      "name": "screwout_steps",
+      "value": "剩余木板 %d 块 · 步数 %d"
+    },
+    {
+      "name": "fruitmerge_chain",
+      "value": "合成顺序"
+    },
+    {
+      "name": "bubble_aim_instruction",
+      "value": "点场地瞄准并发射"
+    },
+    {
+      "name": "tilestack_depth",
+      "value": "%d 层"
+    },
+    {
       "name": "home_daily_greeting",
       "value": "今日寄语"
     },
@@ -357,32 +429,76 @@
       "value": "俄罗斯方块"
     },
     {
+      "name": "game2048_history_compact",
+      "value": "历史最高 %d"
+    },
+    {
+      "name": "game2048_swipe_hint",
+      "value": "向四个方向滑动，合并相同数字"
+    },
+    {
       "name": "game_2048_name",
       "value": "2048"
+    },
+    {
+      "name": "whack_begin",
+      "value": "开始挑战"
     },
     {
       "name": "game_whackmole_name",
       "value": "打地鼠"
     },
     {
+      "name": "mine_reveal_mode",
+      "value": "揭开"
+    },
+    {
+      "name": "mine_flag_mode",
+      "value": "插旗"
+    },
+    {
       "name": "game_minesweeper_name",
       "value": "扫雷"
+    },
+    {
+      "name": "sudoku_hint_closed",
+      "value": "解题提示 ▾"
     },
     {
       "name": "game_sudoku_name",
       "value": "数独"
     },
     {
+      "name": "slide_order_goal",
+      "value": "按顺序排好 1–%d，空格留在右下"
+    },
+    {
+      "name": "slide_move_legend",
+      "value": "点按蓝框或滑向空格 · 绿底表示已归位"
+    },
+    {
       "name": "game_slidepuzzle_name",
       "value": "滑动拼图"
+    },
+    {
+      "name": "klotski_drag_hint",
+      "value": "拖动棋子，将曹操移至下方出口"
     },
     {
       "name": "game_klotski_name",
       "value": "华容道"
     },
     {
+      "name": "guess_ab_legend",
+      "value": "A：数字和位置都对　B：数字对，位置不同"
+    },
+    {
       "name": "game_guessnumber_name",
       "value": "猜数字"
+    },
+    {
+      "name": "memory_pairs_label",
+      "value": "已配对"
     },
     {
       "name": "game_memorycard_name",
@@ -414,7 +530,7 @@
     },
     {
       "name": "game_slidepuzzle_desc",
-      "value": "移动方块还原完整图片"
+      "value": "移动数字块，把它们按从小到大的顺序排好。"
     },
     {
       "name": "game_klotski_desc",
@@ -502,7 +618,7 @@
     },
     {
       "name": "game_minesweeper_subtitle",
-      "value": "长按插旗 · 点击揭开"
+      "value": "长按未揭开的格子也可插旗"
     },
     {
       "name": "game_sudoku_subtitle",
@@ -530,7 +646,11 @@
     },
     {
       "name": "game_tetris_drop",
-      "value": "加速下落"
+      "value": "落到底"
+    },
+    {
+      "name": "tetris_next_piece",
+      "value": "下一块 · %s"
     },
     {
       "name": "result_game_over",
@@ -849,6 +969,10 @@
       "value": "平台"
     },
     {
+      "name": "brick_drag_strip",
+      "value": "↔ 滑动控制挡板"
+    },
+    {
       "name": "game_brickbreaker_name",
       "value": "打砖块"
     },
@@ -893,8 +1017,12 @@
       "value": "小球"
     },
     {
+      "name": "match3_swap_hint",
+      "value": "滑向相邻宝石，或依次点选两颗"
+    },
+    {
       "name": "game_match3_name",
-      "value": "消消乐"
+      "value": "宝石三消"
     },
     {
       "name": "game_match3_desc",
@@ -1418,7 +1546,7 @@
     },
     {
       "name": "game_arithmetic_rules",
-      "value": "先选择心算、比大小、数列、二进制或补数模式。每局十题，答对计分；每种模式按难度分别记录成绩，原有最高分保留。"
+      "value": "算出题面上的加法、减法或乘法，点选正确数字。每轮十题，答对计分，各题型和难度分别记录成绩。"
     },
     {
       "name": "game_compare_name",
@@ -1454,7 +1582,7 @@
     },
     {
       "name": "game_binary_rules",
-      "value": "将带下标 ₂ 的二进制数转换成十进制，选择正确答案。共 10 题；难度越高，数字范围越大。"
+      "value": "将题面上的二进制数转换成十进制，选择正确答案。共 10 题，难度越高，数字范围越大。"
     },
     {
       "name": "game_targetsum_name",
@@ -1602,7 +1730,7 @@
     },
     {
       "name": "game_bubbleshooter_name",
-      "value": "泡泡龙"
+      "value": "彩泡弹射"
     },
     {
       "name": "game_bubbleshooter_desc",
@@ -1706,7 +1834,7 @@
     },
     {
       "name": "game_fisheat_rules",
-      "value": "点击或拖动水面引导小鱼，吃掉更小的鱼获得成长。碰到明显比自己大的鱼会失败，吃够目标数量即可通关。"
+      "value": "点击或拖动水面引导金环小鱼，吃掉没有红色虚线环的鱼。碰到带红色虚线环的大鱼会失败。鱼群会随你长大而变化，吃够目标数量即可获胜。"
     },
     {
       "name": "game_sokoban_name",
@@ -1714,11 +1842,127 @@
     },
     {
       "name": "game_sokoban_desc",
-      "value": "使用方向按钮移动，将所有箱子推到圆点目标上"
+      "value": "在 12 道固定关卡或随机棋盘中，把箱子推到对应目标。"
     },
     {
       "name": "game_sokoban_rules",
-      "value": "使用方向按钮移动，将所有箱子推到圆点目标上。每次只能推一个箱子，不能拉箱子。卡住时可撤销或重新开始。"
+      "value": "用方向按钮移动，每次只能向前推一个箱子。卡住时可以撤销或重试。闯关中，人和箱子都要顺着箭头进入箭头格，★ 箱要推到 ☆ 目标。"
+    },
+    {
+      "name": "sokoban_campaign",
+      "value": "闯关"
+    },
+    {
+      "name": "sokoban_random",
+      "value": "随机"
+    },
+    {
+      "name": "sokoban_level_number",
+      "value": "第 %1$d 关"
+    },
+    {
+      "name": "sokoban_level_progress",
+      "value": "已通关 %1$d / %2$d"
+    },
+    {
+      "name": "sokoban_select_level",
+      "value": "选关"
+    },
+    {
+      "name": "sokoban_change_board_confirm",
+      "value": "切换后会从新棋盘的起点开始。"
+    },
+    {
+      "name": "sokoban_level_cleared",
+      "value": "第 %1$d 关通关"
+    },
+    {
+      "name": "sokoban_all_cleared",
+      "value": "全部 %1$d 关已通关"
+    },
+    {
+      "name": "sokoban_next_level",
+      "value": "下一关"
+    },
+    {
+      "name": "sokoban_retry_level",
+      "value": "重玩本关"
+    },
+    {
+      "name": "sokoban_board_status",
+      "value": "归位 %1$d/%2$d · 步数 %3$d"
+    },
+    {
+      "name": "sokoban_legend_arrow",
+      "value": "◎ 箱子目标　→ 顺向进入"
+    },
+    {
+      "name": "sokoban_legend_star",
+      "value": "◎ 普通目标　★ → ☆ 星标配对"
+    },
+    {
+      "name": "sokoban_legend_combined",
+      "value": "★ → ☆ 星标配对　→ 顺向进入"
+    },
+    {
+      "name": "sokoban_controls_restart",
+      "value": "重开"
+    },
+    {
+      "name": "sokoban_controls_undo",
+      "value": "撤销"
+    },
+    {
+      "name": "sokoban_level_current",
+      "value": "当前关卡"
+    },
+    {
+      "name": "sokoban_level_completed",
+      "value": "已通关"
+    },
+    {
+      "name": "sokoban_level_locked",
+      "value": "未解锁"
+    },
+    {
+      "name": "sokoban_random_play",
+      "value": "进入随机模式"
+    },
+    {
+      "name": "sokoban_cell_wall",
+      "value": "墙"
+    },
+    {
+      "name": "sokoban_cell_floor",
+      "value": "地面"
+    },
+    {
+      "name": "sokoban_cell_goal",
+      "value": "圆形目标"
+    },
+    {
+      "name": "sokoban_cell_star_goal",
+      "value": "星形目标"
+    },
+    {
+      "name": "sokoban_cell_arrow",
+      "value": "单向地砖，%1$s"
+    },
+    {
+      "name": "sokoban_cell_player",
+      "value": "机器人"
+    },
+    {
+      "name": "sokoban_cell_box",
+      "value": "木箱"
+    },
+    {
+      "name": "sokoban_cell_star_box",
+      "value": "星标箱"
+    },
+    {
+      "name": "sokoban_swipe_hint",
+      "value": "在棋盘上滑动即可移动"
     },
     {
       "name": "game_pipes_name",
@@ -1925,6 +2169,10 @@
       "value": "按住左右按钮移动，点击跳跃跨过平台间隙。落到平台上后可以再次起跳，到达终点旗帜获胜，掉出画面失败。"
     },
     {
+      "name": "grapple_attached",
+      "value": "已挂钩"
+    },
+    {
       "name": "game_grapple_name",
       "value": "钩索摆荡"
     },
@@ -1949,6 +2197,10 @@
       "value": "点击开始后，点击振翅向上飞，松开后受重力下落。穿过每组柱子的空隙，达到目标组数获胜，碰柱或越过上下边界失败。"
     },
     {
+      "name": "fruitslice_swipe_hint",
+      "value": "划过水果，避开炸弹"
+    },
+    {
       "name": "game_fruitslice_name",
       "value": "切水果"
     },
@@ -1959,6 +2211,10 @@
     {
       "name": "game_fruitslice_rules",
       "value": "开始后在游戏区滑动切开抛出的水果。刀路可以连切多颗，每颗获得五十分。切中炸弹、漏掉五颗水果或六十秒未达目标失败。"
+    },
+    {
+      "name": "rolling_touch_guide",
+      "value": "在场地内拖动，球会滚向手指"
     },
     {
       "name": "game_rollingball_name",
@@ -1974,7 +2230,7 @@
     },
     {
       "name": "game_shooter_name",
-      "value": "雷电战机"
+      "value": "纵向战机"
     },
     {
       "name": "game_shooter_desc",
@@ -1982,7 +2238,11 @@
     },
     {
       "name": "game_shooter_rules",
-      "value": "点击开始后拖动战机躲避敌机，战机会持续向上开火。消灭规定波次获胜；敌机碰到战机或越过防线扣除生命，三次失守失败。"
+      "value": "拖动战机躲避敌机，战机会自动向上开火。撑过全部敌机来袭且仍有生命即可获胜。敌机撞上战机或越过防线各扣一条生命，第三次失守时本局结束。"
+    },
+    {
+      "name": "tanks_steer_hint",
+      "value": "在空地拖动车身，炮塔自动射击"
     },
     {
       "name": "game_tanks_name",
@@ -1997,6 +2257,18 @@
       "value": "拖动坦克避开障碍、追击和炮弹，炮台自动瞄准最近敌军。掩体会挡住双方炮弹，绕过或借助掩体选择射线，清完敌军获胜。"
     },
     {
+      "name": "fortress_firepower",
+      "value": "火力 %1$d · 金币 %2$d"
+    },
+    {
+      "name": "fortress_max",
+      "value": "火力已满"
+    },
+    {
+      "name": "fortress_wall_health",
+      "value": "城防 %d / 100"
+    },
+    {
       "name": "game_fortress_name",
       "value": "射击守城"
     },
@@ -2009,6 +2281,22 @@
       "value": "点击敌人附近发射炮弹，命中后对周围敌军造成范围伤害。击败敌人赚取金币，可花二十金币升级火力。清空敌军获胜，城门生命归零失败。"
     },
     {
+      "name": "survival_points_cost",
+      "value": "升级点 %d · 每项消耗 20"
+    },
+    {
+      "name": "survival_power_tier",
+      "value": "攻击 %d/3"
+    },
+    {
+      "name": "survival_rate_tier",
+      "value": "射速 %d/3"
+    },
+    {
+      "name": "survival_restore_one",
+      "value": "回血 +1"
+    },
+    {
       "name": "game_survival_name",
       "value": "自动攻击生存"
     },
@@ -2018,7 +2306,7 @@
     },
     {
       "name": "game_survival_rules",
-      "value": "拖动躲避不同速度与耐力的敌人，武器自动攻击。击败敌人得到升级点，可选择增加攻击、提高射速或恢复生命。清完敌潮获胜，生命耗尽结束。"
+      "value": "拖动角色躲开敌群，武器会自动攻击。留意从侧面逼近的耐力型敌人。击败敌人获得升级点，可增加攻击、提高射速或恢复生命。清完敌潮获胜，生命耗尽时本局结束。"
     },
     {
       "name": "game_backpack_name",
@@ -2055,6 +2343,10 @@
     {
       "name": "game_penalty_rules",
       "value": "点击开始，观察来回移动的门将，再点击球门内的落点射门。球通过门线且避开门将算进球，八次射门进五球获胜。"
+    },
+    {
+      "name": "pingpong_control_band",
+      "value": "↔ 滑动蓝色挡板"
     },
     {
       "name": "game_pingpong_name",
@@ -2105,6 +2397,10 @@
       "value": "每局都会生成不同的平滑赛道。点击开始后汽车自动横向滑行，点击漂移切换左右方向。保持整辆车在道路内，坚持到倒计时结束获胜，驶出道路失败。重新开局更换赛道，续玩保留当前赛道。"
     },
     {
+      "name": "hill_reading",
+      "value": "速度 %1$d · 坡度 %2$d°"
+    },
+    {
       "name": "game_hillclimb_name",
       "value": "爬坡越野"
     },
@@ -2114,7 +2410,7 @@
     },
     {
       "name": "game_hillclimb_rules",
-      "value": "按住油门加速，按住刹车减速，利用地形起伏越过山坡。抵达目标距离获胜；燃油用尽或重落地失败。松开按钮停止加速。"
+      "value": "按住油门加速，松开油门或按住刹车减速。普通和困难赛道的坡顶较陡，请提前收油，必要时刹车。抵达终点获胜，燃油耗尽或重重落地则失败。"
     },
     {
       "name": "game_airhockey_name",
@@ -2189,6 +2485,14 @@
       "value": "使用一百三十六张牌的离线四人麻将，无花牌、番数或分值结算。点选手牌后再点一次弃牌；可吃上家的牌、碰、明杠和暗杠，杠后补牌。四组面子加一对或七对可和牌，牌墙耗尽流局。"
     },
     {
+      "name": "xiangqi_chu_river",
+      "value": "楚河"
+    },
+    {
+      "name": "xiangqi_han_border",
+      "value": "汉界"
+    },
+    {
       "name": "game_xiangqi_name",
       "value": "中国象棋"
     },
@@ -2199,6 +2503,10 @@
     {
       "name": "game_xiangqi_rules",
       "value": "你执红方对战电脑。点击棋子，再点击高亮的合法落点，支持蹩马腿、塞象眼、炮隔子、过河兵和九宫限制。不能让己方将帅被攻击或将帅照面，将死或困毙对方获胜，重复局面三次和棋。"
+    },
+    {
+      "name": "chess_promotion_choice",
+      "value": "升变预选 %s ▾"
     },
     {
       "name": "game_chess_name",
@@ -2225,6 +2533,14 @@
       "value": "你操控蓝色四架飞机与三名电脑对战。掷出六才能起飞，六点可再行动。外圈同色格向前跳四格，踩中敌机会送回基地；进入跑道后超出终点会折返。四架飞机先全部到达终点获胜。"
     },
     {
+      "name": "spider_sets_done",
+      "value": "完成套数 %d / 8"
+    },
+    {
+      "name": "spider_columns_hint",
+      "value": "横滑查看全部 10 列"
+    },
+    {
       "name": "game_spider_name",
       "value": "蜘蛛纸牌"
     },
@@ -2235,6 +2551,18 @@
     {
       "name": "game_spider_rules",
       "value": "单花色一百零四张蜘蛛纸牌。选择一组明牌递减序列，再点击目标列；目标顶牌需大一点，空列可放任意序列。完成从 K 到 A 的十三张明牌后自动收走，收齐八组获胜。各列均非空时可从牌库给每列发一张。"
+    },
+    {
+      "name": "freecell_reserve",
+      "value": "暂存区"
+    },
+    {
+      "name": "freecell_foundations",
+      "value": "花色归位区"
+    },
+    {
+      "name": "freecell_columns_hint",
+      "value": "横滑查看全部 8 列 · 空位决定可移动牌组长度"
     },
     {
       "name": "game_freecell_name",
@@ -2283,6 +2611,10 @@
     {
       "name": "game_linerescue_rules",
       "value": "先在画面中拖动画出保护线，再点击开始。保护线会阻挡追逐小狗的蜜蜂，总长度不能超过六百五十。坚持十秒获胜，蜜蜂接触小狗失败；开始前可清除重画。"
+    },
+    {
+      "name": "picture_reference_grid",
+      "value": "参照网格"
     },
     {
       "name": "game_picturepuzzle_name",
@@ -2369,6 +2701,22 @@
       "value": "在五乘五房间中布置沙发、茶几、绿植和灯，家具占格和价格各不相同。预算二十金币，完成一张沙发、两盆绿植、一盏灯及沙发旁的茶几四个目标获胜。出售工具可移走家具并退还费用。"
     },
     {
+      "name": "fishing_summary",
+      "value": "钓获 %1$d/%2$d · 失误 %3$d/3 · 本局钓获 %4$d 种"
+    },
+    {
+      "name": "fishing_summary_legacy",
+      "value": "钓获 %1$d/%2$d · 失误 %3$d/3"
+    },
+    {
+      "name": "fishing_reel_percent",
+      "value": "收线 %s"
+    },
+    {
+      "name": "fishing_tension_points",
+      "value": "张力 %d / 100 点"
+    },
+    {
       "name": "game_fishing_name",
       "value": "休闲钓鱼"
     },
@@ -2426,7 +2774,7 @@
     },
     {
       "name": "expansion_choose_reel",
-      "value": "选择一个卷轴，再点击毛线柱"
+      "value": "先选卷轴，再收线柱顶端有框的线团"
     },
     {
       "name": "expansion_reel",
@@ -2450,15 +2798,15 @@
     },
     {
       "name": "module_desc",
-      "value": "玩趣盒 - 六大分类，64 款单人小游戏"
+      "value": "玩趣盒 - 六大分类，60 款单人小游戏"
     },
     {
       "name": "app_splash_subtitle",
-      "value": "64 款单人小游戏，随手开一局。"
+      "value": "60 款单人小游戏，随手开一局。"
     },
     {
       "name": "settings_about_tagline",
-      "value": "六大分类，64 款单人小游戏"
+      "value": "六大分类，60 款单人小游戏"
     },
     {
       "name": "expansion_target",
@@ -2478,7 +2826,7 @@
     },
     {
       "name": "expansion_fruitslice_errors",
-      "value": "失误 %d / 5"
+      "value": "漏接水果 %d / 5"
     },
     {
       "name": "expansion_shots",
@@ -2566,7 +2914,7 @@
     },
     {
       "name": "expansion_controls_hint",
-      "value": "选择拼块，再点击棋盘放置"
+      "value": "选拼块，再点棋盘上对应圆点的位置"
     },
     {
       "name": "expansion_left",
@@ -3014,7 +3362,7 @@
     },
     {
       "name": "game_snake_rules",
-      "value": "点击方向键开始并控制小蛇移动，吃到食物可得分并变长。不能直接反向转弯，撞到边界或自身会结束游戏。难度越高，移动越快。可在设置中暂停、继续或重开。"
+      "value": "滑动棋盘或按方向键开始和转向。吃到食物会得分并变长，不能直接掉头。撞到边界或蛇身会结束游戏。难度越高，移动越快。可在设置中暂停、继续或重开。"
     },
     {
       "name": "game_tetris_rules",
@@ -3038,7 +3386,7 @@
     },
     {
       "name": "game_slidepuzzle_rules",
-      "value": "点击空白格旁的数字方块，将它移动到空白位置。按从左到右、从上到下的顺序排列所有数字，并将空白格放在最后即可完成。尽量减少移动步数。可在设置中调整难度或重开。"
+      "value": "点按空格旁的数字块，或向空格滑动它。按从左到右、从上到下排列数字，把空格留在最后。每种棋盘尺寸单独记录最佳步数。"
     },
     {
       "name": "game_klotski_rules",
@@ -3062,7 +3410,7 @@
     },
     {
       "name": "game_match3_rules",
-      "value": "依次点击相邻的两个宝石交换位置，横向或纵向连成三个及以上相同宝石即可消除得分。不能形成连线的交换会还原，连锁消除可获得更多分数。在步数用完前达到目标分数即可获胜。可在设置中重新开始。"
+      "value": "滑向相邻宝石或依次点选两颗即可交换。横向或纵向连成至少三颗相同宝石时消除并消耗一步，连锁消除可继续得分。不能消除的交换不扣步数。用 30 步挑战最高分。"
     },
     {
       "name": "game_settings_restart_confirm",
@@ -3734,7 +4082,7 @@
     },
     {
       "name": "toy_drift_hint",
-      "value": "观察前方弯道，点击漂移切换左右滑行方向"
+      "value": "点赛道或漂移键换向，车上箭头表示当前滑向"
     },
     {
       "name": "toy_drift_car",
@@ -3846,7 +4194,7 @@
     },
     {
       "name": "fishing_log",
-      "value": "本局已钓鱼种：%d / 6"
+      "value": "本局钓获 %d 种鱼"
     },
     {
       "name": "sudoku_rating_0",
@@ -3874,7 +4222,7 @@
     },
     {
       "name": "snake_start_hint",
-      "value": "按方向键开始"
+      "value": "滑动棋盘或按方向键开始"
     },
     {
       "name": "a11y_tetris_rotate",
@@ -3887,6 +4235,118 @@
     {
       "name": "a11y_tetris_board",
       "value": "得分%1$d，等级%2$d，当前方块左上角第%3$d行第%4$d列"
+    },
+    {
+      "name": "lights_status",
+      "value": "已用 %1$d 步 · 剩余亮灯 %2$d"
+    },
+    {
+      "name": "lights_goal",
+      "value": "点一盏灯会翻转它和上下左右的灯，将全部灯熄灭。"
+    },
+    {
+      "name": "flood_region",
+      "value": "从左上角扩张 · 已连通 %1$d/%2$d 格"
+    },
+    {
+      "name": "flood_choose_color",
+      "value": "选择颜色 %1$d"
+    },
+    {
+      "name": "maze_move_hint",
+      "value": "带机器人抵达出口。滑动、点相邻通道或按箭头，每次走一格。"
+    },
+    {
+      "name": "collection_elapsed_no_best",
+      "value": "用时 %1$s 秒 · 个人最佳 —"
+    },
+    {
+      "name": "peg_status",
+      "value": "剩余 %1$d 枚棋子 · 已用 %2$d 步"
+    },
+    {
+      "name": "peg_hint",
+      "value": "选中棋子，跳过相邻的一枚，落在 ◎ 标出的空穴。目标是只剩一枚。"
+    },
+    {
+      "name": "math_short_compare",
+      "value": "比大小"
+    },
+    {
+      "name": "math_short_sequence",
+      "value": "数列"
+    },
+    {
+      "name": "math_short_binary",
+      "value": "进制"
+    },
+    {
+      "name": "math_short_sum",
+      "value": "补数"
+    },
+    {
+      "name": "math_mode_restart",
+      "value": "切换后会开始该题型的新一轮挑战。"
+    },
+    {
+      "name": "math_binary_hint",
+      "value": "二进制 → 十进制"
+    },
+    {
+      "name": "schulte_wrong",
+      "value": "点到 %1$s，请先找 %2$d。"
+    },
+    {
+      "name": "schulte_start",
+      "value": "按顺序点数字，第一次点格开始计时。"
+    },
+    {
+      "name": "sequence_memorize",
+      "value": "按顺序记住这些数字"
+    },
+    {
+      "name": "reaction_early",
+      "value": "抢跑了"
+    },
+    {
+      "name": "reaction_retry_hint",
+      "value": "信号出现前点了响应区，再试一次。"
+    },
+    {
+      "name": "reaction_best",
+      "value": "个人最佳 %1$d 毫秒"
+    },
+    {
+      "name": "reaction_no_best",
+      "value": "个人最佳 —"
+    },
+    {
+      "name": "reaction_tap_hint",
+      "value": "先点开始，看到「现在点击」时立即点响应区。"
+    },
+    {
+      "name": "puzzle_difficulty_best",
+      "value": "本档最佳"
+    },
+    {
+      "name": "puzzle_legacy_score",
+      "value": "旧版最高分（难度未知）：%d 分"
+    },
+    {
+      "name": "sudoku_full_conflict",
+      "value": "棋盘已填满。检查标出的重复数字，修改可填写的格子。"
+    },
+    {
+      "name": "a11y_sudoku_conflict",
+      "value": "，数字重复"
+    },
+    {
+      "name": "watersort_stuck",
+      "value": "没有可倒出的水层。"
+    },
+    {
+      "name": "mahjongsolitaire_stuck",
+      "value": "剩余的牌互相遮挡，无法通过重排继续。"
     }
   ]
 }

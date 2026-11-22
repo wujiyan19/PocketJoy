@@ -124,7 +124,8 @@ for(const theme of ['base','dark']) {
   const screws=[[17,17],[343,17],[17,443],[343,443]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="${line}"/><path d="M${x-2} ${y}h4" stroke="${edge}" stroke-width="1.5"/>`).join('');
   const grid=Array.from({length:17},(_,i)=>{const p=10+i*21.25;return `<path d="M10 ${p}H350M${p} 10V350" stroke="${line}" stroke-width=".6" opacity=".5"/>`;}).join('');
   const dir=path.join(root,`entry/src/main/resources/${theme}/media`);fs.mkdirSync(dir,{recursive:true});
-  for(const [name,body]of [['toy_screw_board.svg',svg(460,screws)],['toy_parking_board.svg',svg(360,grid)]]){
+  const parking = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360"><rect width="360" height="360" rx="14" fill="${dark?"#344852":"#72848B"}"/><rect x="10" y="10" width="340" height="340" rx="5" fill="${bg}"/>${grid}<rect x="5" y="5" width="350" height="350" rx="10" fill="none" stroke="${dark?"#CFD5C1":"#F7F1D9"}" stroke-width="1.8" stroke-dasharray="9 7"/></svg>\n`;
+  for(const [name,body]of [['toy_screw_board.svg',svg(460,screws)],['toy_parking_board.svg',parking]]){
     fs.writeFileSync(path.join(dir,name),body);assets.push({name:theme+'/'+name,bytes:Buffer.byteLength(body),packaged:true});
   }
 }

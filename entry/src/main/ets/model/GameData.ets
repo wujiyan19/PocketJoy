@@ -656,6 +656,23 @@ export class GameDataManager {
   static getModeTime(mode: string, difficulty: string): number {
     return GameDataManager.modeRecords[mode + ':' + difficulty + ':time'] ?? 0;
   }
+  static getBestCount(id: string, difficulty: GameDifficulty): number {
+    return GameDataManager.modeRecords[id + ':' + difficulty + ':count'] ?? 0;
+  }
+  static getUnclassifiedScore(id: string): number {
+    return GameDataManager.modeRecords[id + ':unclassified:score'] ?? GameDataManager.archivedModeScore(id);
+  }
+  static recordBestCount(id: string, difficulty: GameDifficulty, count: number, incomingUnclassifiedScore: number = 0): void {
+    // Freeze the old total before a new scoped result can improve the all-time score.
+    const oldKey: string = id + ':unclassified:score';
+    GameDataManager.modeRecords[oldKey] = Math.max(GameDataManager.getUnclassifiedScore(id), incomingUnclassifiedScore);
+    if (count > 0) {
+      const best: number = GameDataManager.getBestCount(id, difficulty);
+      GameDataManager.modeRecords[id + ':' + difficulty + ':count'] = best === 0 ? count : Math.min(best, count);
+    }
+    GameDataManager.modeRecordsDirty = true;
+    GameDataManager.markDirty();
+  }
   static archivedModeScore(mode: string): number {
     const game: GameInfo | undefined = GameDataManager.catalog.find((item: GameInfo) => item.id === mode);
     return game?.highScore ?? 0;

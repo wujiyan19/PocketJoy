@@ -11,7 +11,7 @@ const before = m => JSON.stringify(m.state);
 test('catalog: all games are distinct with nonempty categories, bidirectional routes and localized assets', () => {
   const games = f.data().getAllGames(); const categories = f.load('entry/src/main/ets/common/GameConstants.ets').GAME_CATEGORIES;
   const routes = f.load('entry/src/main/ets/router/GameRouteRegistry.ets').GameRoutes;
-  assert.equal(games.length, 64); assert.equal(new Set(games.map(g => g.id)).size, games.length); assert.equal(categories.length, 6);
+  assert.equal(games.length, 60); assert.equal(new Set(games.map(g => g.id)).size, games.length); assert.equal(categories.length, 6);
   for (const cat of categories) assert(games.some(g => g.category === cat));
   for (const g of games) { assert(routes.routeName(g.id)); assert.equal(routes.gameIdForRoute(routes.routeName(g.id)), g.id); }
   assert.equal(routes.routeName('invalid'), ''); assert.equal(routes.gameIdForRoute('Collection_invalid'), '');
@@ -181,6 +181,16 @@ test('reaction continuation resets an active trial without altering the source',
  const vm=f.vm('CollectionViewModel');vm.init('reaction');vm.startGame();vm.tap(0);const snapshot=vm.exportContinuation();
  const target=f.vm('CollectionViewModel');target.init('reaction');assert(target.importContinuation(snapshot));assert.equal(target.state.phase,0);
  assert.equal(vm.exportContinuation(),snapshot);vm.dispose();target.dispose();
+});
+test('reaction keeps elapsed milliseconds for slow trials and reconstructs positive legacy scores',()=>{
+ const local=fixture(), data=local.data(), vm=local.vm('CollectionViewModel');data.init({});
+ vm.init('reaction');vm.startGame();assert.equal(vm.reactionBestMs,-1);
+ vm.tap(0);local.clock.advance(6500);vm.tap(0);
+ const slow=vm.state.answer;assert(slow>=2000);assert.equal(vm.state.score,0);
+ assert.equal(data.getModeTime('reaction','standard'),slow);
+ vm.startGame();assert.equal(vm.reactionBestMs,slow);
+ data.recordMode('reaction','normal',1650);vm.startGame();assert.equal(vm.reactionBestMs,350);
+ vm.dispose();
 });
 
 let passed=0;for(const t of tests){try{t.fn();passed++;}catch(e){console.error('FAIL',t.name);console.error(e.stack);}}

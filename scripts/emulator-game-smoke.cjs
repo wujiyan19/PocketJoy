@@ -71,7 +71,7 @@ const capture = name => {
 };
 const games = [['2048','2048'], ['猜数字','guess'], ['打地鼠','whack'], ['打砖块','brick'],
   ['俄罗斯方块','tetris'], ['华容道','klotski'], ['滑动拼图','slide'], ['记忆翻牌','memory'],
-  ['扫雷','mines'], ['数独','sudoku'], ['贪吃蛇','snake'], ['跳一跳','jump'], ['消消乐','match3'],
+  ['扫雷','mines'], ['数独','sudoku'], ['贪吃蛇','snake'], ['跳一跳','jump'], ['宝石三消','match3'],
   ['井字棋','tictactoe'], ['五子棋','gomoku'], ['翻转棋','reversi'], ['落子四连','fourline'],
   ['取石子','nim'], ['十字熄灯','lights'], ['色块归一','flood'], ['迷宫寻路','maze'],
   ['汉诺塔','hanoi'], ['跳子独留','peg'], ['数字绘格','nonogram'], ['心算十题','arithmetic'],

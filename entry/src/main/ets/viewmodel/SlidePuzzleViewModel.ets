@@ -21,6 +21,8 @@ interface SlidePuzzleContinuationState {
   board: number[];
   steps: number;
   best: number;
+  difficultyBest?: number;
+  unclassifiedScore?: number;
   status: GameStatus;
   difficulty: GameDifficulty;
 }
@@ -30,7 +32,8 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
   @Trace board: number[] = [];
   @Trace steps: number = 0;
   @Trace status: GameStatus = GameStatus.PLAYING;
-  @Trace best: number = 999;
+  @Trace best: number = 0;
+  @Trace unclassifiedScore: number = 0;
   @Trace difficulty: GameDifficulty = GameDataManager.getInitialDifficulty(GAME_ID);
   /** 退出确认弹窗显隐（F2：对局中返回需确认，防误丢步数进度） */
   @Trace confirmExit: boolean = false;
@@ -41,8 +44,8 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
   constructor(rng?: RandomSource) {
     this.rng = rng ?? new RealRandom();
     this.rules = new SlidePuzzleRules(this.getSize());
-    const hs = GameDataManager.getGameById(GAME_ID)?.highScore ?? 0;
-    this.best = hs > 0 ? Math.max(1, 1000 - hs) : 999;
+    this.best = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
   }
 
   getSize(): number {
@@ -60,6 +63,8 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
 
   startGame(): void {
     gameSound.stop(GAME_ID);
+    this.best = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
     this.rules = new SlidePuzzleRules(this.getSize());
     GameDataManager.recordGameStarted(GAME_ID);
     this.board = this.rules.shuffle(this.rng);
@@ -71,6 +76,8 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
     return this.board[r * this.getSize() + c];
   }
 
+  canMove(r: number, c: number): boolean { return this.rules.canMove(this.board, r, c); }
+
   tapCell(r: number, c: number): void {
     if (this.status === GameStatus.OVER) { return; }
     if (!this.rules.canMove(this.board, r, c)) { return; }
@@ -80,13 +87,14 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
     if (this.rules.isSolved(this.board)) {
       gameSound.play(GAME_ID, GameSoundEvent.WIN);
       this.status = GameStatus.OVER;
-      if (this.steps < this.best) { this.best = this.steps; }
+      GameDataManager.recordBestCount(GAME_ID, this.difficulty, this.steps);
+      this.best = GameDataManager.getBestCount(GAME_ID, this.difficulty);
       GameDataManager.updateHighScore(GAME_ID, this.rules.score(this.steps));
     }
   }
 
   getBestText(): string {
-    if (this.best === 999) { return '--'; }
+    if (this.best === 0) { return '--'; }
     return '' + this.best;
   }
 
@@ -96,6 +104,8 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
   }
 
   onAppShown(): void {
+    this.best = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
   }
 
   /** 系统侧滑返回转发（NavDestination.onBackPressed）。进行中弹确认并拦截 */
@@ -134,7 +144,9 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
       version: 1,
       board: this.board,
       steps: this.steps,
-      best: this.best,
+      best: Math.max(1, Math.min(999, 1000 - GameDataManager.archivedModeScore(GAME_ID))),
+      difficultyBest: GameDataManager.getBestCount(GAME_ID, this.difficulty),
+      unclassifiedScore: GameDataManager.getUnclassifiedScore(GAME_ID),
       status: this.status,
       difficulty: this.difficulty
     };
@@ -147,6 +159,9 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
       if (payload.length > 65536) { return false; }
       const s: SlidePuzzleContinuationState = JSON.parse(payload) as SlidePuzzleContinuationState;
       if (s === null || s.version !== 1 || !V.integer(s.steps) ||
+          (s.difficultyBest !== undefined && !V.integer(s.difficultyBest)) ||
+          (s.unclassifiedScore !== undefined && !V.integer(s.unclassifiedScore)) ||
+          ((s.difficultyBest === undefined) !== (s.unclassifiedScore === undefined)) ||
           !V.integer(s.best) ||
           (s.status !== GameStatus.PLAYING && s.status !== GameStatus.PAUSED && s.status !== GameStatus.OVER && s.status !== GameStatus.IDLE) ||
           (s.difficulty !== GameDifficulty.EASY && s.difficulty !== GameDifficulty.NORMAL && s.difficulty !== GameDifficulty.HARD)) { return false; }
@@ -155,7 +170,13 @@ export class SlidePuzzleViewModel implements GameLifecycleObserver {
 
       this.board = s.board;
       this.steps = s.steps;
-      this.best = Math.min(this.best, s.best);
+      const count: number = s.difficultyBest ?? 0;
+      const oldScore: number = s.unclassifiedScore ??
+        (s.best > 0 && s.best < 999 ? this.rules.score(s.best) : 0);
+      GameDataManager.recordBestCount(GAME_ID, s.difficulty, count, oldScore);
+      this.best = GameDataManager.getBestCount(GAME_ID, s.difficulty);
+      this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
+      GameDataManager.updateHighScore(GAME_ID, Math.max(oldScore, count > 0 ? this.rules.score(count) : 0));
       this.status = s.status;
       this.difficulty = s.difficulty;
       this.confirmExit = false;

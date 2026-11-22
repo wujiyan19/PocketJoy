@@ -8,7 +8,7 @@ import { GameDifficulty, GameStatus } from '../common/GameConstants';
 import { ContinuationValidation as V } from '../common/GameSessionTransfer';
 import { GameDataManager } from '../model/GameData';
 import { GameLifecycleObserver } from '../common/GameLifecycleBus';
-import { ActivePiece, TetrisRules } from '../model/game/TetrisModel';
+import { ActivePiece, SHAPES, TetrisRules } from '../model/game/TetrisModel';
 import { RandomSource, RealRandom } from '../model/game/RandomSource';
 import { GameSoundEvent, gameSound } from '../common/GameSound';
 
@@ -28,6 +28,7 @@ interface TetrisContinuationState {
   version: number;
   board: number[][];
   piece: ActivePiece | null;
+  nextIndex?: number;
   score: number;
   highScore: number;
   level: number;
@@ -40,6 +41,7 @@ export class TetrisViewModel implements GameLifecycleObserver {
   /** 棋盘只存数据：0=空，n=第 (n-1) 号形状占据；颜色由 View 查表 */
   @Trace board: number[][] = [];
   @Trace piece: ActivePiece | null = null;
+  @Trace nextIndex: number = -1;
   @Trace score: number = 0;
   @Trace highScore: number = 0;
   @Trace level: number = 1;
@@ -94,6 +96,7 @@ export class TetrisViewModel implements GameLifecycleObserver {
     this.score = 0;
     this.level = 1;
     this.status = GameStatus.PLAYING;
+    this.nextIndex = -1;
     this.spawnPiece();
   }
 
@@ -121,9 +124,16 @@ export class TetrisViewModel implements GameLifecycleObserver {
   }
 
   private spawnPiece(): void {
-    this.piece = this.rules.spawn(this.rng);
+    this.piece = this.nextIndex < 0 ? this.rules.spawn(this.rng) : this.rules.spawnShape(this.nextIndex);
+    this.nextIndex = Math.floor(this.rng.next() * SHAPES.length);
     if (!this.rules.canPlace(this.board, this.piece, 0, 0)) { this.gameOver(); }
     this.updateCells();
+  }
+
+  previewFilled(row: number, col: number): boolean {
+    if (this.nextIndex < 0) { return false; }
+    const shape: number[][] = SHAPES[this.nextIndex][0];
+    return row < shape.length && col < shape[row].length && shape[row][col] !== 0;
   }
 
   /** 每 tick 下落一格；无法再下时锁定。定时器与单测都走这里 */
@@ -301,6 +311,7 @@ export class TetrisViewModel implements GameLifecycleObserver {
       version: 1,
       board: this.board,
       piece: this.piece,
+      nextIndex: this.nextIndex < 0 ? undefined : this.nextIndex,
       score: this.score,
       highScore: this.highScore,
       level: this.level,
@@ -321,13 +332,14 @@ export class TetrisViewModel implements GameLifecycleObserver {
           (s.status !== GameStatus.PLAYING && s.status !== GameStatus.PAUSED && s.status !== GameStatus.OVER && s.status !== GameStatus.IDLE) ||
           (s.difficulty !== GameDifficulty.EASY && s.difficulty !== GameDifficulty.NORMAL && s.difficulty !== GameDifficulty.HARD)) { return false; }
       if (!V.matrix(s.board, ROWS, COLS, 0, 7) || s.level < 1) { return false; }
+      if (s.nextIndex !== undefined && !V.integer(s.nextIndex, 0, SHAPES.length - 1)) { return false; }
       const p: ActivePiece | null = s.piece;
       if (p !== null && (!V.integer(p.idx, 0, 6) || !V.integer(p.rot, 0, this.rules.rotationCount(p.idx) - 1) ||
           !V.integer(p.x, -4, COLS) || !V.integer(p.y, -4, ROWS))) { return false; }
       if (p === null && s.status !== GameStatus.OVER && s.status !== GameStatus.IDLE) { return false; }
       this.stopTimer();
       this.board = s.board;
-      this.piece = s.piece;
+      this.nextIndex = s.nextIndex ?? Math.floor(this.rng.next() * SHAPES.length);
       this.score = s.score;
       this.highScore = Math.max(s.highScore, GameDataManager.getGameById(GAME_ID)?.highScore ?? 0);
       GameDataManager.updateHighScore(GAME_ID, this.highScore);

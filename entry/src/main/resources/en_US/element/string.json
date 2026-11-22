@@ -1,6 +1,78 @@
 {
   "string": [
     {
+      "name": "groupclear_points",
+      "value": "Score %d / %d"
+    },
+    {
+      "name": "mahjong_pair_face_5",
+      "value": "Red"
+    },
+    {
+      "name": "mahjong_pair_face_4",
+      "value": "East"
+    },
+    {
+      "name": "mahjong_pair_face_3",
+      "value": "3 Sou"
+    },
+    {
+      "name": "mahjong_pair_face_2",
+      "value": "2 Pin"
+    },
+    {
+      "name": "mahjong_pair_face_1",
+      "value": "1 Man"
+    },
+    {
+      "name": "restaurant_prepare",
+      "value": "Tap to cook"
+    },
+    {
+      "name": "restaurant_serve",
+      "value": "Tap to serve"
+    },
+    {
+      "name": "rhythm_errors",
+      "value": "Misses: %d / 5"
+    },
+    {
+      "name": "room_tower_max",
+      "value": "Max level"
+    },
+    {
+      "name": "room_tower_upgrade",
+      "value": "Upgrade %d"
+    },
+    {
+      "name": "room_tower_build",
+      "value": "Build %d"
+    },
+    {
+      "name": "fisheat_steer",
+      "value": "Drag the gold-ringed fish. Avoid fish with a dashed red ring."
+    },
+    {
+      "name": "runner_lane",
+      "value": "Lane %d / 3"
+    },
+    {
+      "name": "screwout_steps",
+      "value": "Boards left: %d · Moves: %d"
+    },
+    {
+      "name": "fruitmerge_chain",
+      "value": "Merge order"
+    },
+    {
+      "name": "bubble_aim_instruction",
+      "value": "Tap the field to aim and fire"
+    },
+    {
+      "name": "tilestack_depth",
+      "value": "%d layers"
+    },
+    {
       "name": "home_daily_greeting",
       "value": "A thought for today"
     },
@@ -357,32 +429,76 @@
       "value": "Tetris"
     },
     {
+      "name": "game2048_history_compact",
+      "value": "All-time %d"
+    },
+    {
+      "name": "game2048_swipe_hint",
+      "value": "Swipe in any direction to merge equal numbers"
+    },
+    {
       "name": "game_2048_name",
       "value": "2048"
+    },
+    {
+      "name": "whack_begin",
+      "value": "Start round"
     },
     {
       "name": "game_whackmole_name",
       "value": "Whack-a-Mole"
     },
     {
+      "name": "mine_reveal_mode",
+      "value": "Reveal"
+    },
+    {
+      "name": "mine_flag_mode",
+      "value": "Flag"
+    },
+    {
       "name": "game_minesweeper_name",
       "value": "Minesweeper"
+    },
+    {
+      "name": "sudoku_hint_closed",
+      "value": "Solving hint ▾"
     },
     {
       "name": "game_sudoku_name",
       "value": "Sudoku"
     },
     {
+      "name": "slide_order_goal",
+      "value": "Arrange 1–%d in order, gap at bottom right"
+    },
+    {
+      "name": "slide_move_legend",
+      "value": "Tap an outlined tile or slide it into the gap · Green is in place"
+    },
+    {
       "name": "game_slidepuzzle_name",
       "value": "Slide Puzzle"
+    },
+    {
+      "name": "klotski_drag_hint",
+      "value": "Drag the pieces to guide Cao Cao to the bottom exit"
     },
     {
       "name": "game_klotski_name",
       "value": "Klotski"
     },
     {
+      "name": "guess_ab_legend",
+      "value": "A = right digit and position · B = right digit, wrong position"
+    },
+    {
       "name": "game_guessnumber_name",
       "value": "Guess Number"
+    },
+    {
+      "name": "memory_pairs_label",
+      "value": "Pairs"
     },
     {
       "name": "game_memorycard_name",
@@ -414,7 +530,7 @@
     },
     {
       "name": "game_slidepuzzle_desc",
-      "value": "Slide tiles to restore the picture"
+      "value": "Slide numbered tiles into ascending order."
     },
     {
       "name": "game_klotski_desc",
@@ -502,7 +618,7 @@
     },
     {
       "name": "game_minesweeper_subtitle",
-      "value": "Long press to flag · Tap to reveal"
+      "value": "Long press any covered tile to toggle a flag"
     },
     {
       "name": "game_sudoku_subtitle",
@@ -530,7 +646,11 @@
     },
     {
       "name": "game_tetris_drop",
-      "value": "Hard Drop"
+      "value": "Hard drop"
+    },
+    {
+      "name": "tetris_next_piece",
+      "value": "Next · %s"
     },
     {
       "name": "result_game_over",
@@ -849,6 +969,10 @@
       "value": "Platform"
     },
     {
+      "name": "brick_drag_strip",
+      "value": "↔ Slide to steer"
+    },
+    {
       "name": "game_brickbreaker_name",
       "value": "Brick Breaker"
     },
@@ -891,6 +1015,10 @@
     {
       "name": "a11y_brickbreaker_ball",
       "value": "Ball"
+    },
+    {
+      "name": "match3_swap_hint",
+      "value": "Swipe toward a neighbor or tap two adjacent gems"
     },
     {
       "name": "game_match3_name",
@@ -1418,7 +1546,7 @@
     },
     {
       "name": "game_arithmetic_rules",
-      "value": "Choose arithmetic, comparison, sequences, binary or missing sums. Answer ten questions per round. Each mode and level has its own record; original best scores are preserved."
+      "value": "Calculate the sum, difference or product shown and choose the correct number. Each round has ten questions. Correct answers score points, with separate records by mode and difficulty."
     },
     {
       "name": "game_compare_name",
@@ -1706,19 +1834,135 @@
     },
     {
       "name": "game_fisheat_rules",
-      "value": "Tap or drag to guide your fish. Eat smaller fish to grow. A substantially larger fish ends the game. Eat the target number to win."
+      "value": "Tap or drag to guide the gold-ringed fish. Eat fish without a red dashed ring and avoid those with one. New fish appear as you grow. Eat the target number to win."
     },
     {
       "name": "game_sokoban_name",
-      "value": "Sokoban"
+      "value": "Warehouse Box Pusher"
     },
     {
       "name": "game_sokoban_desc",
-      "value": "Move with the direction buttons and push every box onto a marked goal"
+      "value": "Push crates onto their goals across 12 levels, or try a random board."
     },
     {
       "name": "game_sokoban_rules",
-      "value": "Move with the direction buttons and push every box onto a marked goal. Push one box at a time; boxes cannot be pulled. Undo or restart if stuck."
+      "value": "Use the direction buttons to move and push one crate at a time. Undo or restart if stuck. In the campaign, follow the arrows when entering arrow tiles and match the ★ crate to the ☆ goal."
+    },
+    {
+      "name": "sokoban_campaign",
+      "value": "Campaign"
+    },
+    {
+      "name": "sokoban_random",
+      "value": "Random"
+    },
+    {
+      "name": "sokoban_level_number",
+      "value": "Level %1$d"
+    },
+    {
+      "name": "sokoban_level_progress",
+      "value": "%1$d of %2$d cleared"
+    },
+    {
+      "name": "sokoban_select_level",
+      "value": "Choose level"
+    },
+    {
+      "name": "sokoban_change_board_confirm",
+      "value": "Switching starts the new board from its opening position."
+    },
+    {
+      "name": "sokoban_level_cleared",
+      "value": "Level %1$d cleared"
+    },
+    {
+      "name": "sokoban_all_cleared",
+      "value": "All %1$d levels cleared"
+    },
+    {
+      "name": "sokoban_next_level",
+      "value": "Next level"
+    },
+    {
+      "name": "sokoban_retry_level",
+      "value": "Replay level"
+    },
+    {
+      "name": "sokoban_board_status",
+      "value": "Goals %1$d/%2$d · Moves %3$d"
+    },
+    {
+      "name": "sokoban_legend_arrow",
+      "value": "◎ Goal　→ One-way entry"
+    },
+    {
+      "name": "sokoban_legend_star",
+      "value": "◎ Goal　★ → ☆ Star pair"
+    },
+    {
+      "name": "sokoban_legend_combined",
+      "value": "★ → ☆ Star pair　→ One-way entry"
+    },
+    {
+      "name": "sokoban_controls_restart",
+      "value": "Restart"
+    },
+    {
+      "name": "sokoban_controls_undo",
+      "value": "Undo"
+    },
+    {
+      "name": "sokoban_level_current",
+      "value": "Current level"
+    },
+    {
+      "name": "sokoban_level_completed",
+      "value": "Cleared"
+    },
+    {
+      "name": "sokoban_level_locked",
+      "value": "Locked"
+    },
+    {
+      "name": "sokoban_random_play",
+      "value": "Play random board"
+    },
+    {
+      "name": "sokoban_cell_wall",
+      "value": "Wall"
+    },
+    {
+      "name": "sokoban_cell_floor",
+      "value": "Floor"
+    },
+    {
+      "name": "sokoban_cell_goal",
+      "value": "Round goal"
+    },
+    {
+      "name": "sokoban_cell_star_goal",
+      "value": "Star goal"
+    },
+    {
+      "name": "sokoban_cell_arrow",
+      "value": "One-way tile, %1$s"
+    },
+    {
+      "name": "sokoban_cell_player",
+      "value": "Robot"
+    },
+    {
+      "name": "sokoban_cell_box",
+      "value": "Wooden crate"
+    },
+    {
+      "name": "sokoban_cell_star_box",
+      "value": "Star crate"
+    },
+    {
+      "name": "sokoban_swipe_hint",
+      "value": "Swipe the board to move"
     },
     {
       "name": "game_pipes_name",
@@ -1925,6 +2169,10 @@
       "value": "Hold left or right to move and tap Jump to cross platform gaps. Land before jumping again. Reach the flag to win; falling below the course loses."
     },
     {
+      "name": "grapple_attached",
+      "value": "Hook attached"
+    },
+    {
       "name": "game_grapple_name",
       "value": "Grapple Swing"
     },
@@ -1949,6 +2197,10 @@
       "value": "Start and tap Flap to rise against gravity. Fly through the gaps in the moving gates. Pass the target number to win; hitting a gate or the arena boundary loses."
     },
     {
+      "name": "fruitslice_swipe_hint",
+      "value": "Swipe through fruit and avoid bombs"
+    },
+    {
       "name": "game_fruitslice_name",
       "value": "Fruit Slice"
     },
@@ -1959,6 +2211,10 @@
     {
       "name": "game_fruitslice_rules",
       "value": "Start and swipe through flying fruit. A swipe can slice several fruit, earning fifty points each. Slicing a bomb, missing five fruit or missing the target within sixty seconds loses."
+    },
+    {
+      "name": "rolling_touch_guide",
+      "value": "Drag on the board to guide the ball toward your finger"
     },
     {
       "name": "game_rollingball_name",
@@ -1982,7 +2238,11 @@
     },
     {
       "name": "game_shooter_rules",
-      "value": "Start and drag your plane to avoid enemies while firing upward automatically. Clear every wave to win. Enemy contact or an enemy crossing the defense line costs a life; losing three lives ends the run."
+      "value": "Drag to dodge while your plane fires upward. Survive the entire wave to win. Each collision or enemy that crosses the defense line costs one life. The third loss ends the run."
+    },
+    {
+      "name": "tanks_steer_hint",
+      "value": "Drag on open ground to move. The turret fires automatically."
     },
     {
       "name": "game_tanks_name",
@@ -1997,6 +2257,18 @@
       "value": "Drag around obstacles, pursuers and shells. The turret targets the nearest enemy. Cover blocks shells from both sides: reposition for a clear shot or protection. Clear all enemies to win."
     },
     {
+      "name": "fortress_firepower",
+      "value": "Firepower %1$d · Coins %2$d"
+    },
+    {
+      "name": "fortress_max",
+      "value": "Firepower at maximum"
+    },
+    {
+      "name": "fortress_wall_health",
+      "value": "Wall health %d / 100"
+    },
+    {
       "name": "game_fortress_name",
       "value": "Fortress Cannon"
     },
@@ -2009,6 +2281,22 @@
       "value": "Tap near an enemy to fire a shell with splash damage. Defeated enemies award coins; spend twenty to upgrade firepower. Defeat the army to win. The castle falling to zero health loses."
     },
     {
+      "name": "survival_points_cost",
+      "value": "Points %d · Upgrades cost 20"
+    },
+    {
+      "name": "survival_power_tier",
+      "value": "Power %d/3"
+    },
+    {
+      "name": "survival_rate_tier",
+      "value": "Rate %d/3"
+    },
+    {
+      "name": "survival_restore_one",
+      "value": "Heal +1"
+    },
+    {
       "name": "game_survival_name",
       "value": "Survival Arena"
     },
@@ -2018,7 +2306,7 @@
     },
     {
       "name": "game_survival_rules",
-      "value": "Drag to avoid enemies with different speeds and health. Your weapon fires automatically. Spend earned points on attack, fire rate or healing. Clear the waves to win; losing all health ends the round."
+      "value": "Drag to dodge enemies while your weapon fires automatically. Watch for tougher enemies closing in from the sides. Spend points from defeated enemies on damage, fire rate or healing. Clear the wave to win. Losing all health ends the run."
     },
     {
       "name": "game_backpack_name",
@@ -2055,6 +2343,10 @@
     {
       "name": "game_penalty_rules",
       "value": "Start, watch the moving keeper and tap a target inside the goal to shoot. Cross the line clear of the keeper to score. Make five goals within eight attempts to win."
+    },
+    {
+      "name": "pingpong_control_band",
+      "value": "↔ Slide to move the blue paddle"
     },
     {
       "name": "game_pingpong_name",
@@ -2105,6 +2397,10 @@
       "value": "Each new round has a different smooth track. Start the car, then tap Drift to switch its sideways direction. Keep the whole car on the road until time runs out to win. Leaving the road ends the round. Restart for a new track; continuing keeps the current one."
     },
     {
+      "name": "hill_reading",
+      "value": "Speed %1$d · Slope %2$d°"
+    },
+    {
       "name": "game_hillclimb_name",
       "value": "Hill Climb"
     },
@@ -2114,7 +2410,7 @@
     },
     {
       "name": "game_hillclimb_rules",
-      "value": "Hold the accelerator or brake to control speed over rolling hills. Reach the target distance to win. Running out of fuel or a hard landing loses. Releasing a button stops accelerating."
+      "value": "Hold the accelerator to speed up. Release it or hold the brake to slow down. Ease off before steep crests on Normal and Hard, and brake when needed. Reach the finish to win. Running out of fuel or landing too hard ends the run."
     },
     {
       "name": "game_airhockey_name",
@@ -2189,6 +2485,14 @@
       "value": "Offline four-player mahjong with 136 tiles and no flowers or scoring multipliers. Tap a tile twice to discard. Chow the previous player, pong, or declare open and closed kongs with replacement draws. Four melds and a pair, or seven pairs, wins. An exhausted wall draws the game."
     },
     {
+      "name": "xiangqi_chu_river",
+      "value": "Chu River"
+    },
+    {
+      "name": "xiangqi_han_border",
+      "value": "Han Border"
+    },
+    {
       "name": "game_xiangqi_name",
       "value": "Chinese Chess"
     },
@@ -2199,6 +2503,10 @@
     {
       "name": "game_xiangqi_rules",
       "value": "Play red against the computer. Select a piece and a highlighted legal destination. Horse legs, elephant eyes, cannon screens, river crossing and palace limits are enforced. Your general must remain safe and may not face the other general. Checkmate or stalemate wins; three repetitions draw."
+    },
+    {
+      "name": "chess_promotion_choice",
+      "value": "Promotion preference %s ▾"
     },
     {
       "name": "game_chess_name",
@@ -2225,6 +2533,14 @@
       "value": "Race four blue planes against three computer players. Roll six to launch and play again. Matching outer squares jump four steps; landing on an opponent sends it home. Overshooting the finish bounces back. Finish all four planes first to win."
     },
     {
+      "name": "spider_sets_done",
+      "value": "Completed sets %d / 8"
+    },
+    {
+      "name": "spider_columns_hint",
+      "value": "Swipe to see all 10 columns"
+    },
+    {
       "name": "game_spider_name",
       "value": "Spider Solitaire"
     },
@@ -2235,6 +2551,18 @@
     {
       "name": "game_spider_rules",
       "value": "One-suit spider with 104 cards. Select a descending face-up sequence and a destination one rank higher, or an empty column. Complete king-to-ace sequences clear automatically. Collect eight runs to win. Deal one card to every column only when no column is empty."
+    },
+    {
+      "name": "freecell_reserve",
+      "value": "Free cells"
+    },
+    {
+      "name": "freecell_foundations",
+      "value": "Foundations"
+    },
+    {
+      "name": "freecell_columns_hint",
+      "value": "Swipe to see all 8 columns. Free spaces set the sequence limit."
     },
     {
       "name": "game_freecell_name",
@@ -2283,6 +2611,10 @@
     {
       "name": "game_linerescue_rules",
       "value": "Draw a fixed barrier by dragging, then start. The line blocks bees pursuing the dog; the total drawing length is limited to 650 units. Protect the dog for ten seconds to win. Bee contact loses. Clear and redraw before starting."
+    },
+    {
+      "name": "picture_reference_grid",
+      "value": "Reference grid"
     },
     {
       "name": "game_picturepuzzle_name",
@@ -2369,6 +2701,22 @@
       "value": "Decorate a five-by-five room with a sofa, table, plants and lamp, each with a different footprint and price. With twenty coins, place a sofa, two plants, a lamp and a table beside the sofa to win. Sell removes furniture and refunds its cost."
     },
     {
+      "name": "fishing_summary",
+      "value": "Catch %1$d/%2$d · Misses %3$d/3 · %4$d species caught"
+    },
+    {
+      "name": "fishing_summary_legacy",
+      "value": "Catch %1$d/%2$d · Misses %3$d/3"
+    },
+    {
+      "name": "fishing_reel_percent",
+      "value": "Reeled %s"
+    },
+    {
+      "name": "fishing_tension_points",
+      "value": "Tension %d / 100 pts"
+    },
+    {
       "name": "game_fishing_name",
       "value": "Relaxed Fishing"
     },
@@ -2426,7 +2774,7 @@
     },
     {
       "name": "expansion_choose_reel",
-      "value": "Choose a reel, then tap a yarn column"
+      "value": "Choose a reel, then collect the outlined yarn at the top of a column."
     },
     {
       "name": "expansion_reel",
@@ -2450,15 +2798,15 @@
     },
     {
       "name": "module_desc",
-      "value": "LittleGames - 64 single-player games across six categories"
+      "value": "LittleGames - 60 single-player games across six categories"
     },
     {
       "name": "app_splash_subtitle",
-      "value": "64 single-player mini-games. Pick one and play."
+      "value": "60 single-player mini-games. Pick one and play."
     },
     {
       "name": "settings_about_tagline",
-      "value": "64 single-player games across six categories"
+      "value": "60 single-player games across six categories"
     },
     {
       "name": "expansion_target",
@@ -2478,7 +2826,7 @@
     },
     {
       "name": "expansion_fruitslice_errors",
-      "value": "Mistakes %d / 5"
+      "value": "Missed fruit %d / 5"
     },
     {
       "name": "expansion_shots",
@@ -2566,7 +2914,7 @@
     },
     {
       "name": "expansion_controls_hint",
-      "value": "Select a piece, then tap the board"
+      "value": "Choose a piece. Tap where its marked corner should go."
     },
     {
       "name": "expansion_left",
@@ -3014,7 +3362,7 @@
     },
     {
       "name": "game_snake_rules",
-      "value": "Use the direction buttons to start and steer the snake. Food earns points and makes it grow. You cannot reverse directly. Hitting a wall or yourself ends the game. Higher difficulty moves faster. Pause, resume or restart in settings."
+      "value": "Swipe the board or use the direction buttons to start and steer. Food earns points and makes the snake grow. You cannot reverse directly. Hitting a wall or yourself ends the game. Higher difficulty moves faster. Pause, resume or restart in settings."
     },
     {
       "name": "game_tetris_rules",
@@ -3038,7 +3386,7 @@
     },
     {
       "name": "game_slidepuzzle_rules",
-      "value": "Tap a numbered tile next to the empty space to move it. Arrange the numbers from left to right and top to bottom, leaving the empty space last. Try to use fewer moves. Adjust difficulty or restart in settings."
+      "value": "Tap a tile next to the gap, or swipe it into the gap. Order the numbers from left to right, then top to bottom, leaving the gap last. Each board size keeps its own best move count."
     },
     {
       "name": "game_klotski_rules",
@@ -3062,7 +3410,7 @@
     },
     {
       "name": "game_match3_rules",
-      "value": "Tap two adjacent gems to swap them. Match three or more identical gems horizontally or vertically to clear them and score. Swaps without a match are undone; chain matches score more. Reach the target score before running out of moves. Restart in settings."
+      "value": "Swipe toward a neighboring gem or tap two adjacent gems to swap them. Match at least three alike in a row or column. A match costs one move and chain reactions earn extra points. A swap without a match costs no moves. Aim for the best score in 30 moves."
     },
     {
       "name": "game_settings_restart_confirm",
@@ -3734,7 +4082,7 @@
     },
     {
       "name": "toy_drift_hint",
-      "value": "Watch the bends ahead; tap Drift to reverse your sideways motion."
+      "value": "Tap the road or Drift to switch the car’s sideways direction."
     },
     {
       "name": "toy_drift_car",
@@ -3846,7 +4194,7 @@
     },
     {
       "name": "fishing_log",
-      "value": "Species caught this round: %d / 6"
+      "value": "Fish species caught this round: %d"
     },
     {
       "name": "sudoku_rating_0",
@@ -3874,7 +4222,7 @@
     },
     {
       "name": "snake_start_hint",
-      "value": "Press a direction to start"
+      "value": "Swipe or press a direction to start"
     },
     {
       "name": "a11y_tetris_rotate",
@@ -3887,6 +4235,118 @@
     {
       "name": "a11y_tetris_board",
       "value": "Score %1$d, level %2$d. Current piece starts at row %3$d, column %4$d."
+    },
+    {
+      "name": "lights_status",
+      "value": "Moves %1$d · Lights remaining %2$d"
+    },
+    {
+      "name": "lights_goal",
+      "value": "Tap a light to switch it and its four neighbours. Turn off every light."
+    },
+    {
+      "name": "flood_region",
+      "value": "Grow from the top left · Connected %1$d/%2$d"
+    },
+    {
+      "name": "flood_choose_color",
+      "value": "Choose colour %1$d"
+    },
+    {
+      "name": "maze_move_hint",
+      "value": "Reach the marked exit. Swipe, tap an adjacent passage or use an arrow to move one square."
+    },
+    {
+      "name": "collection_elapsed_no_best",
+      "value": "Time %1$s s · Personal best —"
+    },
+    {
+      "name": "peg_status",
+      "value": "%1$d pegs remaining · %2$d moves"
+    },
+    {
+      "name": "peg_hint",
+      "value": "Select a peg, jump over its neighbour into a marked hole ◎, and leave one peg."
+    },
+    {
+      "name": "math_short_compare",
+      "value": "Compare"
+    },
+    {
+      "name": "math_short_sequence",
+      "value": "Series"
+    },
+    {
+      "name": "math_short_binary",
+      "value": "Binary"
+    },
+    {
+      "name": "math_short_sum",
+      "value": "Sum"
+    },
+    {
+      "name": "math_mode_restart",
+      "value": "Switching starts a new round in the chosen mode."
+    },
+    {
+      "name": "math_binary_hint",
+      "value": "Binary → Decimal"
+    },
+    {
+      "name": "schulte_wrong",
+      "value": "You tapped %1$s. Find %2$d first."
+    },
+    {
+      "name": "schulte_start",
+      "value": "Tap the numbers in order. Your first tap starts the clock."
+    },
+    {
+      "name": "sequence_memorize",
+      "value": "Remember these numbers in order"
+    },
+    {
+      "name": "reaction_early",
+      "value": "Too soon"
+    },
+    {
+      "name": "reaction_retry_hint",
+      "value": "You tapped before the signal. Try again."
+    },
+    {
+      "name": "reaction_best",
+      "value": "Personal best %1$d ms"
+    },
+    {
+      "name": "reaction_no_best",
+      "value": "Personal best —"
+    },
+    {
+      "name": "reaction_tap_hint",
+      "value": "Tap to start, then tap anywhere in the panel as soon as it says “Tap now”."
+    },
+    {
+      "name": "puzzle_difficulty_best",
+      "value": "Best at this level"
+    },
+    {
+      "name": "puzzle_legacy_score",
+      "value": "Earlier best (difficulty unknown): %d points"
+    },
+    {
+      "name": "sudoku_full_conflict",
+      "value": "The grid is full. Check the marked duplicates and correct the editable cells."
+    },
+    {
+      "name": "a11y_sudoku_conflict",
+      "value": ", duplicate digit"
+    },
+    {
+      "name": "watersort_stuck",
+      "value": "There are no legal pours left."
+    },
+    {
+      "name": "mahjongsolitaire_stuck",
+      "value": "The remaining tiles block each other. Reshuffling cannot open a pair."
     }
   ]
 }

@@ -104,7 +104,7 @@ function fixture(initialValues = {}, resourceResolver = name => name) {
     const file = path.resolve(root, relative);
     if (cache.has(file)) { return cache.get(file).exports; }
     if (!compiled.has(file)) {
-      const source = fs.readFileSync(file, 'utf8').replace(/@(ObservedV2|Trace|Concurrent)\b/g, '');
+      const source = fs.readFileSync(file, 'utf8').replace(/@(ObservedV2|Trace|Computed|Concurrent)\b/g, '');
       const result = ts.transpileModule(source, { fileName: file, compilerOptions: {
         target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS
       }, reportDiagnostics: true });
@@ -402,7 +402,7 @@ test('catalog icons and original character vectors retain small resource budgets
     assert(!character.includes('<image'), 'Character must remain vector geometry');
     assert(Buffer.byteLength(character) < 24 * 1024);
   }
-  const games=fixture().data().getAllGames(); assert.equal(games.length,64);
+  const games=fixture().data().getAllGames(); assert.equal(games.length,60);
   for (const theme of ['base','dark']) {
     let vectorBytes=0;
     for (const game of games) {

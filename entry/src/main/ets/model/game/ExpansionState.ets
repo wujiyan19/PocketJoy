@@ -18,6 +18,7 @@ export class ExpansionPiece {
 export class ExpansionState {
   id: string = '';
   level: number = 1;
+  sokobanLevel?: number;
   cols: number = 6;
   rows: number = 6;
   board: number[] = [];

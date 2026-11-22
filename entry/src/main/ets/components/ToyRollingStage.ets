@@ -3,7 +3,7 @@ import { resourceManager } from '@kit.LocalizationKit';
 import { ToySceneController } from '../common/ToySceneController';
 import { ExpansionViewModel } from '../viewmodel/ExpansionViewModel';
 import { ExpansionPiece } from '../model/game/ExpansionState';
-import { SemanticColors, FontTokens } from '../common/DesignTokens';
+import { SemanticColors, FontTokens, RadiusTokens } from '../common/DesignTokens';
 import { GameDataManager } from '../model/GameData';
 
 /** Exact 360x460 orthographic board; existing touch coordinates and physics are reused. */
@@ -94,6 +94,13 @@ export struct ToyRollingStage {
         Column().width('100%').height('100%').backgroundColor(Color.Transparent)
           .hitTestBehavior(HitTestMode.Block)
           .onTouch((event: TouchEvent) => { this.touch(event); })
+        if (this.vm.state.pieces.length > 0 && Math.hypot(this.vm.state.pieces[0].vx, this.vm.state.pieces[0].vy) > 8) {
+          SymbolGlyph($r('sys.symbol.arrow_right')).fontSize(FontTokens.sizeBody)
+            .fontColor([SemanticColors.textPrimary]).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.full)
+            .rotate({ angle: Math.atan2(this.vm.state.pieces[0].vy, this.vm.state.pieces[0].vx) * 180 / Math.PI })
+            .position({ x: this.vm.state.pieces[0].x * this.widthVp / 360 - 8, y: (this.vm.state.pieces[0].y - 28) * this.widthVp / 360 })
+            .id('rolling-direction').hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
+        }
       } else if (this.renderer.failed) {
         Button($r('app.string.toy_scene_retry')).onClick(() => { this.load(); })
       } else {

@@ -52,6 +52,7 @@ test('pause and background freeze the displayed fruit; resume updates the same c
 
 test('cut fruit disappears immediately, scores once, and exports a valid continuation', () => {
   const vm = restore(fruitGame()), piece = vm.worldPieces[0].piece;
+  vm.aim(piece.x - 30, piece.y);
   vm.aim(piece.x, piece.y); assert.equal(vm.state.score, 50); assert.equal(vm.state.moves, 1);
   assert.equal(vm.worldPieces.length, 0); assert.equal(vm.state.pieces.length, 0);
   vm.aim(piece.x, piece.y); assert.equal(vm.state.score, 50);
@@ -65,6 +66,7 @@ test('winning fruit and hit bomb disappear even though their terminal frame loop
     if (bomb) m.state.pieces[0].kind = 31;
     else { m.state.moves = m.state.goal - 1; m.state.score = m.state.moves * 50; }
     const vm = restore(m), piece = vm.worldPieces[0].piece;
+    vm.aim(piece.x - 30, piece.y);
     vm.aim(piece.x, piece.y); assert.equal(vm.state.outcome, bomb ? 2 : 1);
     assert.equal(vm.worldPieces.length, 0); assert.equal(vm.state.pieces.length, 0);
     const resumed = f.vm('ExpansionViewModel'); resumed.init('fruitslice');

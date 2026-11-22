@@ -1,17 +1,17 @@
 /* Acceptance for the approved catalog/mode/replay changes, using real ArkTS models. */
 const assert=require('node:assert/strict');
 const {fixture,Frames}=require('./test-performance.cjs');
-const {steerTank}=require('./retention-game-controls.cjs');
+const {steerTank,paceHillClimb}=require('./retention-game-controls.cjs');
 const f=fixture(),{ExpansionModel}=f.rules('Expansion'),{CollectionModel}=f.rules('Collection');
 const tests=[],test=(name,run)=>tests.push({name,run});
 const create=(id,level,seed)=>{const m=new ExpansionModel(f.rng(seed*7919));m.start(id,level);return m;};
-test('64 entries contain all seven withdrawals and five merged modes without deleting old scores',()=>{
+test('60 entries exclude the withdrawn titles and five merged modes without deleting old scores',()=>{
   const local=fixture({highScores:JSON.stringify({compare:1234,beatjump:2800,jumpjump:90})});const data=local.data();data.init({});
   const routes=local.load('entry/src/main/ets/router/GameRouteRegistry.ets').GameRoutes;
-  for(const id of ['jumpjump','slotpair','missing','sand','linerescue','bowling','pipes','compare','sequence','binary','targetsum','beatjump']){
+  for(const id of ['jumpjump','slotpair','missing','sand','linerescue','bowling','pipes','yarn','restaurant','roomdefense','fortress','compare','sequence','binary','targetsum','beatjump']){
     assert.equal(data.getGameById(id),undefined);assert.equal(routes.routeName(id),'');
   }
-  assert.equal(data.getAllGames().length,64);assert.equal(routes.getAllGameRoutes().length,64);assert.equal(routes.gameIdForRoute(''),'');
+  assert.equal(data.getAllGames().length,60);assert.equal(routes.getAllGameRoutes().length,60);assert.equal(routes.gameIdForRoute(''),'');
   data.recordMode('compare','easy',100);data.flushNow();
   assert.equal(JSON.parse(local.values.get('highScores')).compare,1234);
   const next=fixture(Object.fromEntries(local.values));next.data().init({});
@@ -61,8 +61,9 @@ test('rhythm parent runs and continues the three-key mode with its own score',()
 });
 test('numeric search records active milliseconds, excludes background, and preserves them on restore',()=>{
   const local=fixture(),vm=local.vm('CollectionViewModel');local.data().init({});vm.init('schulte');vm.startGame();
+  local.clock.advance(900);assert.equal(vm.state.elapsedMs,0);vm.tap(vm.state.board.indexOf(1));
   local.clock.advance(1050);vm.onAppHidden();local.clock.advance(5000);vm.onAppShown();local.clock.advance(550);
-  for(let value=1;value<=vm.state.board.length;value++)vm.tap(vm.state.board.indexOf(value));
+  for(let value=2;value<=vm.state.board.length;value++)vm.tap(vm.state.board.indexOf(value));
   assert.equal(vm.state.outcome,1);assert.equal(vm.state.elapsedMs,1600);assert.equal(local.data().getModeTime('schulte','normal'),1600);
   const restored=local.vm('CollectionViewModel');restored.init('schulte');assert(restored.importContinuation(vm.exportContinuation()));assert.equal(restored.state.elapsedMs,1600);restored.dispose();vm.dispose();
 });
@@ -122,7 +123,7 @@ for(const id of ['platformer','grapple','rollingball','hillclimb','tanks','survi
       }
       if(id==='grapple'){if(m.state.selected>=0){const anchor=m.state.pieces.find(q=>q.id===m.state.selected);if(p.x>anchor.x+35){m.tap(1);m.tap(0);}}else m.tap(0);}
       if(id==='rollingball'){const w=path[Math.min(waypoint,path.length-1)];if(Math.hypot(p.x-w[0],p.y-w[1])<10)waypoint++;m.aim(w[0],w[1]);}
-      if(id==='hillclimb')m.tap(0);
+      if(id==='hillclimb')paceHillClimb(m,i);
       if(id==='tanks'&&i%12===0)steerTank(m);
       if(id==='survival'){m.aim(180+Math.sin(t*.6)*145,370+Math.cos(t*.6)*50);if(m.state.data[1]>=20)m.tap(m.state.data[0]<2?2:m.state.board[0]<2?0:1);}
       if(id==='fishing'){if(m.state.data[0]===0||m.state.data[0]===2)m.tap(0);if(m.state.data[0]===3)m.tap(m.state.data[2]<62?1:2);}

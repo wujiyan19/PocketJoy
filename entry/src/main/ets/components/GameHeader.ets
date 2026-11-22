@@ -13,6 +13,7 @@ import { ImmersiveLight } from '../common/ImmersiveLight';
 @ComponentV2
 export struct GameHeader {
   @Param gameId: string = '';
+  @Param rulesModeId: string = '';
   @Param pathStack: NavPathStack = new NavPathStack();
   @Param gameTitle: Resource | string = '';
   @Param subtitle: Resource | string = '';
@@ -110,7 +111,7 @@ export struct GameHeader {
   @Builder
   settingsPanel() {
     GameSettingsPanel({
-      gameId: this.gameId, gameTitle: this.gameTitle,
+      gameId: this.gameId, gameTitle: this.gameTitle, rulesModeId: this.rulesModeId,
       difficulty: this.difficulty, showDifficulty: this.showDifficulty,
       showPause: this.showPause, isPaused: this.pausedBeforeSettings,
       enableNewGame: this.enableNewGame,

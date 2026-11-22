@@ -93,6 +93,18 @@ export class ExpansionPuzzle {
     }
     return true;
   }
+  private canPour(s: ExpansionState, from: number, to: number): boolean {
+    const n: number = this.height(s, from); const m: number = this.height(s, to);
+    return from !== to && n > 0 && m < 4 && (m === 0 || s.board[to * 4 + m - 1] === s.board[from * 4 + n - 1]);
+  }
+  hasWaterMove(s: ExpansionState): boolean {
+    for (let from: number = 0; from < s.cols; from++) {
+      for (let to: number = 0; to < s.cols; to++) {
+        if (this.canPour(s, from, to)) { return true; }
+      }
+    }
+    return false;
+  }
   private makeWater(s: ExpansionState): void {
     const colors: number = 3 + s.level; s.cols = colors + 2; s.rows = 4;
     s.board = new Array<number>(s.cols * 4).fill(0);
@@ -125,7 +137,7 @@ export class ExpansionPuzzle {
     if (s.selected === tube) { s.selected = -1; return; }
     const from: number = s.selected; const n: number = this.height(s, from); const m: number = this.height(s, tube);
     if (n === 0) { s.selected = m > 0 ? tube : -1; return; }
-    if (m >= 4 || (m > 0 && s.board[tube * 4 + m - 1] !== s.board[from * 4 + n - 1])) { s.selected = tube; return; }
+    if (!this.canPour(s, from, tube)) { s.selected = tube; return; }
     s.board[tube * 4 + m] = s.board[from * 4 + n - 1]; s.board[from * 4 + n - 1] = 0; s.selected = -1; s.moves++;
     s.score = s.board.filter((v: number) => v > 0).length * 10;
     if (this.waterSolved(s)) { s.outcome = 1; s.score += Math.max(100, 1000 - s.moves * 5); }

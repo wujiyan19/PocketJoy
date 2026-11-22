@@ -23,6 +23,8 @@ interface MemoryCardContinuationState {
   matchedCount: number;
   attempts: number;
   bestScore: number;
+  difficultyBest?: number;
+  unclassifiedScore?: number;
   status: GameStatus;
   difficulty: GameDifficulty;
   locked: boolean;
@@ -35,7 +37,8 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
   @Trace private flippedIdxs: number[] = [];
   @Trace matchedCount: number = 0;
   @Trace attempts: number = 0;
-  @Trace bestScore: number = 999;
+  @Trace bestScore: number = 0;
+  @Trace unclassifiedScore: number = 0;
   @Trace status: GameStatus = GameStatus.PLAYING;
   @Trace difficulty: GameDifficulty = GameDataManager.getInitialDifficulty(GAME_ID);
   /** 退出确认弹窗显隐（F2：对局中返回需确认，防误丢尝试进度） */
@@ -49,8 +52,8 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
 
   constructor(rng?: RandomSource) {
     this.rng = rng ?? new RealRandom();
-    const hs = GameDataManager.getGameById(GAME_ID)?.highScore ?? 0;
-    this.bestScore = hs > 0 ? Math.max(1, 1000 - hs) : 999;
+    this.bestScore = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
   }
 
   getPairCount(): number { return this.rules.pairCount(this.difficulty); }
@@ -65,6 +68,8 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
 
   startGame(): void {
     gameSound.stop(GAME_ID);
+    this.bestScore = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
     GameDataManager.recordGameStarted(GAME_ID);
     this.clearTimer();
     this.cards = this.rules.deal(this.getPairCount(), this.rng);
@@ -131,7 +136,8 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
       gameSound.play(GAME_ID, this.matchedCount === this.getPairCount() ? GameSoundEvent.WIN : GameSoundEvent.REWARD);
       if (this.matchedCount === this.getPairCount()) {
         this.status = GameStatus.OVER;
-        if (this.attempts < this.bestScore) { this.bestScore = this.attempts; }
+        GameDataManager.recordBestCount(GAME_ID, this.difficulty, this.attempts);
+        this.bestScore = GameDataManager.getBestCount(GAME_ID, this.difficulty);
         GameDataManager.updateHighScore(GAME_ID, this.rules.score(this.attempts));
       }
     } else {
@@ -162,7 +168,7 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
   cardEmoji(idx: number): string { return this.cards[idx].emoji; }
 
   getBestText(): string {
-    if (this.bestScore === 999) { return '--'; }
+    if (this.bestScore === 0) { return '--'; }
     return '' + this.bestScore;
   }
 
@@ -172,6 +178,8 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
   }
 
   onAppShown(): void {
+    this.bestScore = GameDataManager.getBestCount(GAME_ID, this.difficulty);
+    this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
   }
 
   /** 系统侧滑返回转发（NavDestination.onBackPressed）。进行中弹确认并拦截 */
@@ -211,7 +219,9 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
       flippedIdxs: this.flippedIdxs,
       matchedCount: this.matchedCount,
       attempts: this.attempts,
-      bestScore: this.bestScore,
+      bestScore: Math.max(1, Math.min(999, 1000 - GameDataManager.archivedModeScore(GAME_ID))),
+      difficultyBest: GameDataManager.getBestCount(GAME_ID, this.difficulty),
+      unclassifiedScore: GameDataManager.getUnclassifiedScore(GAME_ID),
       status: this.status,
       difficulty: this.difficulty,
       locked: this.locked,
@@ -226,6 +236,9 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
       if (payload.length > 65536) { return false; }
       const s: MemoryCardContinuationState = JSON.parse(payload) as MemoryCardContinuationState;
       if (s === null || s.version !== 1 || !V.integer(s.matchedCount) ||
+          (s.difficultyBest !== undefined && !V.integer(s.difficultyBest)) ||
+          (s.unclassifiedScore !== undefined && !V.integer(s.unclassifiedScore)) ||
+          ((s.difficultyBest === undefined) !== (s.unclassifiedScore === undefined)) ||
           !V.integer(s.attempts) ||
           !V.integer(s.bestScore) ||
           (s.status !== GameStatus.PLAYING && s.status !== GameStatus.PAUSED && s.status !== GameStatus.OVER && s.status !== GameStatus.IDLE) ||
@@ -247,7 +260,13 @@ export class MemoryCardViewModel implements GameLifecycleObserver {
       this.flippedIdxs = s.flippedIdxs;
       this.matchedCount = s.matchedCount;
       this.attempts = s.attempts;
-      this.bestScore = Math.min(this.bestScore, s.bestScore);
+      const count: number = s.difficultyBest ?? 0;
+      const oldScore: number = s.unclassifiedScore ??
+        (s.bestScore > 0 && s.bestScore < 999 ? this.rules.score(s.bestScore) : 0);
+      GameDataManager.recordBestCount(GAME_ID, s.difficulty, count, oldScore);
+      this.bestScore = GameDataManager.getBestCount(GAME_ID, s.difficulty);
+      this.unclassifiedScore = GameDataManager.getUnclassifiedScore(GAME_ID);
+      GameDataManager.updateHighScore(GAME_ID, Math.max(oldScore, count > 0 ? this.rules.score(count) : 0));
       this.status = s.status;
       this.difficulty = s.difficulty;
       this.locked = s.locked;

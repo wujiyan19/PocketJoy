@@ -79,7 +79,8 @@ export struct ToyBlackholeStage {
         }
         if (slot.edible !== null) {
           slot.edible.position = { x: p.x - 180, y: 230 - p.y, z: 0 };
-          slot.edible.scale = { x: p.r / 16, y: p.r / 16, z: 1 };
+          // Keep the ring visible beyond the footprint of tall props.
+          slot.edible.scale = { x: p.r * 1.2 / 16, y: p.r * 1.2 / 16, z: 1 };
         }
       }
       const canEat: boolean = p.r < player.r * 0.9;

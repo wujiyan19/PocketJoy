@@ -68,11 +68,10 @@ export struct MemoryCardPage {
   refreshLayout(): void {
     this.rowIdx = range(this.viewModel.getRowCount());
     const widthVp: number = this.boardWidthVp > 0 ? this.boardWidthVp : ScreenUtils.windowWidthVp();
-    this.cardW = ScreenUtils.calcCellForWidth(widthVp, COLS, 520, 48);
-    if (this.viewModel.getRowCount() >= 6) { this.cardW = Math.floor(this.cardW * 0.8); }
+    this.cardW = ScreenUtils.calcCellForWidth(widthVp, COLS, 520, 40);
     if (this.boardHeightVp > 0) {
       const rows: number = this.viewModel.getRowCount();
-      const byHeight: number = Math.floor((this.boardHeightVp - rows * 6) / (rows * 1.15));
+      const byHeight: number = Math.floor((this.boardHeightVp - SpacingTokens.xl - rows * 4) / (rows * 1.15));
       this.cardW = Math.max(1, Math.min(this.cardW, byHeight));
     }
   }
@@ -122,7 +121,6 @@ export struct MemoryCardPage {
     GameHeader({ gameId: 'memorycard', pathStack: this.pathStack, hasProgress: (): boolean => this.viewModel.hasProgress(),
           gameTitle: $r('app.string.game_memorycard_name'),
           showScore: false,
-          subtitle: $r('app.string.game_memorycard_subtitle_format', this.viewModel.matchedCount, this.viewModel.getPairCount()),
           difficulty: this.viewModel.difficulty,
           onDifficultyChange: (d: GameDifficulty) => { this.changeDifficulty(d); },
           onBack: () => { this.requestExit(); },
@@ -143,17 +141,27 @@ export struct MemoryCardPage {
 
         Row() {
           Column() {
-            Text($r('app.string.attempts_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text('' + this.viewModel.attempts).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
-          }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
-          .alignItems(HorizontalAlign.Center).margin({ left: 16 })
+            Text($r('app.string.memory_pairs_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+            Text(this.viewModel.matchedCount + '/' + this.viewModel.getPairCount()).fontSize(FontTokens.sizeHeadline)
+              .fontWeight(FontWeight.Bold).fontColor(SemanticColors.successText).id('memory-pairs')
+          }.layoutWeight(1).padding(SpacingTokens.sm).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
+            .margin({ left: SpacingTokens.base })
           Column() {
-            Text($r('app.string.best_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text(this.viewModel.getBestText()).fontSize(FontTokens.sizeHeadline)
+            Text($r('app.string.attempts_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
+            Text('' + this.viewModel.attempts).id('memory-attempts').fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
+          }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
+          .alignItems(HorizontalAlign.Center).margin({ left: SpacingTokens.sm })
+          Column() {
+            Text($r('app.string.puzzle_difficulty_best')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
+            Text(this.viewModel.getBestText()).id('memory-level-best').fontSize(FontTokens.sizeHeadline)
               .fontWeight(FontTokens.weightBold).fontColor(SemanticColors.textPrimary)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ left: 8, right: 16 })
         }.margin({ top: 12, bottom: 12 })
+        if (this.viewModel.unclassifiedScore > 0) {
+          Text($r('app.string.puzzle_legacy_score', this.viewModel.unclassifiedScore))
+            .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary).id('memory-legacy-best')
+        }
 
         Column() {
           ForEach(this.rowIdx, (r: number) => {
@@ -162,14 +170,19 @@ export struct MemoryCardPage {
                 Stack() {
                   if (this.viewModel.isFaceUp(r * COLS + c)) {
                     Image(this.getCardFace(this.viewModel.cardEmoji(r * COLS + c)))
+                      .id('memory-face-' + (r * COLS + c) + '-' + this.viewModel.cardEmoji(r * COLS + c))
                       .width(this.cardW * 0.7).height(this.cardW * 0.7)
                       .objectFit(ImageFit.Contain)
+                    if (this.viewModel.isMatched(r * COLS + c)) {
+                      SymbolGlyph($r('sys.symbol.checkmark_circle')).fontSize(FontTokens.sizeBody)
+                        .fontColor([SemanticColors.successText]).align(Alignment.TopEnd).margin(SpacingTokens.xs)
+                    }
                   } else {
                     Image($r('app.media.play_memory_back'))
                       .width(this.cardW).height(this.cardW * 1.15)
                       .objectFit(ImageFit.Fill)
                   }
-                }.width(this.cardW).height(this.cardW * 1.15).margin(3)
+                }.width(this.cardW).height(this.cardW * 1.15).margin(2).id('memory-card-' + (r * COLS + c))
                 .backgroundColor(this.getCardBg(r * COLS + c))
                 .borderRadius(RadiusTokens.base)
 
@@ -183,7 +196,7 @@ export struct MemoryCardPage {
               }, (c: number) => c.toString())
             }
           }, (r: number) => r.toString())
-        }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
+        }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center).padding({ bottom: SpacingTokens.xl })
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
             const height: number = parseFloat(newValue.height as string);

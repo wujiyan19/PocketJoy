@@ -51,6 +51,8 @@ export class CollectionViewModel implements GameLifecycleObserver {
   }
   private startElapsed(): void {
     if (!['schulte', 'hanoi'].includes(this.id) || this.state.outcome !== 0 || this.confirmExit) { return; }
+    if (this.id === 'hanoi' && this.state.selected < 0 && this.state.moves === 0 && this.state.elapsedMs === 0) { return; }
+    if (this.id === 'schulte' && this.state.moves === 0 && this.state.elapsedMs === 0) { return; }
     this.elapsedStart = systemDateTime.getUptime(systemDateTime.TimeType.STARTUP, false);
     this.elapsedTimer = setInterval(() => {
       this.checkpointElapsed();
@@ -83,20 +85,26 @@ export class CollectionViewModel implements GameLifecycleObserver {
         this.state.cursor !== previous.cursor || this.state.phase !== previous.phase) { gameSound.play(this.id); }
     }
     this.isFinished = this.state.outcome !== 0;
-    this.modeHighScore = GameDataManager.getModeScore(this.modeId, this.difficulty);
+    const recordLevel: string = this.id === 'reaction' ? 'standard' : this.difficulty;
+    this.modeHighScore = GameDataManager.getModeScore(this.modeId, recordLevel);
     if (this.state.outcome !== 0 && !this.recorded) {
       this.recorded = true; this.dispose();
       this.state.elapsedMs = this.model.state.elapsedMs;
       const game = GameDataManager.getGameById(this.id);
       const score: number = this.model.isDuel() ? (game?.highScore ?? 0) + 1 : this.state.score;
       GameDataManager.updateHighScore(this.id, score);
-      GameDataManager.recordMode(this.modeId, this.difficulty, score, this.state.outcome === 1 ? this.state.elapsedMs : 0);
-      this.modeHighScore = GameDataManager.getModeScore(this.modeId, this.difficulty);
+      const elapsed: number = this.id === 'reaction' ? this.state.answer : this.state.elapsedMs;
+      GameDataManager.recordMode(this.modeId, recordLevel, score, this.state.outcome === 1 ? elapsed : 0);
+      this.modeHighScore = GameDataManager.getModeScore(this.modeId, recordLevel);
     }
   }
   tap(index: number): void {
     if (this.confirmExit) { return; }
+    if (this.id === 'schulte' && index >= 0 && index < this.state.board.length) {
+      this.feedback = this.state.board[index] === this.state.answer ? '' : this.state.board[index].toString();
+    }
     this.model.tap(index); this.checked = false; this.sync();
+    if (this.id === 'schulte' && this.elapsedTimer < 0) { this.startElapsed(); }
     if (this.id === 'reaction' && this.state.phase === 1 && this.state.outcome === 0 && this.timer < 0) {
       this.timer = setTimeout(() => {
         this.timer = -1; this.model.tick(Date.now()); this.sync();
@@ -113,6 +121,7 @@ export class CollectionViewModel implements GameLifecycleObserver {
       this.feedback = this.modeId === 'compare' ? (answer === -1 ? '＜' : answer === 0 ? '＝' : '＞') : answer.toString();
     }
     this.sync();
+    if (this.id === 'hanoi' && this.elapsedTimer < 0) { this.startElapsed(); }
   }
   action(): void {
     if (this.confirmExit) { return; }
@@ -122,11 +131,29 @@ export class CollectionViewModel implements GameLifecycleObserver {
   move(direction: number): void { this.tap(this.model.neighbor(this.state.cursor, direction)); }
   isDuel(): boolean { return this.model.isDuel(); }
   isQuiz(): boolean { return this.model.isQuiz(); }
-  legal(index: number): boolean { return this.id === 'reversi' && this.model.flips(index, this.state.player).length > 0; }
-  clues(column: boolean): string {
-    const lines: string[] = [];
-    for (let i = 0; i < this.state.cols; i++) { lines.push((i + 1) + ': ' + this.model.clue(this.state.target, i, column)); }
-    return lines.join('  /  ');
+  @Computed get reactionBestMs(): number {
+    if (this.state.id !== 'reaction') { return -1; }
+    let best: number = Number.POSITIVE_INFINITY;
+    let score: number = GameDataManager.archivedModeScore('reaction');
+    for (const level of ['standard', GameDifficulty.EASY, GameDifficulty.NORMAL, GameDifficulty.HARD]) {
+      const time: number = GameDataManager.getModeTime('reaction', level);
+      if (time > 0) { best = Math.min(best, time); }
+      score = Math.max(score, GameDataManager.getModeScore('reaction', level));
+    }
+    // Positive scores in older builds encode the exact response time below two seconds.
+    if (score > 0 && score <= 2000) { best = Math.min(best, 2000 - score); }
+    return Number.isFinite(best) ? best : -1;
+  }
+  @Computed get floodCells(): number[] { return this.model.floodRegion(this.state.board); }
+  legal(index: number): boolean {
+    if (this.id === 'peg') {
+      return this.state.selected >= 0 && [0, 1, 2, 3].some((d: number) => this.model.pegLanding(this.state.selected, d) === index);
+    }
+    return this.id === 'reversi' && this.model.flips(index, this.state.player).length > 0;
+  }
+  clue(line: number, column: boolean): string { return this.model.clue(this.state.target, line, column); }
+  clueSatisfied(line: number, column: boolean): boolean {
+    return this.model.clue(this.state.board, line, column) === this.clue(line, column);
   }
   tower(post: number): string {
     const discs: string[] = [];

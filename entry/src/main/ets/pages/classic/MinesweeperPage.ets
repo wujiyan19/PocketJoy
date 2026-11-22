@@ -23,6 +23,7 @@ const COLS = 9;
 
 @ComponentV2
 export struct MinesweeperPage {
+  @Local flagMode: boolean = false;
   @Param pathStack: NavPathStack = new NavPathStack();
   @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: MinesweeperViewModel = new MinesweeperViewModel();
@@ -130,6 +131,23 @@ export struct MinesweeperPage {
   }
 
   @Builder
+  ToolChoice(flag: boolean, label: Resource, controlId: string) {
+    Button() {
+      Row({ space: SpacingTokens.xs }) {
+        if (this.flagMode === flag) {
+          SymbolGlyph($r('sys.symbol.checkmark')).fontSize(FontTokens.sizeBody).fontColor([SemanticColors.textOnPrimary])
+        }
+        Text(label).fontSize(FontTokens.sizeBodyLarge).fontWeight(FontWeight.Medium)
+          .fontColor(this.flagMode === flag ? SemanticColors.textOnPrimary : SemanticColors.textPrimary)
+      }
+    }.layoutWeight(1).height(48).type(ButtonType.Normal).borderRadius(RadiusTokens.md)
+      .backgroundColor(this.flagMode === flag ? SemanticColors.primary : Color.Transparent)
+      .id(controlId).accessibilityText(label)
+      .accessibilityDescription(this.flagMode === flag ? $r('app.string.settings_selected') : $r('app.string.settings_unselected'))
+      .onClick(() => { this.flagMode = flag; })
+  }
+
+  @Builder
   PageHeader() {
     GameHeader({ gameId: 'minesweeper', pathStack: this.pathStack, hasProgress: (): boolean => this.viewModel.hasProgress(),
           gameTitle: $r('app.string.game_minesweeper_name'),
@@ -207,13 +225,15 @@ export struct MinesweeperPage {
                   .backgroundColor(this.getCellBg(row, col))
                   .border({ width: 1, color: $r('app.color.play_piece_border') }).borderRadius(RadiusTokens.xs)
                   .accessibilityText(this.cellA11y(row, col))
-                  .stateStyles({ pressed: this.pressedFeedback }).onClick(() => { if (!this.viewModel.isFlagged(row, col)) { this.viewModel.reveal(row, col); } })
+                  .id('mine-cell-' + row + '-' + col).stateStyles({ pressed: this.pressedFeedback }).onClick(() => {
+                    if (this.flagMode) { this.viewModel.toggleFlag(row, col); } else { this.viewModel.reveal(row, col); }
+                  })
                   .gesture(LongPressGesture().onAction(() => this.viewModel.toggleFlag(row, col)))
                 }, (col: number) => col.toString())
               }
             }, (row: number) => row.toString())
           }.padding(2)
-          .backgroundColor($r('app.color.play_board_background')).borderRadius(RadiusTokens.md)
+          .backgroundColor($r('app.color.play_piece_border')).borderRadius(RadiusTokens.sm).id('mine-board')
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
@@ -223,10 +243,12 @@ export struct MinesweeperPage {
             }
           })
 
-        Text($r('app.string.game_minesweeper_subtitle'))
-          .fontFamily(FontTokens.family)
-          .fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textTertiary)
-          .padding({ bottom: SpacingTokens.lg, top: SpacingTokens.xs })
+        Row({ space: SpacingTokens.xs }) {
+          this.ToolChoice(false, $r('app.string.mine_reveal_mode'), 'mine-mode-reveal')
+          this.ToolChoice(true, $r('app.string.mine_flag_mode'), 'mine-mode-flag')
+        }.width('84%').constraintSize({ maxWidth: 264 }).padding(SpacingTokens.xs).backgroundColor(SemanticColors.surface)
+          .border({ width: 1, color: $r('app.color.play_piece_border') }).borderRadius(RadiusTokens.lg)
+          .margin({ bottom: SpacingTokens.base })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status !== GameStatus.PLAYING) {

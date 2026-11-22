@@ -11,19 +11,19 @@
 一个基于 ArkTS / ArkUI 的 HarmonyOS 原生单人小游戏合集。<br>
 本地游玩，原生交互，把每次进步留在自己的设备上。
 
-**64 个入口** &nbsp; · &nbsp; **69 个原有玩法** &nbsp; · &nbsp; **6 大分类**
+**60 个入口** &nbsp; · &nbsp; **65 个原有玩法** &nbsp; · &nbsp; **6 大分类**
 
 HarmonyOS API 26 / 最低兼容 API 24<br>
 简体中文 / English
 
-[下载 v1.0.1 开发包](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.0.1) · [本次更新与验证](docs/release/v1.0.1.md)
+[下载 v1.0.1 开发包（64 个入口）](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.0.1) · [v1.0.1 更新与验证](docs/release/v1.0.1.md)
 
 [体验画面](#体验画面) &nbsp; / &nbsp; [玩法目录](#玩法目录) &nbsp; / &nbsp; [运行项目](#运行项目) &nbsp; / &nbsp; [文档导航](#文档导航)
 
 </div>
 
 > [!IMPORTANT]
-> **开发验证中，尚未上架。** 华为开发者联盟已答复，暂不支持所咨询的小游戏合集形态上架。当前 64 入口版本未获得新的准入确认。仓库展示工程实现与验证进展，具体范围见[发布状态](docs/release/status-2026-10-27.md)。
+> **开发验证中，尚未上架。** 华为开发者联盟已答复，暂不支持所咨询的小游戏合集形态上架。当前 60 入口版本未获得新的准入确认。仓库展示工程实现与验证进展，具体范围见[发布状态](docs/release/status-2026-10-27.md)。
 
 ## 体验画面
 
@@ -78,15 +78,15 @@ HarmonyOS API 26 / 最低兼容 API 24<br>
 
 ## 玩法目录
 
-当前开放 **64 个独立入口**。数学挑战承载五种题型，节奏落键承载两种模式，因此保留 **69 个原有玩法**。这里的“玩法”按原有规则模式统计，不代表 69 个独立应用。
+当前源码开放 **60 个独立入口**。其中数学挑战有五种题型，节奏落键有两种模式，按原有规则模式合计 **65 个玩法**。
 
 <details>
 <summary><strong>展开六大分类与完整入口清单</strong></summary>
 
 | 分类 | 入口 | 游戏 |
 | --- | ---: | --- |
-| 街机休闲 | 16 | 贪吃蛇、俄罗斯方块、打砖块、泡泡龙、落果合成、黑洞吞噬、大鱼吃小鱼、房间塔防、迷你餐厅、滚动球闯关、雷电战机、坦克对战、射击守城、自动攻击生存、爬坡越野、休闲钓鱼 |
-| 逻辑解谜 | 24 | 扫雷、滑动拼图、华容道、消消乐、十字熄灯、色块归一、迷宫寻路、汉诺塔、跳子独留、数字绘格、方块拼填、堆叠三消、倒水排序、箭头清除、拆螺丝、停车场挪车、推箱子、连连看、麻将接龙、点击群消、乘客上车、毛线收卷、绳结解开、图片拼图 |
+| 街机休闲 | 13 | 贪吃蛇、俄罗斯方块、打砖块、彩泡弹射、落果合成、黑洞吞噬、大鱼吃小鱼、滚动球闯关、纵向战机、坦克对战、自动攻击生存、爬坡越野、休闲钓鱼 |
+| 逻辑解谜 | 23 | 扫雷、滑动拼图、华容道、宝石三消、十字熄灯、色块归一、迷宫寻路、汉诺塔、跳子独留、数字绘格、方块拼填、堆叠三消、倒水排序、箭头清除、拆螺丝、停车场挪车、推箱子、连连看、麻将接龙、点击群消、乘客上车、绳结解开、图片拼图 |
 | 棋盘对弈 | 5 | 经典纸牌、中国象棋、国际象棋、蜘蛛纸牌、空当接龙 |
 | 数字训练 | 4 | 2048、数独、猜数字、数学挑战 |
 | 记忆专注 | 4 | 记忆翻牌、数字寻序、顺序记忆、旋律记忆 |
@@ -98,7 +98,9 @@ HarmonyOS API 26 / 最低兼容 API 24<br>
 
 </details>
 
-2026-10-27 的收敛与整改包括暂撤 7 款、合并 5 个入口，以及 26 款保留项的规则与复玩改进。逐项变化见[整改执行记录](docs/game-retention-implementation-2026-10-27.md)，判断依据见[全游戏审核](docs/game-retention-audit-2026-10-27.md)。
+推箱子的 12 道固定关附有逐关来源、候选布局和最短解校验。[固定关卡制作记录](docs/art/warehouse-box-level-origins.md)
+
+2026-11-22 从公开目录撤下毛线收卷、迷你餐厅、房间塔防和射击守城。各款玩法、复玩性、同类热度和权利问题见[调整前 64 款游戏的逐项审核](docs/game-retention-gemini-2026-11-22.md)。此前合并 5 个入口、改进 26 款玩法的过程见[10 月整改执行记录](docs/game-retention-implementation-2026-10-27.md)。
 
 ## 运行项目
 
@@ -152,7 +154,7 @@ node scripts/run-regressions.cjs
 | --- | --- | --- |
 | 桌面逻辑 | 2026-11-04 · 34 套，1425/1425 通过 | 64 入口版本；含 13 项本轮缺陷回归、9 份升级前关卡快照及 12 项模拟 Socket 检查。部分检查仍覆盖暂撤模型。 |
 | 原生构建 | 2026-11-04 · API 26 Debug 签名成功 | 11 月 5 日已在独立 API 26 模拟器安装同一哈希修复包。 |
-| 真实界面 | 2026-11-05 · 修复版模拟器复验 | 已测贴底旋转、巴士死局/撤销/再结算、重启成绩、方向键、拆螺丝撤销与两张桌面卡片；详见[模拟器报告](docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md)。不代表当前 64 入口版本全量或真机通过。 |
+| 真实界面 | 2026-11-05 · 修复版模拟器复验 | 当时的 64 入口版本已测贴底旋转、巴士死局/撤销/再结算、重启成绩、方向键、拆螺丝撤销与两张桌面卡片。详见[模拟器报告](docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md)。 |
 
 本轮修复、复核结论和验收边界见[审查问题修复记录](docs/review-fixes-2026-11-04.md)。历史结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
 
@@ -180,7 +182,7 @@ docs/                      产品审阅、实现说明与分版本证据
 
 | 想了解什么 | 从这里开始 |
 | --- | --- |
-| 当前玩法与整改 | [64 入口整改记录](docs/game-retention-implementation-2026-10-27.md) · [去留审核](docs/game-retention-audit-2026-10-27.md) |
+| 当前玩法与整改 | [11 月 22 日逐款审核](docs/game-retention-gemini-2026-11-22.md) · [10 月整改记录](docs/game-retention-implementation-2026-10-27.md) · [10 月去留审核](docs/game-retention-audit-2026-10-27.md) |
 | 画面、素材与声音 | [玩具风格](docs/art/toy/README.md) · [黑洞与漂移](docs/art/toy/chase/README.md) · [游戏音效](docs/game-sounds.md) · [美术索引](docs/art/README.md) |
 | 系统能力 | [API 26 升级](docs/api26-upgrade-implementation-2026-10-18.md) · [卡片、光感与分享](docs/device-acceptance/api26-features-2026-10-18/REPORT.md) · [接续说明](docs/harmonyos-continuation-immersive-light.md) |
 | 设备与发布 | [设备证据索引](docs/device-acceptance/README.md) · [发布状态](docs/release/status-2026-10-27.md) |

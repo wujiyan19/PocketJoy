@@ -11,6 +11,7 @@ import { GameDataManager } from '../model/GameData';
 @ComponentV2
 export struct GameSettingsPanel {
   @Param gameId: string = '';
+  @Param rulesModeId: string = '';
   @Param gameTitle: Resource | string = '';
   @Param difficulty: GameDifficulty = GameDifficulty.NORMAL;
   @Param showDifficulty: boolean = true;
@@ -147,7 +148,7 @@ export struct GameSettingsPanel {
           this.ActionRow($r('app.string.game_settings_rules'), '', $r('sys.symbol.list_bullet'), () => { this.showRules = !this.showRules; },
             true, true)
           if (this.showRules) {
-            Text(gameRules(this.gameId)).fontFamily(FontTokens.family).fontSize(FontTokens.sizeBody)
+            Text(gameRules(this.rulesModeId || this.gameId)).fontFamily(FontTokens.family).fontSize(FontTokens.sizeBody)
               .lineHeight($r('app.float.collection_rule_line')).fontColor(SemanticColors.textSecondary)
               .width('100%').padding({ left: SpacingTokens.base, right: SpacingTokens.base, bottom: SpacingTokens.base })
           }

@@ -3,6 +3,8 @@ import { RandomSource } from './RandomSource';
 import { ContinuationValidation as V } from '../../common/GameSessionTransfer';
 
 export const MATCHING_IDS: string[] = ['linktiles', 'mahjongsolitaire', 'groupclear', 'slotpair'];
+// More colours split the board into smaller groups as the difficulty rises.
+const GROUP_CLEAR_GOALS: number[] = [2200, 1600, 1300];
 
 class LinkVisit {
   cell: number;
@@ -29,7 +31,7 @@ export class ExpansionMatching {
       for (let i: number = 0; i < s.board.length; i += 2) { const color: number = 1 + this.pick(3 + s.level); s.board[i] = color; s.board[i + 1] = color; }
       this.shuffle(s.board); this.ensureLink(s); s.goal = s.board.length;
     } else if (s.id === 'groupclear') {
-      s.board = s.board.map(() => 1 + this.pick(3 + s.level)); s.goal = 300 + s.level * 150;
+      s.board = s.board.map(() => 1 + this.pick(3 + s.level)); s.goal = GROUP_CLEAR_GOALS[s.level];
       // Always offer an opening move, even with an adversarial random source.
       s.board[1] = s.board[0];
     } else {
@@ -146,6 +148,16 @@ export class ExpansionMatching {
       } }
     } return false;
   }
+  canContinueMahjong(s: ExpansionState): boolean {
+    const seen: Set<number> = new Set<number>();
+    for (const tile of s.pieces) {
+      if (this.tileFree(s, tile.id)) {
+        if (seen.has(tile.color)) { return true; }
+        seen.add(tile.color);
+      }
+    }
+    return seen.size >= 2 && this.removalOrder(s, [], [10000]);
+  }
   private arrangeMahjong(s: ExpansionState): boolean {
     const remaining: ExpansionPiece[] = s.pieces.filter((p: ExpansionPiece) => p.alive); const colors: number[] = [];
     for (let color: number = 1; color <= 6; color++) {
@@ -191,11 +203,15 @@ export class ExpansionMatching {
     if (s.id === 'linktiles') { this.tapLink(s, index); } else if (s.id === 'mahjongsolitaire') { this.tapMahjong(s, index);
     } else if (s.id === 'groupclear') { this.tapGroup(s, index); } else { this.tapSlot(s, index); }
   }
-  action(s: ExpansionState): void {
+  action(s: ExpansionState): boolean {
     if (s.id === 'linktiles') {
       const values: number[] = s.board.filter((v: number) => v > 0); this.shuffle(values); let cursor: number = 0;
       s.board = s.board.map((v: number) => v === 0 ? 0 : values[cursor++]); this.ensureLink(s); s.selected = -1; s.data = []; s.tray = this.linkPair(s); s.moves++;
-    } else if (s.id === 'mahjongsolitaire' && this.arrangeMahjong(s)) { s.tray = s.target.slice(0, 2); s.moves++; }
+    } else if (s.id === 'mahjongsolitaire') {
+      if (!this.arrangeMahjong(s)) { return false; }
+      s.tray = s.target.slice(0, 2); s.moves++;
+    }
+    return true;
   }
   valid(s: ExpansionState): boolean {
     if (s.piles.length !== 0 || s.phase !== 0) { return false; }
@@ -214,7 +230,8 @@ export class ExpansionMatching {
     if (s.id === 'linktiles') { return s.rows === 4 + s.level * 2 && s.goal === s.board.length && s.selected < s.board.length && s.target.length === 0 &&
       s.tray.length <= 2 && V.numbers(s.tray, s.tray.length, 0, s.board.length - 1) && V.numbers(s.data, s.data.length, 0, (s.cols + 2) * (s.rows + 2) - 1) &&
       [1, 2, 3, 4, 5].every((color: number) => s.board.filter((v: number) => v === color).length % 2 === 0); }
-    if (s.id === 'groupclear') { return s.rows === 8 && s.goal === 300 + s.level * 150 && s.target.length === 0 && s.tray.length === 0 && s.data.length === 0; }
+    if (s.id === 'groupclear') { return s.rows === 8 && (s.goal === GROUP_CLEAR_GOALS[s.level] || s.goal === 300 + s.level * 150) &&
+      s.target.length === 0 && s.tray.length === 0 && s.data.length === 0; }
     return s.id === 'slotpair' && s.rows === 6 && s.goal === 40 + s.level * 20 && V.numbers(s.target, s.goal, 1, 3 + s.level) && s.cursor <= s.goal &&
       s.next === (s.cursor < s.goal ? s.target[s.cursor] : 0) && s.tray.length === 0 && s.data.length === 0;
   }

@@ -1,6 +1,122 @@
 {
   "color": [
     {
+      "name": "toy_drift_sign_ink",
+      "value": "#FFE39C"
+    },
+    {
+      "name": "toy_drift_sign_face",
+      "value": "#243C4B"
+    },
+    {
+      "name": "survival_shot_rim",
+      "value": "#624421"
+    },
+    {
+      "name": "survival_shot_trail",
+      "value": "#FFBF40"
+    },
+    {
+      "name": "survival_shot_core",
+      "value": "#FFE781"
+    },
+    { "name": "mahjong_locked_face", "value": "#3D4342" },
+    { "name": "mahjong_locked_ink", "value": "#D5D1C5" },
+    { "name": "linktile_face_1", "value": "#88B7FF" },
+    { "name": "linktile_face_2", "value": "#FF9CAD" },
+    { "name": "linktile_face_3", "value": "#FFD078" },
+    { "name": "linktile_face_4", "value": "#7BDFC0" },
+    { "name": "linktile_face_5", "value": "#CBA5F5" },
+    { "name": "linktile_face_6", "value": "#7AD4EA" },
+    { "name": "linktile_ink", "value": "#20364F" },
+    { "name": "runner_current_lane", "value": "#334743" },
+    {
+      "name": "xiangqi_line_ink",
+      "value": "#C8A77D"
+    },
+    {
+      "name": "xiangqi_black_ink",
+      "value": "#E0EBF0"
+    },
+    {
+      "name": "xiangqi_red_ink",
+      "value": "#FFA092"
+    },
+    {
+      "name": "hill_soil",
+      "value": "#6F503D"
+    },
+    { "name": "mahjong_pair_face", "value": "#39362C" },
+    { "name": "mahjong_pair_edge", "value": "#9B8C69" },
+    {
+      "name": "klotski_exit_frame",
+      "value": "#B9976C"
+    },
+    {
+      "name": "sudoku_related_cells",
+      "value": "#374E62"
+    },
+    {
+      "name": "sudoku_matching_digit",
+      "value": "#655539"
+    },
+    {
+      "name": "sudoku_grid_edge",
+      "value": "#A3B7C7"
+    },
+    {
+      "name": "snake_floor",
+      "value": "#1A2B25"
+    },
+    {
+      "name": "snake_floor_alt",
+      "value": "#20332C"
+    },
+    {
+      "name": "snake_frame",
+      "value": "#7EB29B"
+    },
+    {
+      "name": "snake_key_face",
+      "value": "#233B31"
+    },
+    {
+      "name": "snake_key_ink",
+      "value": "#D4F2DB"
+    },
+    {
+      "name": "sokoban_floor",
+      "value": "#34383C"
+    },
+    {
+      "name": "sokoban_grout",
+      "value": "#44494C"
+    },
+    {
+      "name": "sokoban_wall_edge",
+      "value": "#161D23"
+    },
+    {
+      "name": "sokoban_arrow_ink",
+      "value": "#A5A498"
+    },
+    {
+      "name": "sokoban_goal_pad",
+      "value": "#344A43"
+    },
+    {
+      "name": "sokoban_goal_ink",
+      "value": "#8DCFB2"
+    },
+    {
+      "name": "sokoban_star_pad",
+      "value": "#55472D"
+    },
+    {
+      "name": "sokoban_star_ink",
+      "value": "#F6C970"
+    },
+    {
       "name": "selection_surface",
       "value": "#182B49"
     },
@@ -595,6 +711,14 @@
     {
       "name": "toy_drift_marking",
       "value": "#E9E2CB"
+    },
+    {
+      "name": "reaction_wait_bg",
+      "value": "#432F16"
+    },
+    {
+      "name": "reaction_go_bg",
+      "value": "#173E2B"
     }
   ]
 }

@@ -8,7 +8,8 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
  * 规则见 model/game/KlotskiModel.ets，状态编排见 viewmodel/KlotskiViewModel.ets。
  */
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
-import { ControlPad } from '../../components/ControlPad';
+import { Haptics } from '../../common/Haptics';
+import { HarmonyMotion } from '../../common/HarmonyMotion';
 import { GameHeader } from '../../components/GameHeader';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
 import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
@@ -76,12 +77,21 @@ export struct KlotskiPage {
   }
 
   @Builder
+  MoveKey(symbol: Resource, label: Resource, id: string, dx: number, dy: number) {
+    Button() { SymbolGlyph(symbol).fontSize(FontTokens.sizeSubtitle).fontColor([SemanticColors.textPrimary]) }
+      .width(56).height(48).type(ButtonType.Normal).borderRadius(RadiusTokens.base)
+      .backgroundColor(SemanticColors.surface).border({ width: 1.5, color: $r('app.color.klotski_exit_frame') })
+      .id(id).accessibilityText(label).clickEffect(HarmonyMotion.press(this.getUIContext()))
+      .onClick(() => { Haptics.tap(); this.viewModel.moveBlock(dx, dy); })
+  }
+
+  @Builder
   PageHeader() {
     GameHeader({ gameId: 'klotski', pathStack: this.pathStack, hasProgress: (): boolean => this.viewModel.hasProgress(),
           gameTitle: $r('app.string.game_klotski_name'),
           showScore: false,
           showPause: false,
-          subtitle: $r('app.string.game_klotski_subtitle_format', this.viewModel.stepCount),
+          subtitle: $r('app.string.klotski_drag_hint'),
           difficulty: this.viewModel.difficulty,
           onDifficultyChange: (d: GameDifficulty) => { this.viewModel.changeDifficulty(d); },
           onBack: () => { this.requestExit(); },
@@ -97,8 +107,9 @@ export struct KlotskiPage {
         .linearGradient({ angle: 180, colors: [[SemanticColors.gradientScreen[0], 0], [SemanticColors.gradientScreen[1], 0.5], [SemanticColors.gradientScreen[2], 1]] })
 
       Column() {
-
-
+        Text($r('app.string.game_klotski_subtitle_format', this.viewModel.stepCount))
+          .id('klotski-steps').fontSize(FontTokens.sizeSubtitle).fontWeight(FontWeight.Medium)
+          .fontColor(SemanticColors.textPrimary).padding(SpacingTokens.xs)
         Column() {
           Stack({ alignContent: Alignment.TopStart }) {
             Image($r('app.media.play_klotski_board'))
@@ -122,30 +133,43 @@ export struct KlotskiPage {
               .borderRadius(RadiusTokens.base)
               .translate({ x: 6 + piece.x * this.step(), y: 6 + piece.y * this.step() })
               .accessibilityText(this.a11yBlockFormat.replace('%1$s', piece.label))
+              .id('klotski-piece-' + piece.id)
+              .gesture(PanGesture({ fingers: 1, direction: PanDirection.All, distance: SpacingTokens.md })
+                .onActionEnd((event: GestureEvent) => {
+                  if (!piece.selected) { this.viewModel.selectBlockAt(piece.y, piece.x); }
+                  if (Math.abs(event.offsetX) > Math.abs(event.offsetY)) {
+                    this.viewModel.moveBlock(event.offsetX > 0 ? 1 : -1, 0);
+                  } else { this.viewModel.moveBlock(0, event.offsetY > 0 ? 1 : -1); }
+                }))
               .stateStyles({ pressed: this.pressedFeedback })
               .onClick(() => this.viewModel.selectBlockAt(piece.y, piece.x))
             }, (piece: KlotskiPieceView) => piece.id)
           }
-          .width(this.step() * BW + 8).height(this.step() * BH + 8)
-          Text($r('app.string.klotski_exit'))
-            .fontSize(FontTokens.sizeCaption)
-            .fontColor(SemanticColors.textSecondary)
-            .margin({ top: SpacingTokens.sm })
+          .width(this.step() * BW + 8).height(this.step() * BH + 8).id('klotski-board')
+          Row() {
+            Column().layoutWeight(1).height(SpacingTokens.sm).backgroundColor($r('app.color.klotski_exit_frame'))
+            Text($r('app.string.klotski_exit')).layoutWeight(2).textAlign(TextAlign.Center).fontSize(FontTokens.sizeCaption)
+              .fontWeight(FontWeight.Medium).fontColor(SemanticColors.textPrimary)
+            Column().layoutWeight(1).height(SpacingTokens.sm).backgroundColor($r('app.color.klotski_exit_frame'))
+          }.width(this.step() * BW + 8).height(SpacingTokens.lg).margin({ bottom: SpacingTokens.md })
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
             const height: number = parseFloat(newValue.height as string);
             if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-              this.cell = ScreenUtils.calcCellForArea(width, height, BW, BH, 560, 28, 48);
+              this.cell = ScreenUtils.calcCellForArea(width, height, BW, BH, 560, 28, BH * 4 + 8 + SpacingTokens.lg + SpacingTokens.md);
             }
           })
 
-        ControlPad({
-          onUp: () => this.viewModel.moveBlock(0, -1),
-          onDown: () => this.viewModel.moveBlock(0, 1),
-          onLeft: () => this.viewModel.moveBlock(-1, 0),
-          onRight: () => this.viewModel.moveBlock(1, 0)
-        })
+        Column({ space: SpacingTokens.sm }) {
+          this.MoveKey($r('sys.symbol.arrow_up'), $r('app.string.a11y_direction_up'), 'control-pad-up', 0, -1)
+          Row({ space: SpacingTokens.md }) {
+            this.MoveKey($r('sys.symbol.arrow_left'), $r('app.string.a11y_direction_left'), 'control-pad-left', -1, 0)
+            Column().width(56).height(48).accessibilityLevel('no')
+            this.MoveKey($r('sys.symbol.arrow_right'), $r('app.string.a11y_direction_right'), 'control-pad-right', 1, 0)
+          }
+          this.MoveKey($r('sys.symbol.arrow_down'), $r('app.string.a11y_direction_down'), 'control-pad-down', 0, 1)
+        }.width('100%')
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {

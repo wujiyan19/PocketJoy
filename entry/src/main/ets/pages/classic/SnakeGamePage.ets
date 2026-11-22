@@ -9,7 +9,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
  */
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
-import { ControlPad } from '../../components/ControlPad';
+import { Haptics } from '../../common/Haptics';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
 import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
@@ -21,6 +21,7 @@ import { SnakeViewModel } from '../../viewmodel/SnakeViewModel';
 
 const COLS = 20;
 const ROWS = 20;
+const BOARD_RIM = 2;
 
 @ComponentV2
 export struct SnakeGamePage {
@@ -55,12 +56,6 @@ export struct SnakeGamePage {
     this.pathStack.pop();
   }
 
-  getCellColor(col: number, row: number): ResourceColor {
-    if (this.viewModel.isFood(col, row)) { return $r('app.color.play_cell_background'); }
-    if ((row + col) % 2 === 0) { return $r('app.color.play_cell_alternate'); }
-    return $r('app.color.play_cell_background');
-  }
-
   getSnakeImage(col: number, row: number): Resource {
     if (this.viewModel.isSnakeHead(col, row)) { return $r('app.media.play_snake_head'); }
     if (this.viewModel.isSnakeTail(col, row)) { return $r('app.media.play_snake_tail'); }
@@ -68,9 +63,15 @@ export struct SnakeGamePage {
     return $r('app.media.play_snake_body');
   }
 
-  getCellRadius(col: number, row: number): number {
-    if (this.viewModel.isFood(col, row)) { return RadiusTokens.md; }
-    return 3;
+  @Builder
+  DirectionKey(symbol: Resource, label: Resource, id: string, turn: () => void) {
+    Button() {
+      SymbolGlyph(symbol).fontSize(FontTokens.sizeTitle).fontWeight(FontWeight.Medium)
+        .fontColor([$r('app.color.snake_key_ink')])
+    }.type(ButtonType.Normal).width($r('app.float.snake_key_width')).height($r('app.float.snake_key_height'))
+      .borderRadius(RadiusTokens.md).backgroundColor($r('app.color.snake_key_face'))
+      .border({ width: 1, color: $r('app.color.snake_frame') }).accessibilityText(label).id(id)
+      .onClick(() => { Haptics.tap(); turn(); })
   }
 
   @Builder
@@ -121,38 +122,46 @@ export struct SnakeGamePage {
                       Image($r('app.media.play_snake_food')).width(this.cell).height(this.cell).objectFit(ImageFit.Contain)
                     }
                   }.width(this.cell).height(this.cell)
-                    .backgroundColor(this.getCellColor(col, row))
-                    .borderRadius(this.getCellRadius(col, row))
+                    .backgroundColor((row + col) % 2 === 0 ? $r('app.color.snake_floor') : $r('app.color.snake_floor_alt'))
                 }, (col: number) => col.toString())
               }
             }, (row: number) => row.toString())
-          }.width(this.cell * COLS).height(this.cell * ROWS)
+          }.width(this.cell * COLS + BOARD_RIM * 2).height(this.cell * ROWS + BOARD_RIM * 2)
+          .padding(BOARD_RIM).borderRadius(RadiusTokens.sm).clip(true).backgroundColor($r('app.color.snake_frame'))
+          .id('snake-board').gesture(PanGesture({ fingers: 1, direction: PanDirection.All, distance: SpacingTokens.md })
+            .onActionStart((event: GestureEvent) => {
+              if (Math.abs(event.offsetX) > Math.abs(event.offsetY)) {
+                if (event.offsetX > 0) { this.viewModel.turnRight(); } else { this.viewModel.turnLeft(); }
+              } else {
+                if (event.offsetY > 0) { this.viewModel.turnDown(); } else { this.viewModel.turnUp(); }
+              }
+            }))
           .accessibilityGroup(true)
           .accessibilityText($r('app.string.a11y_snake_board', (this.viewModel.snake[0]?.y ?? -1) + 1,
             (this.viewModel.snake[0]?.x ?? -1) + 1, this.viewModel.food.y + 1, this.viewModel.food.x + 1, this.viewModel.snake.length))
-          .borderRadius(RadiusTokens.md)
-          .backgroundColor($r('app.color.play_board_background'))
-
-          if (!this.viewModel.started) {
-            Text($r('app.string.snake_start_hint'))
-              .fontSize(FontTokens.sizeSubtitle).fontColor(SemanticColors.textTertiary)
-              .margin({ top: 12 })
-          }
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
             const height: number = parseFloat(newValue.height as string);
             if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
-              this.cell = ScreenUtils.calcCellForArea(width, height, COLS, ROWS, 560, 24, 40);
+              this.cell = ScreenUtils.calcCellForArea(width, height, COLS, ROWS, 560, 24, BOARD_RIM * 2);
             }
           })
 
-        ControlPad({
-          onUp: () => this.viewModel.turnUp(),
-          onDown: () => this.viewModel.turnDown(),
-          onLeft: () => this.viewModel.turnLeft(),
-          onRight: () => this.viewModel.turnRight()
-        })
+        Row() {
+          if (!this.viewModel.started) {
+            Text($r('app.string.snake_start_hint')).fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textSecondary)
+          }
+        }.height(SpacingTokens.xxl).justifyContent(FlexAlign.Center).width('100%')
+        Column({ space: SpacingTokens.xs }) {
+          this.DirectionKey($r('sys.symbol.arrow_up'), $r('app.string.a11y_direction_up'), 'control-pad-up', () => { this.viewModel.turnUp(); })
+          Row({ space: SpacingTokens.xs }) {
+            this.DirectionKey($r('sys.symbol.arrow_left'), $r('app.string.a11y_direction_left'), 'control-pad-left', () => { this.viewModel.turnLeft(); })
+            Column().width($r('app.float.snake_key_width')).height($r('app.float.snake_key_height')).accessibilityLevel('no')
+            this.DirectionKey($r('sys.symbol.arrow_right'), $r('app.string.a11y_direction_right'), 'control-pad-right', () => { this.viewModel.turnRight(); })
+          }
+          this.DirectionKey($r('sys.symbol.arrow_down'), $r('app.string.a11y_direction_down'), 'control-pad-down', () => { this.viewModel.turnDown(); })
+        }.width('100%').padding({ bottom: SpacingTokens.sm })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       if (this.viewModel.status === GameStatus.OVER) {

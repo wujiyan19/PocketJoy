@@ -83,7 +83,7 @@
     },
     {
       "id": "match3",
-      "name": "消消乐",
+      "name": "宝石三消",
       "icon": "game_match3",
       "group": "classic"
     },
@@ -221,7 +221,7 @@
     },
     {
       "id": "bubbleshooter",
-      "name": "泡泡龙",
+      "name": "彩泡弹射",
       "icon": "game_bubbleshooter",
       "group": "expansion"
     },
@@ -407,7 +407,7 @@
     },
     {
       "id": "shooter",
-      "name": "雷电战机",
+      "name": "纵向战机",
       "icon": "game_shooter",
       "group": "expansion"
     },

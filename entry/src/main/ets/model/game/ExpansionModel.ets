@@ -3,7 +3,8 @@ import { ExpansionPuzzle } from './ExpansionPuzzle';
 import { ExpansionScrews } from './ExpansionScrews';
 import { ExpansionPhysics } from './ExpansionPhysics';
 import { BlackholeLevels } from './ToyLevelRules';
-import { ExpansionAdventure } from './ExpansionAdventure';
+import { ExpansionAdventure, WarehouseTile, warehouseGoalsFilled, warehouseTile } from './ExpansionAdventure';
+import { SOKOBAN_LEVELS } from './SokobanLevels';
 import { ExpansionTable, CHARACTER_PARTS, CHARACTER_RECIPES } from './ExpansionTable';
 import { ExpansionArcade } from './ExpansionArcade';
 import { ExpansionMatching, MATCHING_IDS } from './ExpansionMatching';
@@ -17,6 +18,14 @@ import { ExpansionBrain, BRAIN_IDS } from './ExpansionBrain';
 import { ExpansionLife, LIFE_IDS } from './ExpansionLife';
 import { RealRandom, RandomSource } from './RandomSource';
 import { ContinuationValidation as V } from '../../common/GameSessionTransfer';
+
+// Fixed campaign snapshots initially used variant 0. Only the terrain signatures
+// are needed to recognize those boards before starting their replacements.
+const PREVIOUS_SOKOBAN_TERRAIN: number[] = [
+  1232690108, 1970633086, 2529719716, 1261820033, 3053301083, 352829182,
+  29730710, 1677123780, 2128704225, 1415283040, 2357873123, 2954987146
+];
+const SOKOBAN_CAMPAIGN_VARIANT: number = 2;
 
 export const PLAYABLE_EXPANSION_IDS: string[] = ['blockfit', 'tilestack', 'bubbleshooter', 'fruitmerge', 'watersort', 'arrowclear', 'screwout', 'parkingjam',
   'runner', 'blackhole', 'fisheat', 'sokoban', 'pipes', 'differences', 'roomdefense', 'basketball', 'solitaire', 'characters', 'rhythm', 'restaurant', ...MATCHING_IDS, ...SORTING_IDS, ...ACTION_IDS, ...SPORTS_IDS, ...POKER_IDS, 'mahjong', ...CHESS_IDS, 'ludo', 'spider', 'freecell', ...BRAIN_IDS, ...LIFE_IDS];
@@ -56,6 +65,14 @@ export class ExpansionModel {
     } else if (this.isTable()) { this.table.start(this.state); } else if (this.isArcade()) { this.arcade.start(this.state);
     } else if (this.isAdventure()) { this.adventure.start(this.state); } else if (this.realtime()) { this.physics.start(this.state); } else { this.puzzle.start(this.state); }
   }
+  startSokobanLevel(level: number): void {
+    this.state = new ExpansionState();
+    this.state.id = 'sokoban';
+    this.state.sokobanLevel = level;
+    this.state.variant = SOKOBAN_CAMPAIGN_VARIANT;
+    this.history = [];
+    this.adventure.start(this.state);
+  }
   private isAdventure(): boolean { return ['runner', 'blackhole', 'fisheat', 'sokoban', 'pipes', 'differences'].includes(this.state.id); }
   private isTable(): boolean { return this.state.id === 'solitaire' || this.state.id === 'characters'; }
   private isArcade(): boolean { return ['roomdefense', 'basketball', 'rhythm', 'restaurant'].includes(this.state.id); }
@@ -85,11 +102,14 @@ export class ExpansionModel {
     if (SORTING_IDS.includes(this.state.id) && this.state.outcome === 0 && V.integer(index, 0, 1000)) { this.sorting.choose(this.state, index); }
     if (this.state.id === 'blockfit' && this.state.outcome === 0 && V.integer(index, 0, 2) && this.state.tray[index] >= 0) { this.state.selected = index; }
   }
-  action(): void {
-    if (this.state.outcome !== 0) { return; }
+  action(): boolean {
+    if (this.state.outcome !== 0) { return false; }
     const previous: string = JSON.stringify(this.state);
-    if (MATCHING_IDS.includes(this.state.id)) { this.matching.action(this.state); } else if (this.state.id === 'characters') { this.table.checkWord(this.state); }
+    if (MATCHING_IDS.includes(this.state.id)) {
+      if (!this.matching.action(this.state)) { return false; }
+    } else if (this.state.id === 'characters') { this.table.checkWord(this.state); }
     if (previous !== JSON.stringify(this.state)) { this.history.push(previous); if (this.history.length > 120) { this.history.shift(); } }
+    return true;
   }
   activate(): void {
     if (this.state.outcome !== 0) { return; }
@@ -133,6 +153,11 @@ export class ExpansionModel {
   }
   undo(): void { if (this.canUndo()) { this.state = JSON.parse(this.history.pop() ?? '') as ExpansionState; } }
   restore(s: ExpansionState): void {
+    if (s.id === 'sokoban' && s.sokobanLevel !== undefined && s.variant === 0) {
+      const level: number = s.sokobanLevel + (s.outcome === 1 ? 1 : 0);
+      this.startSokobanLevel(Math.min(level, SOKOBAN_LEVELS.length));
+      return;
+    }
     // Older automatic Mahjong snapshots kept next=1 after drawing for the human.
     // A pending computer turn instead leaves the human one tile short.
     if (s.id === 'mahjong' && s.outcome === 0 && s.data[0] === 0 && s.next !== 0 &&
@@ -237,13 +262,34 @@ export class ExpansionModel {
       (s.outcome !== 0 || (s.phase === 1) === (s.pieces.length === 1)) &&
       s.pieces.every((p: ExpansionPiece) => p.kind === 3 && p.r === 19 && p.x >= 19 && p.x <= 341 && p.y >= 0 && p.y <= 435 && V.integer(p.color, 1, 3 + s.level)); }
     if (s.id === 'sokoban') {
-      if (s.cols !== 7 || s.rows !== 7 || !V.numbers(s.board, 49, 0, 2) || s.cursor >= 49 || s.board[s.cursor] === 1 ||
-        s.goal !== (s.level === 0 ? 2 : s.level === 1 ? 3 : 4) || s.pieces.length !== s.goal || !V.numbers(s.target, s.target.length, 0, 3) || s.tray.length !== 0) { return false; }
+      if (s.sokobanLevel === undefined) {
+        if (s.cols !== 7 || s.rows !== 7 || !V.numbers(s.board, 49, 0, 2) ||
+          s.goal !== 2 + s.level || !V.numbers(s.target, s.target.length, 0, 3)) { return false; }
+      } else {
+        if (!V.integer(s.sokobanLevel, 1, SOKOBAN_LEVELS.length)) { return false; }
+        if (s.board.length !== s.cols * s.rows || s.target.length !== 0) { return false; }
+        if (s.variant === 0) {
+          const signature: number = s.board.reduce((hash: number, tile: number) => (hash * 31 + tile) >>> 0, 0);
+          if (s.cols !== 7 || s.rows !== 7 || signature !== PREVIOUS_SOKOBAN_TERRAIN[s.sokobanLevel - 1]) { return false; }
+        } else {
+          const rows: string[] = SOKOBAN_LEVELS[s.sokobanLevel - 1].rows;
+          if (s.variant !== SOKOBAN_CAMPAIGN_VARIANT || s.cols !== rows[0].length || s.rows !== rows.length ||
+            !s.board.every((tile: number, index: number) => tile === warehouseTile(rows[Math.floor(index / s.cols)].charAt(index % s.cols)))) { return false; }
+        }
+        const starred: number = s.board.filter((tile: number) => tile === WarehouseTile.StarGoal).length;
+        if (s.pieces.some((piece: ExpansionPiece) => piece.color > 1) ||
+          s.pieces.filter((piece: ExpansionPiece) => piece.color === 1).length !== starred ||
+          s.outcome !== (warehouseGoalsFilled(s) === s.goal ? 1 : 0)) { return false; }
+      }
+      if (s.cursor >= s.board.length || s.board[s.cursor] === WarehouseTile.Wall || s.pieces.length !== s.goal || s.tray.length !== 0) { return false; }
       const cells: number[] = [];
       for (let i: number = 0; i < s.pieces.length; i++) {
-        const p: ExpansionPiece = s.pieces[i]; const cell: number = p.y * 7 + p.x;
-        if (p.kind !== 5 || !V.integer(p.x, 1, 5) || !V.integer(p.y, 1, 5) || s.board[cell] === 1 || cell === s.cursor || cells.includes(cell)) { return false; } cells.push(cell);
-      } return s.board.filter((v: number) => v === 2).length === s.goal;
+        const p: ExpansionPiece = s.pieces[i]; const cell: number = p.y * s.cols + p.x;
+        if (p.kind !== 5 || !V.integer(p.x, 1, s.cols - 2) || !V.integer(p.y, 1, s.rows - 2) ||
+          s.board[cell] === WarehouseTile.Wall || cell === s.cursor || cells.includes(cell)) { return false; }
+        cells.push(cell);
+      }
+      return s.board.filter((tile: number) => tile === WarehouseTile.Goal || tile === WarehouseTile.StarGoal).length === s.goal;
     }
     if (s.id === 'pipes') {
       return s.cols === 4 + s.level && s.rows === s.cols && V.numbers(s.board, s.cols * s.rows, 1, 15) &&

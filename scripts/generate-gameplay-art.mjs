@@ -23,11 +23,12 @@ for (const theme of ['base','dark']) {
     else resources.color.push({name,value});
   }
   fs.writeFileSync(colorFile,JSON.stringify(resources,null,2)+'\n');
-  const save = (name,w,h,body) => {
+  const saveSvg = (name,w,h,svg) => {
     fs.writeFileSync(path.join(root,`entry/src/main/resources/${theme}/media/play_${name}.svg`),
-      pruneSvgDefs(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${defs}</defs>${body}</svg>\n`));
+      pruneSvgDefs(svg));
     if (theme === 'base') generated.push({ name:'play_'+name, width:w, height:h });
   };
+  const save = (name,w,h,body) => saveSvg(name,w,h,`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${defs}</defs>${body}</svg>\n`);
   const tile = (w,h,color,r=12) => rect(3,5,w-6,h-8,r,p.edge)+rect(3,2,w-6,h-8,r,`url(#${color})`,p.edge)+
     line(`M${r+5} 9H${w-r-8}`,'#FFFFFF',2,.48);
   const gloss = (w,h,r=12) => rect(2,2,w-4,h-4,r,'none',p.edge,2)+
@@ -49,7 +50,7 @@ for (const theme of ['base','dark']) {
   save('guess_key',100,100,gloss(100,100,12));
   save('klotski_board',320,400,tile(320,400,'wood',22)+rect(13,12,294,374,14,p.woodInset,p.woodEdge,2)+
     line('M118 385H202',p.gold,7)+line('M135 371L160 382L185 371',p.gold,3));
-  save('klotski_target',128,128,tile(128,128,'coral',14)+line('M49 62H79M64 47V77','#FFF1C5',4,.65));
+  save('klotski_target',128,128,tile(128,128,'coral',14));
   save('klotski_vertical',80,160,tile(80,160,'gold',10));
   save('klotski_horizontal',160,80,tile(160,80,'wood',10));
   save('klotski_soldier',80,80,tile(80,80,'wood',10));
@@ -86,21 +87,31 @@ for (const theme of ['base','dark']) {
   save('brick_gloss',160,64,gloss(160,64,10));
   save('brick_paddle',160,32,tile(160,32,'blue',12));
   save('brick_ball',64,64,circle(32,33,27,p.edge)+circle(32,30,27,'url(#ivory)',p.edge)+ellipse(24,21,9,5,'#FFFFFF',.65));
-  const outlines = ['M50 5L91 30L82 78L50 96L18 78L9 30Z','M50 3L94 50L50 97L6 50Z',
-    'M25 10H75L95 42L75 90H25L5 42Z','M50 5L91 27L91 73L50 95L9 73L9 27Z',
-    'M50 9C68-1 91 13 91 35C91 59 67 78 50 93C33 78 9 59 9 35C9 13 32-1 50 9Z',
-    'M50 4L86 21L96 60L70 93H30L4 60L14 21Z'];
-  const gemColors = ['coral','gold','mint','blue','coral','violet'];
-  for (let i=0;i<6;i++) save('gem_'+i,100,100,shape(outlines[i],`url(#${gemColors[i]})`,p.edge)+
-    shape('M50 12L24 33L50 70L76 33Z','#FFFFFF','none')+shape('M50 12L50 70L76 33Z',p.low,'none')+
-    line('M50 12V70M24 33H76','#FFFFFF',2,.6));
+  const outlines = [
+    'M27 10H73L96 50L73 90H27L4 50Z',
+    'M50 4L93 50L50 96L7 50Z',
+    'M12 83C4 45 31 10 91 10C94 61 65 96 22 88Z',
+    'M50 4C39 23 17 47 17 65A33 33 0 0 0 83 65C83 47 61 23 50 4Z',
+    'M50 90L15 56C-8 30 17 2 40 15L50 23L60 15C84 2 108 30 85 56Z',
+    'M50 4L63 34L96 38L71 61L78 94L50 77L22 94L29 61L4 38L37 34Z'
+  ];
+  const facets = [
+    'M14 50L31 18H68', 'M18 50L50 15L81 49', 'M24 76Q43 49 76 25M44 53L43 37',
+    'M31 71Q23 58 39 38', 'M17 34Q19 20 31 22', 'M50 18L58 40L77 42'
+  ];
+  const gemColors = ['cyan','gold','mint','blue','coral','violet'];
+  for (let i=0;i<6;i++) save('gem_'+i,100,100,shape(outlines[i],`url(#${gemColors[i]})`,p.ink,2.5)+
+    line(facets[i],'#FFFFFF',4,.75));
   save('jump_scene',400,500,rect(0,0,400,500,24,'url(#paper)')+
     shape('M0 449Q100 409 211 458Q315 417 400 442V500H0Z',dark?'#263F3A':'#D1E5DB')+
     ellipse(74,81,50,15,p.paper,.6)+ellipse(287,125,67,17,p.paper,.45));
-  save('whack_scene',400,400,rect(0,0,400,400,24,'url(#paper)')+
-    shape('M0 332Q103 302 200 339Q299 312 400 329V400H0Z',dark?'#263F3A':'#D1E5DB')+
-    line('M28 365L33 350L39 365M350 378L357 358L365 377',dark?'#416251':'#A4C6B3',3,.5));
-  save('brick_scene',400,500,rect(0,0,400,500,20,'url(#paper)')+rect(8,8,384,484,16,'none',p.edge,2)+line('M31 35H92M308 465H369',p.edge,2,.3));
+  saveSvg('whack_scene',400,400,`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs><linearGradient id="lawn" x2="0" y2="1"><stop stop-color="${dark?'#263F36':'#E0EFCD'}"/><stop offset="1" stop-color="${dark?'#233B30':'#CDE4B7'}"/></linearGradient></defs>
+  <rect width="400" height="400" rx="16" fill="url(#lawn)"/>
+  <path d="m17 46 4-8 4 8m337 34 4-9 4 9M35 221l4-8 4 8m320-34 4-8 4 8M90 368l4-9 4 9m231-13 4-7 4 7" fill="none" stroke="${dark?'#486E58':'#87AE7C'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`);
+  save('brick_scene',400,500,rect(0,0,400,500,20,'url(#paper)')+rect(8,8,384,484,16,'none',p.edge,2)+line('M31 35H92',p.edge,2,.3));
 }
 fs.writeFileSync(path.join(root,'docs/art/legacy-gameplay-manifest.json'),JSON.stringify({
   style:'Shared icon palette; soft vector toy materials; base and dark', games:13, assets:generated

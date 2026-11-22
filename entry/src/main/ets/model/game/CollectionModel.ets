@@ -70,7 +70,7 @@ export class CollectionModel {
         for (let color = 0; color < 4; color++) {
           if (color === s.board[0]) { continue; }
           const trial: number[] = s.board.slice(); this.fill(trial, color);
-          const size: number = this.regionSize(trial);
+          const size: number = this.floodRegion(trial).length;
           if (size > bestSize) { best = trial; bestSize = size; }
         }
         s.board = best; solution++;
@@ -146,7 +146,7 @@ export class CollectionModel {
       }
     }
   }
-  private regionSize(board: number[]): number {
+  floodRegion(board: number[]): number[] {
     const queue: number[] = [0]; const seen: boolean[] = new Array<boolean>(board.length).fill(false); seen[0] = true;
     for (let i = 0; i < queue.length; i++) {
       for (let d = 0; d < 4; d++) {
@@ -154,7 +154,7 @@ export class CollectionModel {
         if (n >= 0 && !seen[n] && board[n] === board[0]) { seen[n] = true; queue.push(n); }
       }
     }
-    return queue.length;
+    return queue;
   }
   private makeMaze(): void {
     const s: CollectionState = this.state; s.board = new Array<number>(s.cols * s.cols).fill(1);
@@ -272,19 +272,24 @@ export class CollectionModel {
       else { s.cursor++; if (s.cursor === s.target.length) { this.finish(true); } }
     }
   }
+  pegLanding(from: number, direction: number): number {
+    const mid: number = this.neighbor(from, direction);
+    const end: number = this.neighbor(mid, direction);
+    return this.state.board[from] === 1 && mid >= 0 && end >= 0 &&
+      this.state.board[mid] === 1 && this.state.board[end] === 0 ? end : -1;
+  }
   private peg(index: number): void {
     const s: CollectionState = this.state;
     if (s.board[index] === 1) { s.selected = index; return; }
     if (s.selected < 0 || s.board[index] !== 0) { return; }
     for (let d = 0; d < 4; d++) {
       const mid: number = this.neighbor(s.selected, d);
-      if (this.neighbor(mid, d) === index && mid >= 0 && s.board[mid] === 1) {
+      if (this.pegLanding(s.selected, d) === index) {
         s.board[s.selected] = 0; s.board[mid] = 0; s.board[index] = 1; s.selected = -1; s.moves++;
         if (s.board.filter((v: number) => v === 1).length === 1) { this.finish(true); return; }
         for (let i = 0; i < s.board.length; i++) {
           for (let dir = 0; dir < 4; dir++) {
-            const m: number = this.neighbor(i, dir); const e: number = this.neighbor(m, dir);
-            if (s.board[i] === 1 && m >= 0 && e >= 0 && s.board[m] === 1 && s.board[e] === 0) { return; }
+            if (this.pegLanding(i, dir) >= 0) { return; }
           }
         }
         this.finish(false); return;
@@ -378,9 +383,14 @@ export class CollectionModel {
       s.answer = op === 0 ? a + b : op === 1 ? a - b : a * b;
       s.prompt = a + [' + ', ' − ', ' × '][op] + b + ' = ?';
     } else if (s.id === 'compare') {
-      const c: number = this.random(20) + 1; const d: number = this.random(20) + 1;
-      s.answer = a + b < c + d ? -1 : a + b === c + d ? 0 : 1;
-      s.prompt = '(' + a + ' + ' + b + ')  ?  (' + c + ' + ' + d + ')'; s.choices = [-1, 0, 1]; return;
+      s.answer = this.random(3) - 1;
+      const gap: number = 1 + this.random(3 + s.level * 3);
+      const left: number = a + b + (s.answer === 1 ? gap : 0);
+      const right: number = a + b + (s.answer === -1 ? gap : 0);
+      const leftPart: number = 1 + this.random(left - 1);
+      const rightPart: number = 1 + this.random(right - 1);
+      s.prompt = '(' + leftPart + ' + ' + (left - leftPart) + ')  ?  (' + rightPart + ' + ' + (right - rightPart) + ')';
+      s.choices = [-1, 0, 1]; return;
     } else if (s.id === 'sequence') {
       const step: number = b; s.target = [a, a + step, a + step * 2, a + step * 3];
       if (s.level === 2 && this.random(2) === 0) { s.target = [b, b * 2, b * 4, b * 8]; s.answer = b * 16; }

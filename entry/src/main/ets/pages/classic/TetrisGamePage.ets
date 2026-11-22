@@ -19,6 +19,7 @@ import { TetrisViewModel } from '../../viewmodel/TetrisViewModel';
 
 const COLS = 10;
 const ROWS = 20;
+const SHAPE_NAMES: string[] = ['I', 'O', 'T', 'S', 'Z', 'L', 'J'];
 
 /**
  * 方块配色。UI 常量收编为资源；深色模式在 dark/element/color.json 提供提亮版本。
@@ -123,7 +124,23 @@ export struct TetrisGamePage {
             Text($r('app.string.score_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
             Text('' + this.viewModel.score).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.lg)
-          .alignItems(HorizontalAlign.Center).margin({ left: 8, right: 16 })
+          .alignItems(HorizontalAlign.Center).margin({ left: SpacingTokens.sm })
+          Column({ space: SpacingTokens.xs }) {
+            Text($r('app.string.tetris_next_piece', SHAPE_NAMES[this.viewModel.nextIndex] ?? ''))
+              .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary).id('tetris-next')
+            Column() {
+              ForEach([0, 1], (row: number) => {
+                Row() {
+                  ForEach([0, 1, 2, 3], (col: number) => {
+                    Column().width(SpacingTokens.md).height(SpacingTokens.md)
+                      .backgroundColor(this.viewModel.previewFilled(row, col) ? SHAPE_COLORS[this.viewModel.nextIndex] : Color.Transparent)
+                      .borderRadius(2)
+                  }, (col: number) => col.toString())
+                }
+              }, (row: number) => row.toString())
+            }
+          }.layoutWeight(1).padding(SpacingTokens.sm).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.lg)
+            .margin({ left: SpacingTokens.sm, right: SpacingTokens.base })
         }.margin({ top: 12, bottom: 12 })
 
         Row() {
@@ -152,7 +169,7 @@ export struct TetrisGamePage {
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => { this.updateCell(newValue); })
 
-        Column({ space: SpacingTokens.sm }) {
+        Column({ space: SpacingTokens.base }) {
           Row({ space: SpacingTokens.sm }) {
             Button() {
               SymbolGlyph($r('sys.symbol.arrow_left'))
@@ -167,7 +184,7 @@ export struct TetrisGamePage {
             }
             .layoutWeight(1).height(48).backgroundColor(SemanticColors.surface)
             .borderRadius(RadiusTokens.base).stateStyles({ pressed: this.pressedFeedback })
-            .accessibilityText($r('app.string.a11y_tetris_rotate')).onClick(() => this.viewModel.rotateBlock())
+            .id('tetris-rotate').accessibilityText($r('app.string.a11y_tetris_rotate')).onClick(() => this.viewModel.rotateBlock())
             Button() {
               SymbolGlyph($r('sys.symbol.arrow_right'))
                 .fontSize(18).fontColor([SemanticColors.textPrimary])
@@ -187,7 +204,7 @@ export struct TetrisGamePage {
             }
           }
           .width('80%').height(48).backgroundColor(SemanticColors.primary)
-          .borderRadius(RadiusTokens.full).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.hardDrop())
+          .id('tetris-drop').borderRadius(RadiusTokens.full).stateStyles({ pressed: this.pressedFeedback }).onClick(() => this.viewModel.hardDrop())
         }.padding({ bottom: SpacingTokens.lg })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 

@@ -61,11 +61,11 @@ export struct Match3Page {
   }
 
   initBoardSize(widthVp: number = ScreenUtils.windowWidthVp(), heightVp: number = 0): void {
-    // padding 参数需包含：格子间距 7*3=21vp + 棋盘 padding 4*2=8vp + border 2*2=4vp = 33vp
-    // 取 32 留余量，确保棋盘不溢出窗口
+    const frame: number = (COLS - 1) * GAP + 8;
+    const edge: number = frame + SpacingTokens.xl * 2;
     this.cell = heightVp > 0
-      ? ScreenUtils.calcCellForArea(widthVp, heightVp, COLS, ROWS, 360, 32, (ROWS - 1) * GAP + 8)
-      : ScreenUtils.calcCellForWidth(widthVp, COLS, 360, 32);
+      ? ScreenUtils.calcCellForArea(widthVp, heightVp, COLS, ROWS, 360, edge, (ROWS - 1) * GAP + 8)
+      : ScreenUtils.calcCellForWidth(widthVp, COLS, 360, edge);
     this.boardSize = this.cell * COLS + (COLS - 1) * GAP + 8;
   }
 
@@ -117,7 +117,7 @@ export struct Match3Page {
         Row() {
           Column() {
             Text($r('app.string.score_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text('' + this.viewModel.score).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
+            Text('' + this.viewModel.score).id('match3-score').fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.accent)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ left: 16 })
 
@@ -129,7 +129,7 @@ export struct Match3Page {
 
           Column() {
             Text($r('app.string.game_match3_moves_label')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
-            Text('' + this.viewModel.movesLeft).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.warningText)
+            Text('' + this.viewModel.movesLeft).id('match3-moves').fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.warningText)
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
           .alignItems(HorizontalAlign.Center).margin({ right: 16 })
         }.margin({ top: 12, bottom: 12 })
@@ -148,6 +148,7 @@ export struct Match3Page {
                     .backgroundColor($r('app.color.play_cell_background'))
 
                   Image(this.getGemImage(this.viewModel.gemType(r, c)))
+                    .id('match3-gem-' + r + '-' + c + '-' + this.viewModel.gemType(r, c))
                     .width(this.cell * 0.88).height(this.cell * 0.88)
                     .objectFit(ImageFit.Contain)
 
@@ -162,6 +163,13 @@ export struct Match3Page {
                   }
                 }
                 .width(this.cell).height(this.cell)
+                .id('match3-cell-' + r + '-' + c)
+                .gesture(PanGesture({ fingers: 1, direction: PanDirection.All, distance: SpacingTokens.md })
+                  .onActionEnd((event: GestureEvent) => {
+                    if (Math.abs(event.offsetX) > Math.abs(event.offsetY)) {
+                      this.viewModel.slideFrom(r, c, event.offsetX > 0 ? 1 : -1, 0);
+                    } else { this.viewModel.slideFrom(r, c, 0, event.offsetY > 0 ? 1 : -1); }
+                  }))
                 .margin({ left: c > 0 ? GAP : 0, top: r > 0 ? GAP : 0 })
                 .accessibilityText(
                   this.a11yGemFormat
@@ -188,6 +196,8 @@ export struct Match3Page {
           }
         })
 
+        Text($r('app.string.match3_swap_hint')).fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textSecondary)
+          .padding({ top: SpacingTokens.xs, bottom: SpacingTokens.base })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
       // 步数用尽结算弹窗

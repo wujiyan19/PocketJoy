@@ -21,7 +21,7 @@
     },
     {
       "id": "bubbleshooter",
-      "name": "泡泡龙",
+      "name": "彩泡弹射",
       "icon": "game_bubbleshooter",
       "board": "exp_board_bubbleshooter",
       "family": "ceramic"
@@ -238,7 +238,7 @@
     },
     {
       "id": "shooter",
-      "name": "雷电战机",
+      "name": "纵向战机",
       "icon": "game_shooter",
       "board": "exp_board_shooter",
       "family": "space"
@@ -1097,6 +1097,26 @@
       "height": 100
     },
     {
+      "name": "exp_shooter_foe",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "name": "exp_tanks_cover",
+      "width": 100,
+      "height": 36
+    },
+    {
+      "name": "exp_tanks_enemy",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "name": "exp_hill_truck",
+      "width": 80,
+      "height": 48
+    },
+    {
       "name": "exp_tank",
       "width": 100,
       "height": 100
@@ -1160,6 +1180,36 @@
       "name": "exp_striker",
       "width": 100,
       "height": 100
+    },
+    {
+      "name": "exp_air_opponent",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "name": "exp_puzzle_landscape_0",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "name": "exp_puzzle_landscape_1",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "name": "exp_puzzle_landscape_2",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "name": "exp_puzzle_landscape_3",
+      "width": 300,
+      "height": 300
+    },
+    {
+      "name": "exp_xiangqi_lines",
+      "width": 360,
+      "height": 400
     },
     {
       "name": "exp_glove",
@@ -1358,6 +1408,11 @@
     },
     {
       "name": "exp_card_front",
+      "width": 100,
+      "height": 132
+    },
+    {
+      "name": "exp_poker_front",
       "width": 100,
       "height": 132
     },

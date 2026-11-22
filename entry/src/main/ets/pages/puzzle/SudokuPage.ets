@@ -22,6 +22,7 @@ import { SudokuViewModel } from '../../viewmodel/SudokuViewModel';
 
 @ComponentV2
 export struct SudokuPage {
+  @Local hintExpanded: boolean = false;
   @Param pathStack: NavPathStack = new NavPathStack();
   @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: SudokuViewModel = new SudokuViewModel();
@@ -31,6 +32,7 @@ export struct SudokuPage {
   @Local boardPixelSize: number = 302;
   // 无障碍描述预解析缓存
   @Local a11yFixed: string = '';
+  @Local a11yConflict: string = '';
   @Local a11yBlank: string = '';
   @Local a11yNumberFormat: string = '';
   @Local a11yRowColFormat: string = '';
@@ -52,6 +54,7 @@ export struct SudokuPage {
     const context = this.getUIContext().getHostContext();
     if (context) {
       this.a11yFixed = resolveString($r('app.string.a11y_sudoku_fixed'), context);
+      this.a11yConflict = resolveString($r('app.string.a11y_sudoku_conflict'), context);
       this.a11yBlank = resolveString($r('app.string.a11y_sudoku_blank'), context);
       this.a11yNumberFormat = resolveString($r('app.string.a11y_sudoku_number_format'), context);
       this.a11yRowColFormat = resolveString($r('app.string.a11y_mine_row_col_format'), context);
@@ -78,6 +81,7 @@ export struct SudokuPage {
   }
 
   getNumberColor(row: number, col: number): ResourceColor {
+    if (this.viewModel.fullBoardConflicts[row * 9 + col]) { return SemanticColors.errorText; }
     if (this.viewModel.isFixed(row, col)) { return $r('app.color.play_fixed_digit'); }
     return $r('app.color.play_piece_text');
   }
@@ -89,16 +93,25 @@ export struct SudokuPage {
 
   getCellBg(row: number, col: number): ResourceColor {
     if (this.viewModel.selectedRow === row && this.viewModel.selectedCol === col) { return $r('app.color.play_selection_background'); }
+    const r: number = this.viewModel.selectedRow;
+    const c: number = this.viewModel.selectedCol;
+    if (r >= 0 && c >= 0) {
+      const value: number = this.viewModel.cellValue(r, c);
+      if (value > 0 && value === this.viewModel.cellValue(row, col)) { return $r('app.color.sudoku_matching_digit'); }
+      if (r === row || c === col || (Math.floor(row / 3) === Math.floor(r / 3) && Math.floor(col / 3) === Math.floor(c / 3))) {
+        return $r('app.color.sudoku_related_cells');
+      }
+    }
     if ((Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0) { return $r('app.color.play_cell_background'); }
     return $r('app.color.play_cell_alternate');
   }
 
   getCellBorderWidth(row: number, col: number): EdgeWidths {
     return {
-      top: row % 3 === 0 ? 2 : 0.5,
-      left: col % 3 === 0 ? 2 : 0.5,
-      right: 0.5,
-      bottom: 0.5
+      top: row % 3 === 0 ? 2.5 : 0.5,
+      left: col % 3 === 0 ? 2.5 : 0.5,
+      right: col === 8 ? 2.5 : 0,
+      bottom: row === 8 ? 2.5 : 0
     };
   }
 
@@ -107,7 +120,8 @@ export struct SudokuPage {
     const pos = this.a11yRowColFormat.replace('%1$d', (row + 1).toString()).replace('%2$d', (col + 1).toString());
     const v = this.viewModel.cellValue(row, col);
     const fixed = this.viewModel.isFixed(row, col) ? this.a11yFixed : '';
-    return v > 0 ? pos + this.a11yNumberFormat.replace('%1$d', v.toString()) + fixed : pos + this.a11yBlank + fixed;
+    const conflict = this.viewModel.fullBoardConflicts[row * 9 + col] ? this.a11yConflict : '';
+    return v > 0 ? pos + this.a11yNumberFormat.replace('%1$d', v.toString()) + fixed + conflict : pos + this.a11yBlank + fixed;
   }
 
   @Styles
@@ -140,13 +154,18 @@ export struct SudokuPage {
         .linearGradient({ angle: 180, colors: [[SemanticColors.gradientScreen[0], 0], [SemanticColors.gradientScreen[1], 0.5], [SemanticColors.gradientScreen[2], 1]] })
 
       Column() {
-        Text(this.viewModel.logicRating === 0 ? $r('app.string.sudoku_rating_0') : this.viewModel.logicRating === 1 ?
-          $r('app.string.sudoku_rating_1') : $r('app.string.sudoku_rating_2'))
-          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+        Button(this.hintExpanded ? (this.viewModel.logicRating === 0 ? $r('app.string.sudoku_rating_0') : this.viewModel.logicRating === 1 ?
+          $r('app.string.sudoku_rating_1') : $r('app.string.sudoku_rating_2')) : $r('app.string.sudoku_hint_closed'),
+          { buttonStyle: ButtonStyleMode.TEXTUAL }).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.primary)
+          .id('sudoku-hint').onClick(() => { this.hintExpanded = !this.hintExpanded; })
         if (this.viewModel.saveRestoreFailed) {
           Text($r('app.string.save_restore_failed'))
             .fontSize(FontTokens.sizeBody).fontColor(SemanticColors.textSecondary)
             .padding(SpacingTokens.md).id('sudoku-save-error')
+        }
+        if (!this.viewModel.isGenerating && this.viewModel.fullBoardConflicts.includes(true)) {
+          Text($r('app.string.sudoku_full_conflict')).fontSize(FontTokens.sizeBody)
+            .fontColor(SemanticColors.errorText).id('sudoku-conflict-message')
         }
         // 外层容器：fill 空间、居中，供缩放容器摆放
         Column() {
@@ -171,15 +190,17 @@ export struct SudokuPage {
                       if (this.viewModel.cellValue(row, col) > 0) {
                         Text('' + this.viewModel.cellValue(row, col)).fontSize(Math.max(14, this.getCellSize() * 0.5))
                           .fontColor(this.getNumberColor(row, col))
+                          .decoration({ type: this.viewModel.fullBoardConflicts[row * 9 + col] ?
+                            TextDecorationType.Underline : TextDecorationType.None })
                           .fontWeight(this.getNumberWeight(row, col))
                       }
                     }.width(this.getCellSize()).height(this.getCellSize())
                     .backgroundColor(this.getCellBg(row, col))
                     .border({
                       width: this.getCellBorderWidth(row, col),
-                      color: $r('app.color.play_piece_border')
+                      color: $r('app.color.sudoku_grid_edge')
                     })
-                    .accessibilityText(this.cellA11y(row, col))
+                    .id('sudoku-cell-' + row + '-' + col).accessibilityText(this.cellA11y(row, col))
                     .stateStyles({ pressed: this.pressedFeedback }).onClick(() => { this.viewModel.selectCell(row, col); })
                   }, (col: number) => col.toString())
                 }
@@ -240,6 +261,7 @@ export struct SudokuPage {
                   .layoutWeight(1).constraintSize({ minHeight: $r('app.float.sudoku_key_min_size'), minWidth: $r('app.float.home_action_min_height') })
                   .enabled(!this.viewModel.isGenerating && !this.viewModel.generationFailed && !this.viewModel.resumePending)
                   .backgroundColor($r('app.color.play_cell_background')).borderRadius(RadiusTokens.base)
+                  .border({ width: 1, color: $r('app.color.sudoku_grid_edge') })
                   .stateStyles({ pressed: this.pressedFeedback })
                   .onClick(() => { this.viewModel.setNumber(row * 5 + column); })
                 } else {
@@ -250,6 +272,7 @@ export struct SudokuPage {
                   .constraintSize({ minHeight: $r('app.float.sudoku_key_min_size'), minWidth: $r('app.float.home_action_min_height') })
                   .enabled(!this.viewModel.isGenerating && !this.viewModel.generationFailed && !this.viewModel.resumePending)
                   .backgroundColor(SemanticColors.selectionSurface).borderRadius(RadiusTokens.base)
+                  .border({ width: 1, color: $r('app.color.sudoku_grid_edge') })
                   .accessibilityText($r('app.string.sudoku_erase'))
                   .stateStyles({ pressed: this.pressedFeedback }).onClick(() => { this.viewModel.erase(); })
                 }

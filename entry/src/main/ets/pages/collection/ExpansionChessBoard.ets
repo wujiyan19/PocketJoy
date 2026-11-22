@@ -19,6 +19,8 @@ export struct ExpansionChessBoard {
   @Local lift: number = 0;
   @Local captureOpacity: number = 1;
   @Local active: boolean = false;
+  @Local promotionOpen: boolean = false;
+  private promotionTarget: number = -1;
   private mounted: boolean = false;
   private startTimer: number = -1;
   private generation: number = 0;
@@ -35,7 +37,7 @@ export struct ExpansionChessBoard {
   aboutToAppear(): void {
     this.mounted = true;
     const context = this.getUIContext();
-    this.gap = HarmonyMotion.value(context, $r('app.float.chess_board_gap'), 1);
+    this.gap = this.gameId === 'xiangqi' ? 0 : HarmonyMotion.value(context, $r('app.float.chess_board_gap'), 1);
     this.liftScale = HarmonyMotion.value(context, $r('app.float.chess_move_lift_scale'), 1.16);
     this.liftOffset = HarmonyMotion.value(context, $r('app.float.chess_move_lift_offset'), -5);
     this.pickupDuration = HarmonyMotion.value(context, $r('app.float.chess_move_pickup_duration'), 90);
@@ -123,36 +125,89 @@ export struct ExpansionChessBoard {
   pieceArt(piece: number): Resource {
     return piece === 0 ? $r('app.media.exp_empty') : this.gameId === 'chess' ? ExpansionArt.chess(piece) : $r('app.media.exp_chip');
   }
+  tapChessSquare(index: number): void {
+    const from: number = this.vm.state.selected;
+    if (from >= 0 && this.vm.state.board[from] === 6 && index < 8 && this.vm.legalTargets.includes(index)) {
+      this.promotionTarget = index; this.promotionOpen = true; return;
+    }
+    this.vm.tap(index);
+  }
+  @Builder
+  Promotions() {
+    Column({ space: SpacingTokens.base }) {
+      Text($r('app.string.expansion_promotion')).fontWeight(FontWeight.Bold).fontColor(SemanticColors.textPrimary)
+      Row({ space: SpacingTokens.sm }) {
+        ForEach(range(4), (choice: number) => {
+          Column() { GameArtTile({ image: ExpansionArt.chess(choice + 2), description: ['♛', '♜', '♝', '♞'][choice],
+            selected: this.vm.state.data[9] === choice + 2, onTap: () => {
+              this.vm.choose(choice);
+              if (this.promotionTarget >= 0) { this.vm.tap(this.promotionTarget); }
+              this.promotionTarget = -1; this.promotionOpen = false;
+            } }) }.layoutWeight(1).height(56).id('chess-promote-' + (choice + 2))
+        }, (choice: number) => choice.toString())
+      }.width('100%')
+    }.width('100%').padding(SpacingTokens.xl)
+  }
+  @Builder
+  XiangqiPoint(index: number) {
+    Button() {
+      Stack() {
+        if (this.displayPiece(index) > 0) {
+          Image(this.pieceArt(this.displayPiece(index))).width('100%').height('100%').objectFit(ImageFit.Contain)
+          Text(this.pieceText(this.displayPiece(index))).fontSize(Math.max(13, this.cellSize() * 0.53)).fontWeight(FontWeight.Bold)
+            .fontColor(this.displayPiece(index) > 10 ? $r('app.color.xiangqi_black_ink') : $r('app.color.xiangqi_red_ink'))
+        }
+        if (this.vm.state.selected === index || (this.vm.legalTargets.includes(index) && this.displayPiece(index) > 0)) {
+          Column().width('94%').aspectRatio(1).borderRadius(RadiusTokens.full).border({ width: 2, color: SemanticColors.primary })
+        } else if (this.vm.legalTargets.includes(index)) {
+          Column().width('24%').aspectRatio(1).borderRadius(RadiusTokens.full).backgroundColor(SemanticColors.primary).id('xiangqi-legal-' + index)
+        }
+      }.width('100%').height('100%').opacity(this.cellOpacity(index))
+    }.type(ButtonType.Normal).width('100%').height('100%').padding(0).backgroundColor(Color.Transparent)
+      .accessibilityText($r('app.string.expansion_cell', Math.floor(index / 9) + 1, index % 9 + 1, this.pieceText(this.vm.state.board[index])))
+      .onClick(() => { this.vm.tap(index); })
+  }
   @Builder
   MovingPiece(piece: number) {
     Stack() {
       Image(this.pieceArt(piece)).width('100%').height('100%').objectFit(ImageFit.Fill)
       if (this.gameId === 'xiangqi') {
         Text(this.pieceText(piece)).fontSize(FontTokens.sizeBodyLarge).fontWeight(FontWeight.Medium)
-          .fontColor(piece > 10 ? SemanticColors.textPrimary : SemanticColors.error).textAlign(TextAlign.Center)
+          .fontColor(piece > 10 ? $r('app.color.xiangqi_black_ink') : $r('app.color.xiangqi_red_ink')).textAlign(TextAlign.Center)
       }
     }.width('100%').height('100%').renderGroup(true).hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
   }
   build() {
     Column({ space: SpacingTokens.sm }) {
-      Text($r('app.string.expansion_board_opponent')).fontColor(SemanticColors.textSecondary)
       Stack() {
         Stack({ alignContent: Alignment.TopStart }) {
+          if (this.gameId === 'xiangqi') {
+            Image($r('app.media.exp_xiangqi_lines')).width('100%').height('100%').objectFit(ImageFit.Fill).hitTestBehavior(HitTestMode.None)
+            Row() {
+              Text($r('app.string.xiangqi_chu_river')).layoutWeight(1).textAlign(TextAlign.Center).fontColor($r('app.color.xiangqi_line_ink')).fontSize(FontTokens.sizeCaption)
+              Text($r('app.string.xiangqi_han_border')).layoutWeight(1).textAlign(TextAlign.Center).fontColor($r('app.color.xiangqi_line_ink')).fontSize(FontTokens.sizeCaption)
+            }.width('100%').height(this.boardHeight / 10).translate({ y: this.boardHeight * 0.45 }).hitTestBehavior(HitTestMode.None)
+          }
           Column({ space: this.gap }) {
             ForEach(range(this.vm.state.rows), (row: number) => {
               Row({ space: this.gap }) {
                 ForEach(range(this.vm.state.cols), (col: number) => {
                   Column() {
-                    GameArtTile({ image: this.pieceArt(this.displayPiece(row * this.vm.state.cols + col)),
-                      label: this.gameId === 'xiangqi' ? this.pieceText(this.displayPiece(row * this.vm.state.cols + col)) : '',
+                    if (this.gameId === 'xiangqi') {
+                      this.XiangqiPoint(row * this.vm.state.cols + col)
+                    } else {
+                      GameArtTile({ image: this.pieceArt(this.displayPiece(row * this.vm.state.cols + col)),
+                      label: '',
                       textColor: this.displayPiece(row * this.vm.state.cols + col) > 10 ? SemanticColors.textPrimary : SemanticColors.error,
                       selected: this.vm.state.selected === row * this.vm.state.cols + col,
                       description: $r('app.string.expansion_cell', row + 1, col + 1, this.pieceText(this.vm.state.board[row * this.vm.state.cols + col])),
-                      onTap: () => { this.vm.tap(row * this.vm.state.cols + col); } })
+                      onTap: () => { this.tapChessSquare(row * this.vm.state.cols + col); } })
+                      .id('chess-piece-' + (row * 8 + col) + '-' + this.displayPiece(row * 8 + col))
                       .opacity(this.cellOpacity(row * this.vm.state.cols + col))
+                    }
                   }.layoutWeight(1).height('100%').padding(0)
-                    .backgroundColor(this.vm.legalTargets.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight : (row + col) % 2 === 0 ? SemanticColors.surface : SemanticColors.boardBg)
-                    .border({ width: this.vm.state.selected === row * this.vm.state.cols + col ? 2 : 0, color: SemanticColors.primary })
+                    .backgroundColor(this.gameId === 'xiangqi' ? Color.Transparent : this.vm.legalTargets.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight : (row + col) % 2 === 0 ? SemanticColors.surface : SemanticColors.boardBg)
+                    .border({ width: this.gameId !== 'xiangqi' && this.vm.state.selected === row * this.vm.state.cols + col ? 2 : 0, color: SemanticColors.primary })
                     .id('chess-cell-' + (row * this.vm.state.cols + col).toString())
                 }, (col: number) => col.toString())
               }.width('100%').layoutWeight(1)
@@ -171,14 +226,11 @@ export struct ExpansionChessBoard {
       }.width('100%').aspectRatio(this.vm.state.cols / this.vm.state.rows).padding(SpacingTokens.xs)
         .backgroundColor(SemanticColors.border).borderRadius(RadiusTokens.sm).id('chess-board')
       if (this.gameId === 'chess') {
-        Text($r('app.string.expansion_promotion')).fontColor(SemanticColors.textSecondary)
-        Row({ space: SpacingTokens.sm }) {
-          ForEach(range(4), (choice: number) => {
-            Column() { GameArtTile({ image: ExpansionArt.chess(choice + 2), description: ['♛', '♜', '♝', '♞'][choice],
-              selected: this.vm.state.data[9] === choice + 2,
-              onTap: () => { this.vm.choose(choice); } }) }.layoutWeight(1).height(52)
-          }, (choice: number) => choice.toString())
-        }.width('100%')
+        Button($r('app.string.chess_promotion_choice', ['♛', '♜', '♝', '♞'][this.vm.state.data[9] - 2]),
+          { buttonStyle: ButtonStyleMode.TEXTUAL }).id('chess-promotion-open').fontSize(FontTokens.sizeBody)
+          .onClick(() => { this.promotionTarget = -1; this.promotionOpen = true; })
+          .bindSheet($$this.promotionOpen, this.Promotions, { height: SheetSize.FIT_CONTENT, preferType: SheetType.BOTTOM,
+            showClose: true, onDisappear: () => { this.promotionOpen = false; this.promotionTarget = -1; } })
       }
     }.width('100%').hitTestBehavior(this.vm.chessAnimating || this.vm.computerThinking || this.vm.state.outcome !== 0 ? HitTestMode.None : HitTestMode.Default)
   }

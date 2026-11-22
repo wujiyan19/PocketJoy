@@ -7,7 +7,8 @@ const RETIRED_GAME_IDS: string[] = [
   'hiddenobjects', 'farm', 'decorate', 'characters', 'idiom',
   'wordtower', 'backpack', 'differences', 'onestroke', 'golf',
   'billiards', 'basketball', 'penalty',
-  'jumpjump', 'slotpair', 'missing', 'sand', 'linerescue', 'bowling', 'pipes'
+  'jumpjump', 'slotpair', 'missing', 'sand', 'linerescue', 'bowling', 'pipes',
+  'yarn', 'restaurant', 'roomdefense', 'fortress'
 ];
 
 /** 上架策略只控制已登记玩法的可见性；未知 ID 仍由目录和路由拒绝。 */

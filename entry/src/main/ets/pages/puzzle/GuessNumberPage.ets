@@ -14,6 +14,7 @@ import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
+import { range } from '../../common/Range';
 
 import { GuessNumberViewModel, GuessRecord } from '../../viewmodel/GuessNumberViewModel';
 
@@ -138,9 +139,6 @@ export struct GuessNumberPage {
           Text($r('app.string.guess_hint_length_format', this.viewModel.getSecretLength()))
             .fontFamily(FontTokens.family).fontSize(FontTokens.sizeBodySmall)
             .fontColor(SemanticColors.textTertiary).margin({ top: SpacingTokens.sm })
-          Text($r('app.string.guess_tries_format', this.viewModel.tries, this.viewModel.getMaxTries()))
-            .fontFamily(FontTokens.family).fontSize(FontTokens.sizeBodySmall)
-            .fontColor(SemanticColors.warningText).margin({ top: SpacingTokens.xs })
         }.alignItems(HorizontalAlign.Center).margin({ bottom: SpacingTokens.md })
 
         Column() {
@@ -150,7 +148,9 @@ export struct GuessNumberPage {
             Text($r('app.string.guess_records_title'))
               .fontFamily(FontTokens.family).fontSize(FontTokens.sizeBodySmall)
               .fontColor(SemanticColors.textTertiary).margin({ bottom: 0 })
-          }.width('100%').margin({ left: SpacingTokens.base, right: SpacingTokens.base, bottom: 4 })
+          }.width('100%').margin({ bottom: SpacingTokens.xs })
+          Text($r('app.string.guess_ab_legend')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+            .width('100%').margin({ bottom: SpacingTokens.sm })
 
           List() {
             ForEach(this.viewModel.records, (rec: GuessRecord, index: number) => {
@@ -170,15 +170,19 @@ export struct GuessNumberPage {
             }, (rec: GuessRecord) => rec.seq.toString())
           }.layoutWeight(1).constraintSize({ maxHeight: Math.min(this.viewModel.records.length * 40, 240) })
           .backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.base)
-          .margin({ left: SpacingTokens.base, right: SpacingTokens.base })
+          .width('100%')
         }.layoutWeight(1)
 
         Column() {
-          Text(this.viewModel.input + '_'.repeat(this.viewModel.getSecretLength() - this.viewModel.input.length))
-            .fontFamily(FontTokens.family)
-            .fontSize(32).fontWeight(FontWeight.Bold)
-            .fontColor(this.getInputColor())
-            .margin({ bottom: SpacingTokens.base })
+          Row({ space: SpacingTokens.sm }) {
+            ForEach(range(this.viewModel.getSecretLength()), (slot: number) => {
+              Text(this.viewModel.input.charAt(slot)).id('guess-slot-' + slot).fontFamily(FontTokens.family)
+                .fontSize(FontTokens.sizeHeadline).fontWeight(FontWeight.Bold).fontColor(this.getInputColor()).textAlign(TextAlign.Center)
+                .layoutWeight(1).height($r('app.float.home_action_min_height')).borderRadius(RadiusTokens.sm)
+                .backgroundColor(SemanticColors.surface).border({ width: slot === this.viewModel.input.length ? 2 : 1,
+                  color: slot === this.viewModel.input.length ? SemanticColors.primary : $r('app.color.play_piece_border') })
+            }, (slot: number) => slot.toString())
+          }.width('100%').margin({ bottom: SpacingTokens.md })
 
           this.KeyRow(['1', '2', '3'])
           this.KeyRow(['4', '5', '6'])
@@ -186,6 +190,7 @@ export struct GuessNumberPage {
           this.KeyRow(['⌫', '0', 'submit'])
         }.padding({ bottom: SpacingTokens.lg })
         }.width('100%').height('100%').constraintSize({ minHeight: $r('app.float.guess_content_min_height') })
+          .padding({ left: SpacingTokens.base, right: SpacingTokens.base })
         }.width('100%').layoutWeight(1).id('guess-content-scroll')
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 
@@ -258,6 +263,9 @@ export struct GuessNumberPage {
           .width('100%').height('100%')
         }
         .layoutWeight(1).height(52)
+        .id('guess-key-' + (key === '⌫' ? 'delete' : key))
+        .enabled(key === 'submit' ? this.viewModel.isInputComplete() : key === '⌫' ? this.viewModel.input.length > 0 :
+          !this.viewModel.isInputComplete() && !this.viewModel.input.includes(key))
         .backgroundColor(this.getKeyBgColor(key))
         .borderRadius(RadiusTokens.base)
         .shadow(this.getKeyShadow(key))

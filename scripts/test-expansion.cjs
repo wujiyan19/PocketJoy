@@ -176,7 +176,7 @@ test('a continuously overflowing fruit column loses even while contact velocitie
 test('catalog and resources are complete for every registered expansion', () => {
   const ids = f.load('entry/src/main/ets/model/ExpansionCatalog.ets').EXPANSION_IDS;
   assert.deepEqual(ids, PLAYABLE_EXPANSION_IDS);
-  const games = f.data().getAllGames(); assert.equal(games.length, 64);
+  const games = f.data().getAllGames(); assert.equal(games.length, 60);
   assert.equal(new Set(games.map(g => g.id)).size, games.length);
   const routes = f.load('entry/src/main/ets/router/GameRouteRegistry.ets').GameRoutes;
   for (const id of ids.filter(id => f.data().getGameById(id) !== undefined)) assert.equal(routes.gameIdForRoute(routes.routeName(id)), id);
@@ -214,7 +214,8 @@ test('all registered games transfer after actual input, including live physics a
     else if(id==='yarn') { source.choose(1); source.tap(0); }
     else if(id==='sand') { source.choose(source.state.board[0]-1); source.tap(0); }
     else if(id==='untangle') { source.tap(0); source.aim(30,230); source.setDragging(false); }
-    else source.tap(['arrowclear','screwout','parkingjam','sokoban'].includes(id)?source.state.target[0]:0);
+    else if(id==='sokoban') { source.selectSokobanLevel(0); source.tap(source.state.target[0]); }
+    else source.tap(['arrowclear','screwout','parkingjam'].includes(id)?source.state.target[0]:0);
     const saved=JSON.parse(source.exportContinuation()); const receiver=f.vm('ExpansionViewModel'); receiver.init(id);
     assert(receiver.importContinuation(JSON.stringify(saved)),id); assert.deepEqual(JSON.parse(receiver.exportContinuation()).state,saved.state,id);
     source.dispose(); receiver.dispose();

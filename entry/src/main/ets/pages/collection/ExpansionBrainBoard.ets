@@ -10,8 +10,10 @@ import { GameSound, gameSound } from '../../common/GameSound';
 
 @ComponentV2
 export struct ExpansionBrainBoard {
+  @Local pictureGuides: boolean = false;
   @Param gameId: string = '';
   @Param vm: ExpansionViewModel = new ExpansionViewModel();
+  @Param beatAreaLimit: number = 360;
   @Local arenaWidth: number = 320;
   @Local audioReady: boolean = false;
   @Local audioFailed: boolean = false;
@@ -38,8 +40,8 @@ export struct ExpansionBrainBoard {
   aboutToDisappear(): void { if (this.gameId === 'melody') { this.vm.setToneCallbacks((note: number): void => {}, (): void => {}); this.tones.dispose(); } }
   arenaScale(): number { return this.arenaWidth / 360; }
   pictureArt(): Resource {
-    const images: Resource[] = [$r('app.media.expansion_puzzle_scene'), $r('app.media.exp_board_fishing'),
-      $r('app.media.exp_board_farm'), $r('app.media.exp_board_decorate')];
+    const images: Resource[] = [$r('app.media.exp_puzzle_landscape_0'), $r('app.media.exp_puzzle_landscape_1'),
+      $r('app.media.exp_puzzle_landscape_2'), $r('app.media.exp_puzzle_landscape_3')];
     return images[this.vm.state.variant ?? 0];
   }
   measure(area: Area): void { const width: number = Number(area.width); if (Number.isFinite(width) && width > 0) { this.arenaWidth = width; } }
@@ -71,18 +73,27 @@ export struct ExpansionBrainBoard {
             .enabled(this.vm.state.target.length > 0).onClick(() => { this.vm.tap(900); })
         }
       }
-      if (this.gameId === 'wordtower' || this.gameId === 'beatjump') { this.Arena() }
+      if (this.gameId === 'beatjump') {
+        Stack({ alignContent: Alignment.Top }) {
+          Stack() {
+            this.Arena()
+            if (this.vm.state.phase === 0) { Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); }) }
+          }.width('100%')
+          Column() {
+            Text($r('app.string.expansion_beat_time', Math.max(0, Math.round(this.vm.state.cooldown * 1000)))).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary).id('beatjump-countdown')
+            Text(this.vm.state.target.slice(this.vm.state.cursor, this.vm.state.cursor + 4).map((v: number) => ['←', '●', '→'][v]).join('   ')).fontSize(FontTokens.sizeTitle).fontColor(SemanticColors.primary).id('beatjump-cues')
+          }.align(Alignment.Top).hitTestBehavior(HitTestMode.None)
+        }.width('100%').constraintSize({ maxWidth: this.beatAreaLimit }).id('rhythm-three-board')
+      } else if (this.gameId === 'wordtower') { this.Arena() }
       if (this.gameId === 'melody') { this.Melody() }
-      if (['wordtower', 'beatjump'].includes(this.gameId) && this.vm.state.phase === 0) { Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); }) }
+      if (this.gameId === 'wordtower' && this.vm.state.phase === 0) { Button($r('app.string.expansion_ready')).onClick(() => { this.vm.activate(); }) }
       if (this.gameId === 'wordtower') {
         Text($r('app.string.expansion_pack_stats', this.vm.state.data[0], this.vm.state.data[1], this.vm.state.moves, this.vm.state.goal)).fontColor(SemanticColors.textPrimary)
         Text($r('app.string.expansion_tower_cost')).fontColor(SemanticColors.textSecondary)
         Row({ space: SpacingTokens.sm }) { ForEach(range(4), (i: number) => { Button(this.word(i + 1)).layoutWeight(1).border({ width: this.vm.state.next === i + 1 ? 3 : 0, color: SemanticColors.warning }).onClick(() => { this.vm.choose(i); }) }, (i: number) => i.toString()) }.width('100%')
       }
       if (this.gameId === 'beatjump') {
-        Text($r('app.string.expansion_beat_time', Math.max(0, Math.round(this.vm.state.cooldown * 1000)))).fontColor(SemanticColors.textSecondary)
-        Text(this.vm.state.target.slice(this.vm.state.cursor, this.vm.state.cursor + 4).map((v: number) => ['←', '●', '→'][v]).join('   ')).fontSize(FontTokens.sizeTitle).fontColor(SemanticColors.primary)
-        Row({ space: SpacingTokens.sm }) { ForEach(range(3), (lane: number) => { Button(['←', '●', '→'][lane]).layoutWeight(1).height($r('app.float.expansion_control_height')).onClick(() => { this.vm.tap(lane); }) }, (lane: number) => lane.toString()) }.width('100%')
+        Row({ space: SpacingTokens.sm }) { ForEach(range(3), (lane: number) => { Button(['←', '●', '→'][lane]).layoutWeight(1).height($r('app.float.expansion_control_height')).id('beatjump-key-' + lane).onClick(() => { this.vm.tap(lane); }) }, (lane: number) => lane.toString()) }.width('100%')
       }
     }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
   }
@@ -120,16 +131,36 @@ export struct ExpansionBrainBoard {
   @Builder
   Picture() {
     Column({ space: SpacingTokens.sm }) {
-      Image(this.pictureArt()).width('35%').aspectRatio(1).objectFit(ImageFit.Fill).borderRadius(RadiusTokens.sm)
+      Row({ space: SpacingTokens.md }) {
+        Stack({ alignContent: Alignment.TopStart }) {
+          Image(this.pictureArt()).width('100%').height('100%').objectFit(ImageFit.Fill)
+          if (this.pictureGuides) {
+            Column() {
+              ForEach(range(this.vm.state.rows), (r: number) => {
+                Row() {
+                  ForEach(range(this.vm.state.cols), (c: number) => {
+                    Column().layoutWeight(1).height('100%').border({ width: 0.5, color: Color.White })
+                  }, (c: number) => c.toString())
+                }.width('100%').layoutWeight(1)
+              }, (r: number) => r.toString())
+            }.width('100%').height('100%').id('picture-guide-lines').hitTestBehavior(HitTestMode.None)
+          }
+        }.width('38%').aspectRatio(1).borderRadius(RadiusTokens.sm).clip(true)
+        Button($r('app.string.picture_reference_grid'), { buttonStyle: ButtonStyleMode.TEXTUAL }).id('picture-guides')
+          .accessibilityDescription(this.pictureGuides ? $r('app.string.settings_selected') : $r('app.string.settings_unselected'))
+          .onClick(() => { this.pictureGuides = !this.pictureGuides; })
+      }.width('100%').justifyContent(FlexAlign.Center)
       Column({ space: 0 }) {
         ForEach(range(this.vm.state.rows), (row: number) => {
           Row({ space: 0 }) {
             ForEach(range(this.vm.state.cols), (col: number) => {
               Stack({ alignContent: Alignment.TopStart }) {
                 Image(this.pictureArt()).width(this.arenaWidth).height(this.arenaWidth).objectFit(ImageFit.Fill)
+                  .id('picture-image-' + this.vm.state.board[row * this.vm.state.cols + col])
                   .translate({ x: -(this.vm.state.board[row * this.vm.state.cols + col] % this.vm.state.cols) * this.arenaWidth / this.vm.state.cols,
                     y: -Math.floor(this.vm.state.board[row * this.vm.state.cols + col] / this.vm.state.cols) * this.arenaWidth / this.vm.state.cols }).hitTestBehavior(HitTestMode.None)
               }.width(this.arenaWidth / this.vm.state.cols).height(this.arenaWidth / this.vm.state.cols).clip(true)
+                .id('picture-tile-' + (row * this.vm.state.cols + col))
                 .border({ width: this.vm.state.selected === row * this.vm.state.cols + col ? 3 : 1, color: this.vm.state.selected === row * this.vm.state.cols + col ? SemanticColors.primary : SemanticColors.surface })
                 .onClick(() => { this.vm.tap(row * this.vm.state.cols + col); })
             }, (col: number) => col.toString())
@@ -197,19 +228,33 @@ export struct ExpansionBrainBoard {
     Column({ space: SpacingTokens.base }) {
       Text(this.vm.state.phase === 1 ? $r('app.string.expansion_listen') : $r('app.string.expansion_repeat_melody')).fontColor(SemanticColors.textPrimary)
       Row({ space: SpacingTokens.sm }) {
+        ForEach(range(this.vm.state.target.length), (slot: number) => {
+          Column().width(15).height(15).borderRadius(RadiusTokens.full)
+            .border({ width: this.vm.state.phase === 1 && this.vm.state.cursor - 1 === slot ? 3 : 1, color: SemanticColors.primary })
+            .backgroundColor(this.vm.state.phase === 0 && slot < this.vm.state.data[0] ? SemanticColors.primary : SemanticColors.surface)
+            .id(this.vm.state.phase === 1 && this.vm.state.cursor - 1 === slot ? 'melody-current-' + slot :
+              this.vm.state.phase === 0 && slot < this.vm.state.data[0] ? 'melody-entered-' + slot : 'melody-slot-' + slot)
+        }, (slot: number) => slot.toString())
+      }.justifyContent(FlexAlign.Center).width('100%')
+      Row({ space: SpacingTokens.sm }) {
         ForEach(range(4), (note: number) => {
-          Button(['C', 'D', 'E', 'G'][note], { type: ButtonType.Normal }).layoutWeight(1).height(130).fontSize(FontTokens.sizeTitle)
-            .backgroundColor(this.color(note)).opacity(this.vm.state.selected === note ? 1 : 0.45).borderRadius(RadiusTokens.base)
-            .scale({ x: this.vm.state.selected === note ? 1.03 : 1, y: this.vm.state.selected === note ? 1.03 : 1 })
-            .animation({ duration: 150, curve: Curve.FastOutSlowIn })
-            .backgroundImage(ExpansionArt.block(note)).backgroundImageSize(ImageSize.Cover)
-            .enabled(this.vm.state.phase === 0 && (this.audioReady || !this.sound.enabled)).onClick(() => { this.vm.tap(note); })
+          Stack() {
+            Button(['C', 'D', 'E', 'G'][note], { type: ButtonType.Normal }).width('100%').height('100%').fontSize(FontTokens.sizeTitle)
+              .backgroundColor(this.color(note)).borderRadius(RadiusTokens.base).id('melody-key-' + note)
+              .enabled(this.vm.state.phase === 0 && this.vm.state.cursor >= this.vm.state.target.length && (this.audioReady || !this.sound.enabled))
+              .onClick(() => { this.vm.tap(note); })
+            if (this.vm.state.phase === 1 && this.vm.state.selected === note && this.vm.state.cooldown > 0.13) {
+              Column().width('92%').height('94%').borderRadius(RadiusTokens.md).border({ width: 3, color: SemanticColors.primary })
+                .scale({ x: 0.91 + 0.09 * this.vm.state.cooldown / 0.55, y: 0.91 + 0.09 * this.vm.state.cooldown / 0.55 })
+                .id('melody-lit-' + note).hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
+            }
+          }.layoutWeight(1).height(105 + note * 8)
         }, (note: number) => note.toString())
       }.width('100%')
       if (!this.sound.enabled) { Text($r('app.string.settings_sound_muted')).fontColor(SemanticColors.textSecondary) }
       else if (this.audioFailed) { Button($r('app.string.expansion_audio_retry')).onClick(() => { this.prepareAudio(); }) }
       else if (!this.audioReady) { Text($r('app.string.expansion_audio_loading')).fontColor(SemanticColors.textSecondary) }
-      Button($r('app.string.expansion_play_melody')).enabled(this.vm.state.phase === 0 && (this.audioReady || !this.sound.enabled)).onClick(() => { this.vm.tap(900); })
+      Button($r('app.string.expansion_play_melody')).id('melody-play').enabled(this.vm.state.phase === 0 && (this.audioReady || !this.sound.enabled)).onClick(() => { this.vm.tap(900); })
     }.width('100%')
   }
   hiddenArt(value: number): Resource {

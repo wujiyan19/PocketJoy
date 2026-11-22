@@ -79,7 +79,10 @@ export class TetrisRules {
 
   /** 随机生成下落方块，水平居中、置于顶部 */
   spawn(rng: RandomSource): ActivePiece {
-    const idx = Math.floor(rng.next() * SHAPES.length);
+    return this.spawnShape(Math.floor(rng.next() * SHAPES.length));
+  }
+
+  spawnShape(idx: number): ActivePiece {
     const width = SHAPES[idx][0][0].length;
     const x = Math.floor((this.cols - width) / 2);
     return new ActivePiece(idx, 0, x, 0);

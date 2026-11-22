@@ -97,6 +97,12 @@ function generate(only = []) {
     put('bird',shadow+ellipse(51,49,30,26,'url(#gold)')+ellipse(40,55,18,12,p.coral)+circle(64,41,10,'#FFFCF3')+circle(67,41,4,p.ink)+shape('M79 47L96 53L78 61Z',p.coral)+shape('M21 45L4 32L8 56L22 62Z',p.gold));
     put('bomb',shadow+circle(49,54,32,'url(#ink)',p.edge,2)+rect(43,16,16,12,4,p.edge)+line('M52 17Q53 5 69 9',p.gold,4)+line('M70 4V14M64 8L76 11',p.coral,3)+ellipse(36,43,9,5,'#AAC7DC',.65));
     put('plane',shadow+shape('M50 8L60 38L90 62V74L61 64L64 85L50 78L36 85L39 64L10 74V62L40 38Z','url(#blue)',p.ink)+ellipse(50,35,7,12,'#DBF5FF')+line('M45 88L50 97L55 88',p.gold,4));
+    put('shooter_foe',shape('M50 92L38 63L8 41V22L37 36L31 10L49 20L68 10L62 36L91 22V41L62 63Z','url(#coral)',p.ink,3)+ellipse(50,55,9,16,'#FFDE91')+line('M19 31L37 45M81 31L64 45','#FFF4CE',3,.9));
+    put('tanks_cover',rect(0,0,100,36,2,dark?'#543A36':'#714D43')+
+      Array.from({length:8},(_,i)=>rect(1+(i%4)*25+(i>=4?-10:0),i<4?1:19,23,15,2,i%3===0?'#B57F63':'#A16E56')).join(''),100,36);
+    put('tanks_enemy',rect(12,23,18,65,6,p.ink)+rect(70,23,18,65,6,p.ink)+rect(23,29,54,51,9,'url(#coral)',p.ink)+circle(50,48,17,'url(#gold)',p.ink)+rect(46,3,8,47,3,p.paper,p.ink));
+    put('hill_truck',shape('M5 28L14 25L21 10H43L53 22H72L78 28V37H5Z','url(#mint)',p.ink,2.5)+
+      shape('M24 13H38L47 22H20Z','#294762')+circle(19,38,8,p.ink)+circle(62,38,8,p.ink)+circle(19,38,3,p.paper)+circle(62,38,3,p.paper),80,48);
     put('tank',shadow+rect(10,15,20,71,8,'url(#ink)')+rect(70,15,20,71,8,'url(#ink)')+rect(24,22,52,59,10,'url(#mint)',p.ink,2)+circle(50,48,18,'url(#metal)',p.ink,2)+rect(45,4,10,45,3,p.mint,p.ink,2));
     put('bullet',ellipse(50,61,14,30,'#C1E9FC',.45)+rect(43,15,14,55,7,'url(#gold)')+ellipse(50,27,4,11,'#FFFFFF'));
     put('ball',shadow+circle(50,46,37,'url(#blue)',p.ink,2)+ellipse(37,29,16,8,'#FFFFFF',.65));
@@ -112,6 +118,31 @@ function generate(only = []) {
     put('paddle',rect(3,27,94,39,12,'url(#coral)',p.ink,3)+line('M14 36H83','#FFE8D5',3,.6));
     put('puck',shadow+circle(50,47,38,'url(#ink)',p.edge,3)+circle(50,47,24,'none',p.cyan,3));
     put('striker',shadow+circle(50,57,41,'url(#blue)',p.ink,2)+ellipse(50,44,20,24,'url(#metal)',1)+ellipse(50,28,19,9,'#D9ECF5'));
+    put('air_opponent',shadow+circle(50,57,41,'url(#coral)',p.ink,2)+circle(50,57,33,'none','#FFF2CF',3)+
+      ellipse(50,46,20,22,'url(#gold)',1)+ellipse(50,29,18,8,'#FBD0B7'));
+    const scenes=[
+      {sky:'#83CBE4',hill:'#739AAF',land:'#4D8876',water:'#65B3C3',sun:[228,45],river:'M0 211Q62 173 135 208T300 170V300H0Z',
+        hero:shape('M30 192V148H91V192Z','#F4C490')+shape('M19 151L58 119L103 151Z','#BD5748')+rect(42,158,13,15,1,'#436878')+rect(67,165,11,27,1,'#78503B')+line('M24 234Q96 210 150 235T283 218','#D2E3C7',4,.9)},
+      {sky:'#B1CFE1',hill:'#879AAB',land:'#C58A63',water:'#518FA9',sun:[62,51],river:'M0 194Q70 220 133 181T300 205V300H0Z',
+        hero:shape('M205 173L211 92H232L240 173Z','#FFF0C7')+shape('M208 126L235 134L234 149L206 140Z','#BC5646')+rect(207,81,30,12,2,'#5C5659')+shape('M203 81L222 64L241 81Z','#B8503C')+shape('M38 221Q70 232 104 220L91 237H49Z','#BC6948')+shape('M67 216V165L35 215Z','#FFF2C2')},
+      {sky:'#9BB8E2',hill:'#8A90BD',land:'#B59155',water:'#89A96B',sun:[250,43],river:'M0 246Q60 160 130 209T300 166V300H0Z',
+        hero:ellipse(93,82,32,40,'#C85857')+shape('M91 42Q70 78 91 123H100Q122 74 102 43Z','#E5A845')+line('M77 114L86 135H98L109 114','#775A4B',2)+rect(84,132,17,12,2,'#98613F')+line('M13 278Q65 230 125 245T286 202','#E9C989',5)},
+      {sky:'#93BAAB',hill:'#7099A5',land:'#577D69',water:'#6CABBF',sun:[164,43],river:'M61 300Q203 250 123 204Q95 178 156 157Q132 183 160 199Q254 259 119 300Z',
+        hero:shape('M21 201L48 118L75 201Z','#356851')+shape('M39 155L48 116L60 157Z','#88AD79')+rect(43,198,9,20,1,'#805A3D')+shape('M213 239L246 128L282 239Z','#3C715B')+shape('M230 177L246 126L260 181Z','#94B57C')+rect(242,237,9,20,1,'#805A3D')}
+    ];
+    scenes.forEach((s,i)=>{
+      const clouds=Array.from({length:6},(_,k)=>ellipse(12+(k*57+i*13)%296,15+(k*29+i*11)%72,10+(k%3)*5,4+k%4,dark?'#A2B4C6':'#EFF2DE',.82)).join('');
+      const contours=Array.from({length:3},(_,j)=>line(`M-8 ${250+j*20}Q58 ${217+j*24} 122 ${243+j*20}T310 ${218+j*26}`,'#E6D6A7',2,.45)).join('');
+      put('puzzle_landscape_'+i,rect(0,0,300,300,0,dark?'#617B90':s.sky)+clouds+circle(...s.sun,17,'#F4CC77')+
+        shape(`M-8 162L27 130L54 146L97 ${71+i*9}L136 135L171 103L220 148L254 87L310 139V300H-8Z`,s.hill)+
+        shape('M0 168Q42 134 74 155T162 151Q214 132 250 154T300 149V300H0Z',s.land)+
+        shape(s.river,s.water)+contours+s.hero,300,300);
+    });
+    const xiangqiInk=dark?'#C8A77D':'#765335';
+    put('xiangqi_lines',rect(0,0,360,400,6,dark?'#453A31':'#EED7AE')+
+      Array.from({length:10},(_,i)=>line(`M20 ${20+40*i}H340`,xiangqiInk,1.7)).join('')+
+      Array.from({length:9},(_,i)=>{const x=20+40*i;return line(i===0||i===8?`M${x} 20V380`:`M${x} 20V180M${x} 220V380`,xiangqiInk,1.7)}).join('')+
+      line('M140 20L220 100M220 20L140 100M140 300L220 380M220 300L140 380',xiangqiInk,1.7),360,400);
     put('glove',shape('M17 57L10 32Q10 20 19 24L30 45L24 15Q25 6 33 10L42 37L40 8Q47 0 53 10L56 35L61 9Q69 4 73 13L73 43L82 26Q95 24 91 38L83 70Q70 94 45 88Z','url(#gold)',p.ink)+line('M30 59Q49 43 68 58',p.ink,3));
     const fruits = ['cherry','berry','grape','orange','apple','pear','peach','mango','melon','watermelon'];
     fruits.forEach((f,i)=>{
@@ -201,7 +232,18 @@ function generate(only = []) {
       // Low contrast backdrop: game geometry and text remain native and visible above it.
       const hero=id==='arrowclear'?'arrow_1':id==='characters'?'brush':id==='idiom'?'book':heroFor[id]; if(!hero||!bodyByName.has(hero))throw new Error('Missing hero for '+id);
       const decoration = id === 'tug' ? '' : `<g opacity=".06" transform="translate(246 351) scale(.9)">${bodyByName.get(hero)}</g>`;
-      put('board_'+id,bg+decoration,360,460);
+      if(id==='fruitslice') {
+        bg=rect(0,0,360,460,0,dark?'#302625':'#594033')+
+          Array.from({length:6},(_,i)=>line(`M0 ${36+i*76}Q120 ${30+i*76} 210 ${40+i*76}T360 ${34+i*76}`,dark?'#645149':'#86654D',2,.52)).join('');
+      }
+      if(id==='shooter') bg=rect(0,0,360,460,0,dark?'#101A32':'#1B2945')+
+        Array.from({length:42},(_,i)=>circle(7+(i*83)%346,6+(i*71)%448,i%7===0?1.9:1,i%3?'#91B5DB':'#CAD5FF')).join('');
+      if(id==='hillclimb') bg=rect(0,0,360,460,0,dark?'#203651':'#C1E1EF')+circle(298,54,19,dark?'#CFDCE5':'#FFF1AF')+
+        shape('M0 195L52 141L82 163L141 92L198 154L234 124L310 190L360 148V460H0Z',dark?'#3D5265':'#94BAC2');
+      if(id==='airhockey') bg=rect(0,0,360,460,0,dark?'#21384D':'#E4F2F6')+
+        circle(180,230,42,'none',dark?'#7596AB':'#91B6C3',3)+
+        line('M125 3V10H235V3','#C45857',5)+line('M125 457V450H235V457','#3576B4',5);
+      put('board_'+id,['fruitslice','shooter','hillclimb','airhockey'].includes(id)?bg:bg+decoration,360,460);
 
     });
     // Puzzle art is opaque and readable in both modes, with the same shapes and crop boundaries.

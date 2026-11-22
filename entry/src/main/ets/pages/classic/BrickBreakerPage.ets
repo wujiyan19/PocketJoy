@@ -153,6 +153,7 @@ export struct BrickBreakerPage {
 
             // 挡板
             Image($r('app.media.play_brick_paddle'))
+              .id('brick-paddle')
               .width(this.boardLength(this.viewModel.paddleWidth()))
               .height(this.boardLength(this.viewModel.paddleHeight()))
               .objectFit(ImageFit.Fill)
@@ -193,6 +194,7 @@ export struct BrickBreakerPage {
           }
           .width(this.boardLength(this.viewModel.gameWidth()))
           .height(this.boardLength(this.viewModel.gameHeight()))
+          .id('brick-field')
           .gesture(
             PanGesture({ direction: PanDirection.Horizontal })
               .onActionStart((e: GestureEvent) => {
@@ -219,14 +221,14 @@ export struct BrickBreakerPage {
           })
 
         // 左右按钮
-        Row({ space: SpacingTokens.xl }) {
+        Row({ space: SpacingTokens.sm }) {
           Button() {
             SymbolGlyph($r('sys.symbol.chevron_left'))
               .fontSize(24)
               .fontColor([SemanticColors.textOnPrimary])
           }
           .type(ButtonType.Circle)
-          .width(56).height(56)
+          .width(60).height(60).id('brick-left')
           .backgroundColor(SemanticColors.primary)
 
           .accessibilityText($r('app.string.a11y_brickbreaker_left'))
@@ -236,13 +238,21 @@ export struct BrickBreakerPage {
             this.viewModel.launchBall();
           })
 
+          Text($r('app.string.brick_drag_strip')).id('brick-strip').layoutWeight(1).height($r('app.float.expansion_control_height'))
+            .textAlign(TextAlign.Center).fontSize(FontTokens.sizeBody).fontColor(SemanticColors.primary)
+            .backgroundColor(SemanticColors.selectionSurface).borderRadius(RadiusTokens.full)
+            .gesture(PanGesture({ fingers: 1, direction: PanDirection.Horizontal })
+              .onActionStart(() => { this.dragStartPaddleX = this.viewModel.paddleCenterX; })
+              .onActionUpdate((event: GestureEvent) => { this.viewModel.dragPaddle(this.dragStartPaddleX + event.offsetX / this.boardScale); })
+              .onActionEnd(() => { this.viewModel.launchBall(); }))
+
           Button() {
             SymbolGlyph($r('sys.symbol.chevron_right'))
               .fontSize(24)
               .fontColor([SemanticColors.textOnPrimary])
           }
           .type(ButtonType.Circle)
-          .width(56).height(56)
+          .width(60).height(60).id('brick-right')
           .backgroundColor(SemanticColors.primary)
 
           .accessibilityText($r('app.string.a11y_brickbreaker_right'))
@@ -252,7 +262,8 @@ export struct BrickBreakerPage {
             this.viewModel.launchBall();
           })
         }
-        .justifyContent(FlexAlign.Center)
+        .width('100%').constraintSize({ maxWidth: $r('app.float.expansion_board_max') })
+        .padding({ left: SpacingTokens.base, right: SpacingTokens.base }).justifyContent(FlexAlign.Center)
         .margin({ top: SpacingTokens.md, bottom: SpacingTokens.md })
       }.width('100%').height('100%').padding({ bottom: this.safeArea.bottom })
 

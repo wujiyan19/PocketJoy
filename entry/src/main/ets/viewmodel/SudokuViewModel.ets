@@ -193,8 +193,15 @@ export class SudokuViewModel implements GameLifecycleObserver {
     this.saveCurrentGame();
   }
 
+  @Computed get fullBoardConflicts(): boolean[] {
+    if (this.board.length !== 81 || this.board.includes(0)) { return []; }
+    return this.board.map((value: number, index: number): boolean =>
+      !this.rules.isValidAt(this.board, Math.floor(index / 9), index % 9, value));
+  }
+
   private checkComplete(): void {
-    if (!this.rules.isComplete(this.board)) { return; }
+    const conflicts: boolean[] = this.fullBoardConflicts;
+    if (conflicts.length === 0 || conflicts.includes(true)) { return; }
     gameSound.play(GAME_ID, GameSoundEvent.WIN);
     this.status = GameStatus.OVER;
     // 难度越高完成得分越高

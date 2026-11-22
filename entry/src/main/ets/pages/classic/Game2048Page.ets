@@ -106,7 +106,7 @@ export struct Game2048Page {
   }
 
   initBoardSize(): void {
-    const byWidth: number = ScreenUtils.calcCell(SIZE, 520, 32 + SIZE * GAP + 8, 1);
+    const byWidth: number = ScreenUtils.calcCell(SIZE, 520, 24 + SIZE * GAP + 8, 1);
     const byHeight: number = Math.floor((ScreenUtils.windowHeightVp() - 280 - SIZE * GAP - 8) / SIZE);
     this.cell = Math.max(1, Math.min(byWidth, byHeight));
     this.boardSize = this.innerSize() + 8;
@@ -117,8 +117,8 @@ export struct Game2048Page {
     const width: number = parseFloat(area.width as string);
     const height: number = parseFloat(area.height as string);
     if (isNaN(width) || isNaN(height) || width < 100 || height < 100) { return; }
-    const byWidth: number = Math.floor((Math.min(width, 520) - 32 - SIZE * GAP - 8) / SIZE);
-    const byHeight: number = Math.floor((height - SIZE * GAP - 8) / SIZE);
+    const byWidth: number = Math.floor((Math.min(width, 520) - 24 - SIZE * GAP - 8) / SIZE);
+    const byHeight: number = Math.floor((height - SpacingTokens.xl - SIZE * GAP - 8) / SIZE);
     const next: number = Math.max(1, Math.min(byWidth, byHeight));
     if (next !== this.cell) {
       this.cell = next;
@@ -300,11 +300,13 @@ export struct Game2048Page {
           Column() {
             Text($r('app.string.record_rule_best')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textTertiary)
             Text('' + this.viewModel.modeBest()).fontSize(FontTokens.sizeHeadline).fontWeight(FontTokens.weightBold).fontColor(SemanticColors.textPrimary)
+            if (this.viewModel.highScore > this.viewModel.modeBest()) {
+              Text($r('app.string.game2048_history_compact', this.viewModel.highScore))
+                .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+            }
           }.layoutWeight(1).padding(8).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.lg)
           .alignItems(HorizontalAlign.Center).margin({ left: 8, right: 16 })
         }.margin({ top: 12, bottom: 12 })
-        Text($r('app.string.mode_archived_best', this.viewModel.highScore))
-          .fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
 
         Column() {
           Column() {
@@ -344,6 +346,7 @@ export struct Game2048Page {
             .width(this.innerSize()).height(this.innerSize())
           }
           .width(this.boardSize).height(this.boardSize)
+          .id('2048-board')
           .backgroundColor($r('app.color.play_board_background'))
           .borderRadius(RadiusTokens.lg)
           .padding(4)
@@ -358,6 +361,8 @@ export struct Game2048Page {
                 this.swipe(() => { return dy > 0 ? this.viewModel.swipeDown() : this.viewModel.swipeUp(); });
               }
             }))
+          Text($r('app.string.game2048_swipe_hint')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
+            .margin({ top: SpacingTokens.sm })
         }
         .width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
         .onAreaChange((oldValue: Area, newValue: Area) => { this.updateBoardSize(newValue); })
