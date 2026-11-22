@@ -16,7 +16,7 @@
 HarmonyOS API 26 / 最低兼容 API 24<br>
 简体中文 / English
 
-[下载 v1.0.1 开发包（64 个入口）](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.0.1) · [v1.0.1 更新与验证](docs/release/v1.0.1.md)
+[下载 v1.1.0 开发包（60 个入口，65 个玩法）](https://github.com/wujiyan19/PocketJoy/releases/tag/v1.1.0) · [版本说明](docs/release/v1.1.0.md) · [签名安装与覆盖升级](docs/release/v1.1.0-INSTALL.zh-CN.md)
 
 [体验画面](#体验画面) &nbsp; / &nbsp; [玩法目录](#玩法目录) &nbsp; / &nbsp; [运行项目](#运行项目) &nbsp; / &nbsp; [文档导航](#文档导航)
 
@@ -144,11 +144,11 @@ $env:LITTLEGAMES_REGRESSION_OUTPUT = "$PWD/.local-tools/regressions"
 node scripts/run-regressions.cjs
 ```
 
-运行器当前包含 **34 套检查**（清单与排除原因在 `scripts/regression-suites.json`），直接执行转换后的 Model / ViewModel，并替代原生服务与时钟。它验证规则与状态流转；ArkTS 编译、设备渲染、触控和性能分别验收。可用 `ARKTS_TYPESCRIPT_PATH` 指定工具链中的 `ohpm/node_modules/typescript/lib/typescript.js`。
+运行器按[回归清单](scripts/regression-suites.json)执行转换后的 Model / ViewModel，以测试服务和时钟验证规则与状态流转。可用 `ARKTS_TYPESCRIPT_PATH` 指定工具链中的 `ohpm/node_modules/typescript/lib/typescript.js`。
 
 ## 验证进展
 
-以下按各层实际执行日期列出验证范围；桌面回归和构建均不能替代真机验收。
+v1.1.0 的发布包校验与覆盖升级记录见[发布回执](docs/release/v1.1.0-verification.json)。下表保留 v1.0.1 业务修复时的验证范围。
 
 | 验证层次 | 最近记录 | 适用范围 |
 | --- | --- | --- |
@@ -156,7 +156,7 @@ node scripts/run-regressions.cjs
 | 原生构建 | 2026-11-04 · API 26 Debug 签名成功 | 11 月 5 日已在独立 API 26 模拟器安装同一哈希修复包。 |
 | 真实界面 | 2026-11-05 · 修复版模拟器复验 | 当时的 64 入口版本已测贴底旋转、巴士死局/撤销/再结算、重启成绩、方向键、拆螺丝撤销与两张桌面卡片。详见[模拟器报告](docs/device-acceptance/review-fixes-2026-11-05-emulator/REPORT.md)。 |
 
-本轮修复、复核结论和验收边界见[审查问题修复记录](docs/review-fixes-2026-11-04.md)。历史结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
+1.0.1 的修复与复核情况见[审查问题修复记录](docs/review-fixes-2026-11-04.md)。历史结果可追溯至[整改执行记录](docs/game-retention-implementation-2026-10-27.md)、[源码与包回执](docs/game-retention-audit-2026-10-27/implementation/receipt.json)和[桌面验证汇总](docs/game-retention-audit-2026-10-27/implementation/verified-regressions/verification.json)。
 
 仍待补齐：当前版本逐款真机操作与结算、音效试听、长局帧率与内存、温升耗电、英文与最大字体、无障碍、窗口变化，以及真实跨设备接续／传输。工程声明支持 phone / tablet，实际覆盖以设备报告为准。
 

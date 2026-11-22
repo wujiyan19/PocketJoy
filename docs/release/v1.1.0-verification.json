@@ -1,0 +1,82 @@
+{
+  "date": "2026-11-22",
+  "sourceReference": "v1.1.0",
+  "versionName": "1.1.0",
+  "versionCode": 1001000,
+  "bundleName": "com.littlegames.collection",
+  "catalog": {
+    "entries": 60,
+    "variants": 65
+  },
+  "build": {
+    "mode": "release",
+    "targetApi": 26,
+    "compatibleApi": 24,
+    "debug": false,
+    "succeeded": true,
+    "arktsWarnings": 11
+  },
+  "publicArtifact": {
+    "name": "LittleGames-1.1.0-release-unsigned.hap",
+    "bytes": 10650714,
+    "sha256": "33fbe820928d896b263b4ea16a85c1dd931c59adccc022731f389952314f87b2",
+    "signed": false,
+    "zipEntries": 1176,
+    "samePayloadsInLocalSignedPackage": 1176
+  },
+  "otherReleaseAssets": [
+    {
+      "name": "INSTALL.zh-CN.md",
+      "bytes": 3106,
+      "sha256": "ad110fbedcece7c84550f02db5c3ee90fef496c02c801f0454f1c953802465e0"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 188,
+      "sha256": "be8781a9c938ffbe0a9842ce3ed9b635fa59c0cc2fe8996cf75322cade98604d"
+    }
+  ],
+  "localSignedCounterpart": {
+    "name": "entry-default-signed.hap",
+    "bytes": 10723058,
+    "sha256": "9c0adc671a92dfc260a73b5d51e14e495feab85c61d2f05271bc1e08418181ba",
+    "published": false
+  },
+  "desktop": {
+    "suites": 39,
+    "passed": 1474,
+    "total": 1474,
+    "report": "v1.1.0-regressions.json"
+  },
+  "nativeSmoke": {
+    "device": "HarmonyOS API 26 phone emulator",
+    "upgradeBaseline": "Locally signed 60-entry 1.0.1 validation build from 2026-11-22",
+    "from": {
+      "versionName": "1.0.1",
+      "versionCode": 1000001
+    },
+    "to": {
+      "versionName": "1.1.0",
+      "versionCode": 1001000
+    },
+    "firstInstallTimeUnchanged": true,
+    "updateTimeAdvanced": true,
+    "launchedAndForceStopRestarted": true,
+    "profileBeforeAfterRestart": {
+      "游戏总数": "60",
+      "已玩游戏": "27",
+      "累计时长": "1.6 小时",
+      "累计开局": "47"
+    },
+    "slideHistoryPreserved": true,
+    "resumeEntries": [
+      "2048",
+      "Sudoku"
+    ],
+    "slidePuzzleEasyBestAfterRestart": 22
+  },
+  "limits": [
+    "No upgrade test from the public 64-entry v1.0.1 artifact.",
+    "No full physical-device or cross-device acceptance for the tagged build."
+  ]
+}
