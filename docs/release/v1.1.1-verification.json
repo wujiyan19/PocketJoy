@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-23",
+  "sourceReference": "v1.1.1",
+  "versionName": "1.1.1",
+  "versionCode": 1001001,
+  "bundleName": "com.littlegames.collection",
+  "catalog": {
+    "entries": 60,
+    "variants": 65
+  },
+  "build": {
+    "mode": "release",
+    "targetApi": 26,
+    "compatibleApi": 24,
+    "debug": false,
+    "succeeded": true,
+    "arktsWarnings": 11
+  },
+  "publicArtifact": {
+    "name": "LittleGames-1.1.1-release-unsigned.hap",
+    "bytes": 8410507,
+    "sha256": "c0f250761fdda2d4d43dde972170343f81f0f8161760b557392222bf9db825bd",
+    "signed": false,
+    "zipEntries": 1100,
+    "samePayloadsInLocalSignedPackage": 1100
+  },
+  "otherReleaseAssets": [
+    {
+      "name": "INSTALL.zh-CN.md",
+      "bytes": 3134,
+      "sha256": "d47c64572a67322353139be7fd946cee86943f38e0a584cb681ef89ebf8da3ed"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "bytes": 190,
+      "sha256": "23a8c188f1565271d40bee389879f3152ac107644e42dfb638736b1c1028b9c0"
+    }
+  ],
+  "localSignedCounterpart": {
+    "name": "entry-default-signed.hap",
+    "bytes": 8483796,
+    "sha256": "9e9bd8be6b701916fd64179d707c38fd1f849f3f5a8ac5de767f3123421bf07f",
+    "profileType": "debug",
+    "published": false,
+    "signatureVerified": true
+  },
+  "desktop": {
+    "suites": 39,
+    "passed": 1482,
+    "total": 1482,
+    "report": "v1.1.1-regressions.json"
+  },
+  "visualReview": {
+    "device": "HarmonyOS API 24 phone emulator",
+    "buildMode": "debug",
+    "lightModeScreens": 65,
+    "darkModeScreens": 11,
+    "geminiLightPagesPassed": 65,
+    "releaseResourcesByteIdentical": 1093,
+    "captureScope": "Opening scenes and selected controls"
+  },
+  "nativeSmoke": {
+    "device": "HarmonyOS API 26 phone emulator",
+    "build": "Locally signed Release",
+    "overlayInstall": true,
+    "fromVersion": "1.1.0",
+    "fromVersionCode": 1001000,
+    "toVersion": "1.1.1",
+    "toVersionCode": 1001001,
+    "firstInstallTimePreserved": true,
+    "checkedSavedGames": [
+      "2048",
+      "Sudoku"
+    ],
+    "status": "passed"
+  }
+}

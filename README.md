@@ -4,7 +4,7 @@
 
 **适用设备**　HarmonyOS 6.1.1 及以上的手机和平板。
 
-**[下载玩趣盒 v1.1.0（未签名 HAP，约 10 MB）](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.0/LittleGames-1.1.0-release-unsigned.hap)** · [下载与安装](#下载与安装) · [玩法目录](#玩法目录)
+**[下载玩趣盒 v1.1.1（未签名 HAP，约 8 MB）](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.1/LittleGames-1.1.1-release-unsigned.hap)** · [下载与安装](#下载与安装) · [玩法目录](#玩法目录)
 
 ## 下载与安装
 
@@ -12,13 +12,13 @@
 
 ### 已经装好轻启
 
-1. 在准备玩游戏的设备上下载文件 **`LittleGames-1.1.0-release-unsigned.hap`**。[下载 HAP](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.0/LittleGames-1.1.0-release-unsigned.hap)
+1. 在准备玩游戏的设备上下载文件 **`LittleGames-1.1.1-release-unsigned.hap`**。[下载 HAP](https://github.com/wujiyan19/PocketJoy/releases/download/v1.1.1/LittleGames-1.1.1-release-unsigned.hap)
 2. 第一次用轻启签装时，在轻启的**「我的」**登录华为开发者账号。按提示开启系统无线调试，在轻启中输入系统显示的端口并连接本机，再按系统提示确认信任。已经配置过的设备可直接进行下一步。
-3. 在轻启点**「本地」→「从本地签装」→「选择安装文件」**，选中刚下载的 HAP。确认显示的是「玩趣盒」和版本 **1.1.0**，点**「安装」**。完成后，从桌面打开玩趣盒。
+3. 在轻启点**「本地」→「从本地签装」→「选择安装文件」**，选中刚下载的 HAP。确认显示的是「玩趣盒」和版本 **1.1.1**，点**「安装」**。完成后，从桌面打开玩趣盒。
 
 ### 还没装轻启
 
-轻启作者提供过手机邀测安装，旧邀请已有人反馈过期，可先看作者是否更新了入口。GitHub 上的轻启安装包也需要签名，手边有电脑的话，可以直接按电脑指南安装玩趣盒。[轻启作者的首次安装说明](https://github.com/thx853068675-dev/QSStore/issues/1#issuecomment-6119712334) · [用电脑安装玩趣盒](docs/release/v1.1.0-INSTALL.zh-CN.md)
+轻启作者提供过手机邀测安装，旧邀请已有人反馈过期，可先看作者是否更新了入口。GitHub 上的轻启安装包也需要签名，手边有电脑的话，可以直接按电脑指南安装玩趣盒。[轻启作者的首次安装说明](https://github.com/thx853068675-dev/QSStore/issues/1#issuecomment-6119712334) · [用电脑安装玩趣盒](docs/release/v1.1.1-INSTALL.zh-CN.md)
 
 装好轻启后，按上面的[「已经装好轻启」](#已经装好轻启)步骤选择玩趣盒安装包。
 
@@ -54,4 +54,4 @@
 
 </details>
 
-想了解这次更新了什么，可以查看 [v1.1.0 版本说明](docs/release/v1.1.0.md)。需要用 DevEco Studio 从源码运行，可按[安装指南中的源码运行步骤](docs/release/v1.1.0-INSTALL.zh-CN.md#用对应源码在-deveco-studio-运行)操作。
+v1.1.1 更新了 65 种玩法的对局背景。完整改动见[版本说明](docs/release/v1.1.1.md)，从源码运行的步骤见[安装指南](docs/release/v1.1.1-INSTALL.zh-CN.md#用对应源码在-deveco-studio-运行)。
