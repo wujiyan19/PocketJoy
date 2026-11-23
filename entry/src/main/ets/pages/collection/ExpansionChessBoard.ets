@@ -207,7 +207,9 @@ export struct ExpansionChessBoard {
                       .opacity(this.cellOpacity(row * this.vm.state.cols + col))
                     }
                   }.layoutWeight(1).height('100%').padding(0)
-                    .backgroundColor(this.gameId === 'xiangqi' ? Color.Transparent : this.vm.legalTargets.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight : (row + col) % 2 === 0 ? SemanticColors.surface : SemanticColors.boardBg)
+                    .backgroundColor(this.gameId === 'xiangqi' ? Color.Transparent :
+                      this.vm.legalTargets.includes(row * this.vm.state.cols + col) ? SemanticColors.primaryLight :
+                        (row + col) % 2 === 0 ? $r('app.color.chess_square_maple') : $r('app.color.chess_square_walnut'))
                     .border({ width: this.gameId !== 'xiangqi' && this.vm.state.selected === row * this.vm.state.cols + col ? 2 : 0, color: SemanticColors.primary })
                     .id('chess-cell-' + (row * this.vm.state.cols + col).toString())
                 }, (col: number) => col.toString())
@@ -225,7 +227,9 @@ export struct ExpansionChessBoard {
           }
         }.width('100%').height('100%').onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
       }.width('100%').aspectRatio(this.vm.state.cols / this.vm.state.rows).padding(SpacingTokens.xs)
-        .backgroundColor(SemanticColors.border).borderRadius(RadiusTokens.sm).id('chess-board')
+        .backgroundColor(SemanticColors.border)
+        .backgroundImage(this.gameId === 'chess' ? ExpansionArt.board(this.gameId) : '')
+        .backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.sm).id('chess-board')
       if (this.gameId === 'chess') {
         Button($r('app.string.chess_promotion_choice', ['♛', '♜', '♝', '♞'][this.vm.state.data[ChessDataIndex.Promotion] - 2]),
           { buttonStyle: ButtonStyleMode.TEXTUAL }).id('chess-promotion-open').fontSize(FontTokens.sizeBody)

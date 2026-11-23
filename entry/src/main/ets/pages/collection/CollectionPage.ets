@@ -154,14 +154,17 @@ export struct CollectionPage {
             if (this.gameId === 'hanoi') { this.Towers() }
             if (this.gameId === 'reaction') {
               Button({ type: ButtonType.Normal }) {
-                Column({ space: SpacingTokens.sm }) {
-                  Image(CollectionArt.signal(this.vm.state.phase)).width($r('app.float.collection_art_beacon')).aspectRatio(1)
-                  Text(this.reactionText()).fontSize(FontTokens.sizeTitle).fontWeight(FontWeight.Bold).fontColor(SemanticColors.textPrimary)
-                    .id('reaction-state')
-                }.padding(SpacingTokens.base)
+                Stack() {
+                  this.Backdrop($r('app.media.col_signal_stage'))
+                  Column({ space: SpacingTokens.sm }) {
+                    Image(CollectionArt.signal(this.vm.state.phase)).width($r('app.float.collection_art_beacon')).aspectRatio(1)
+                    Text(this.reactionText()).fontSize(FontTokens.sizeTitle).fontWeight(FontWeight.Bold).fontColor(SemanticColors.textPrimary)
+                      .id('reaction-state')
+                  }.padding(SpacingTokens.base)
+                }.width('100%').height('100%')
               }
                 .width('100%').aspectRatio(0.95).id('reaction-pad')
-                .borderRadius(RadiusTokens.xl)
+                .padding(0).borderRadius(RadiusTokens.xl).clip(true)
                 .backgroundColor(this.vm.state.phase === 2 ? $r('app.color.reaction_go_bg') :
                   this.vm.state.phase === 1 ? $r('app.color.reaction_wait_bg') : SemanticColors.selectionSurface)
                 .accessibilityText(this.reactionText())
@@ -306,60 +309,71 @@ export struct CollectionPage {
     }
   }
   @Builder
+  Backdrop(image: Resource) {
+    Image(image).width('100%').height('100%').objectFit(ImageFit.Fill)
+      .hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
+  }
+  @Builder
   NonogramBoard() {
-    Column() {
-      Row() {
-        Blank().width('20%')
-        ForEach(this.columns(), (col: number) => {
-          Text(this.vm.clue(col, true).split(' ').join('\n')).layoutWeight(1).textAlign(TextAlign.Center)
-            .fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
-            .fontColor(this.vm.clueSatisfied(col, true) ? SemanticColors.successText : SemanticColors.textPrimary)
-            .id('nonogram-col-' + col)
-        }, (col: number) => col.toString())
-      }.width('100%').layoutWeight(1)
-      ForEach(this.rows(), (row: number) => {
+    Stack() {
+      this.Backdrop(CollectionArt.board(this.gameId))
+      Column() {
         Row() {
-          Text(this.vm.clue(row, false)).width('20%').textAlign(TextAlign.Center)
-            .fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
-            .fontColor(this.vm.clueSatisfied(row, false) ? SemanticColors.successText : SemanticColors.textPrimary)
-            .id('nonogram-row-' + row)
+          Blank().width('20%')
           ForEach(this.columns(), (col: number) => {
-            Button({ type: ButtonType.Normal }) { this.Cell(row * this.vm.state.cols + col) }
-              .layoutWeight(1).height('100%').padding(0).backgroundColor(Color.Transparent).borderRadius(RadiusTokens.xs)
-              .id('nonogram-cell-' + row + '-' + col)
-              .accessibilityText($r('app.string.collection_cell', row + 1, col + 1, this.cellDescription(row * this.vm.state.cols + col)))
-              .onClick(() => { this.vm.tap(row * this.vm.state.cols + col); })
+            Text(this.vm.clue(col, true).split(' ').join('\n')).layoutWeight(1).textAlign(TextAlign.Center)
+              .fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
+              .fontColor(this.vm.clueSatisfied(col, true) ? SemanticColors.successText : SemanticColors.textPrimary)
+              .id('nonogram-col-' + col)
           }, (col: number) => col.toString())
         }.width('100%').layoutWeight(1)
-      }, (row: number) => row.toString())
+        ForEach(this.rows(), (row: number) => {
+          Row() {
+            Text(this.vm.clue(row, false)).width('20%').textAlign(TextAlign.Center)
+              .fontSize(FontTokens.sizeBody).fontWeight(FontWeight.Bold)
+              .fontColor(this.vm.clueSatisfied(row, false) ? SemanticColors.successText : SemanticColors.textPrimary)
+              .id('nonogram-row-' + row)
+            ForEach(this.columns(), (col: number) => {
+              Button({ type: ButtonType.Normal }) { this.Cell(row * this.vm.state.cols + col) }
+                .layoutWeight(1).height('100%').padding(0).backgroundColor(Color.Transparent).borderRadius(RadiusTokens.xs)
+                .id('nonogram-cell-' + row + '-' + col)
+                .accessibilityText($r('app.string.collection_cell', row + 1, col + 1, this.cellDescription(row * this.vm.state.cols + col)))
+                .onClick(() => { this.vm.tap(row * this.vm.state.cols + col); })
+            }, (col: number) => col.toString())
+          }.width('100%').layoutWeight(1)
+        }, (row: number) => row.toString())
+      }.width('100%').height('100%')
     }.width('100%').aspectRatio(1).id('nonogram-board')
   }
   @Builder
   FloodBoard() {
-    Column({ space: SpacingTokens.xs }) {
-      ForEach(this.rows(), (row: number) => {
-        Row({ space: SpacingTokens.xs }) {
-          ForEach(this.columns(), (col: number) => {
-            Stack({ alignContent: Alignment.TopStart }) {
-              this.Cell(row * this.vm.state.cols + col)
-              if (row === 0 && col === 0) {
-                Text('◆').fontSize(9).fontColor(SemanticColors.primary).textAlign(TextAlign.Center)
-                  .width(14).height(14).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.full)
-                  .margin({ left: SpacingTokens.xs, top: SpacingTokens.xs }).id('flood-origin-marker').accessibilityLevel('no')
-              }
-            }.layoutWeight(1).height('100%')
-              .border({ width: this.vm.floodCells.includes(row * this.vm.state.cols + col) ? 2 : 0, color: SemanticColors.primary })
-              .borderRadius(RadiusTokens.xs).id('flood-cell-' + row + '-' + col)
-              .accessibilityText($r('app.string.collection_cell', row + 1, col + 1, this.cellText(row * this.vm.state.cols + col)))
-          }, (col: number) => col.toString())
-        }.width('100%').layoutWeight(1)
-      }, (row: number) => row.toString())
+    Stack() {
+      this.Backdrop(CollectionArt.board(this.gameId))
+      Column({ space: SpacingTokens.xs }) {
+        ForEach(this.rows(), (row: number) => {
+          Row({ space: SpacingTokens.xs }) {
+            ForEach(this.columns(), (col: number) => {
+              Stack({ alignContent: Alignment.TopStart }) {
+                this.Cell(row * this.vm.state.cols + col)
+                if (row === 0 && col === 0) {
+                  Text('◆').fontSize(9).fontColor(SemanticColors.primary).textAlign(TextAlign.Center)
+                    .width(14).height(14).backgroundColor(SemanticColors.surface).borderRadius(RadiusTokens.full)
+                    .margin({ left: SpacingTokens.xs, top: SpacingTokens.xs }).id('flood-origin-marker').accessibilityLevel('no')
+                }
+              }.layoutWeight(1).height('100%')
+                .border({ width: this.vm.floodCells.includes(row * this.vm.state.cols + col) ? 2 : 0, color: SemanticColors.primary })
+                .borderRadius(RadiusTokens.xs).id('flood-cell-' + row + '-' + col)
+                .accessibilityText($r('app.string.collection_cell', row + 1, col + 1, this.cellText(row * this.vm.state.cols + col)))
+            }, (col: number) => col.toString())
+          }.width('100%').layoutWeight(1)
+        }, (row: number) => row.toString())
+      }.width('100%').height('100%')
     }.width('100%').aspectRatio(1).id('flood-board')
   }
   @Builder
   Board() {
     Stack() {
-      Image(CollectionArt.board(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill)
+      this.Backdrop(CollectionArt.board(this.gameId))
       Column({ space: this.gameId === 'maze' ? 0 : SpacingTokens.xs }) {
         ForEach(this.rows(), (row: number) => {
           Row({ space: this.gameId === 'maze' ? 0 : SpacingTokens.xs }) {
@@ -409,7 +423,7 @@ export struct CollectionPage {
   @Builder
   Question() {
     Stack() {
-      Image(CollectionArt.question(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill)
+      this.Backdrop(CollectionArt.question(this.gameId))
       Column({ space: SpacingTokens.sm }) {
         Image(this.game?.icon).width($r('app.float.collection_art_question_icon')).aspectRatio(1)
         Text(this.vm.state.prompt).fontSize(FontTokens.sizeTitle).fontWeight(FontWeight.Bold)
@@ -457,7 +471,8 @@ export struct CollectionPage {
           }.width('100%')
         }, (row: number) => row.toString())
       }.width('100%')
-    }.width('100%')
+    }.width('100%').backgroundImage(CollectionArt.board(this.gameId))
+      .backgroundImageSize({ width: '100%', height: '100%' })
   }
   @Builder
   Towers() {
@@ -469,6 +484,7 @@ export struct CollectionPage {
               .fontSize(FontTokens.sizeBody).fontWeight(post === this.vm.state.goalPost ? FontWeight.Bold : FontWeight.Regular)
               .fontColor(post === this.vm.state.goalPost ? SemanticColors.primary : SemanticColors.textPrimary)
             Stack({ alignContent: Alignment.Bottom }) {
+              this.Backdrop($r('app.media.col_hanoi_station'))
               Image($r('app.media.col_hanoi_post')).width('100%').height('100%').objectFit(ImageFit.Fill)
               Column() {
                 ForEach(this.discs(post), (disc: number) => {

@@ -1,6 +1,7 @@
 import { ExpansionViewModel } from '../viewmodel/ExpansionViewModel';
 import { DriftLevels } from '../model/game/ToyLevelRules';
 import { FontTokens, RadiusTokens, SemanticColors, SpacingTokens } from '../common/DesignTokens';
+import { GameBoardArt } from './GameBoardArt';
 
 @ComponentV2
 export struct ToyDriftStage {
@@ -33,6 +34,7 @@ export struct ToyDriftStage {
     Column({ space: SpacingTokens.sm }) {
       Text($r('app.string.toy_drift_hint')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
       Stack({ alignContent: Alignment.TopStart }) {
+        GameBoardArt($r('app.media.exp_board_drift'))
         Polygon().width('100%').height('100%').points(this.road(7)).fill($r('app.color.toy_drift_shoulder')).hitTestBehavior(HitTestMode.None)
         Polygon().width('100%').height('100%').points(this.road(0)).fill($r('app.color.toy_drift_road')).hitTestBehavior(HitTestMode.None)
         Polyline().width('100%').height('100%').points(this.edge(-1)).fill(Color.Transparent)

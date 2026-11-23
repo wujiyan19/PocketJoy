@@ -1,10 +1,16 @@
 /* Drop unreachable gradients only. Geometry and all other XML remain untouched. */
 const fs = require('node:fs');
 const path = require('node:path');
+const { rasterizedExpansionBoards } = require('./board-raster.cjs');
 const root = path.resolve(__dirname, '..');
 const artworkOnly = new Set([
   'col_gem_blue', 'col_gem_coral', 'col_gem_gold', 'col_gem_mint', 'col_gem_violet', 'col_question_memory',
+  'col_memory_board', 'col_question_paper', 'col_question_compare', 'col_question_sequence',
+  'col_question_binary', 'col_question_targetsum',
   'expansion_puzzle_scene', 'exp_book', 'exp_brush', 'exp_goal', 'exp_plate', 'exp_screw', 'exp_wall',
+  ...rasterizedExpansionBoards,
+  'play_tetris_board', 'play_2048_well', 'play_2048_board', 'play_mine_board', 'play_sudoku_board',
+  'play_slide_board', 'play_guess_panel', 'play_memory_board', 'play_match3_well', 'play_match3_board',
   'play_jump_frog', 'play_jump_platform', 'play_jump_scene'
 ]);
 function svgPath(theme, name) {

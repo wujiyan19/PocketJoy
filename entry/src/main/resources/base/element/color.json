@@ -30,6 +30,9 @@
     { "name": "linktile_face_6", "value": "#226D83" },
     { "name": "linktile_ink", "value": "#FFFFFF" },
     { "name": "runner_current_lane", "value": "#DCE8E2" },
+    { "name": "bus_parking_border", "value": "#819C95" },
+    { "name": "chess_square_maple", "value": "#F3E7D3" },
+    { "name": "chess_square_walnut", "value": "#C7AB88" },
     {
       "name": "xiangqi_line_ink",
       "value": "#765335"

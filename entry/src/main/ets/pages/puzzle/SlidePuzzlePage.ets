@@ -168,7 +168,10 @@ export struct SlidePuzzlePage {
                 }, (c: number) => c.toString())
               }
             }, (r: number) => r.toString())
-          }.backgroundColor($r('app.color.play_board_background')).borderRadius(RadiusTokens.base).padding(4).id('slide-board')
+          }.backgroundColor($r('app.color.play_board_background'))
+            .backgroundImage($r('app.media.play_slide_board'))
+            .backgroundImageSize({ width: '100%', height: '100%' })
+            .borderRadius(RadiusTokens.base).padding(4).id('slide-board')
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);

@@ -5,6 +5,7 @@ import { ExpansionRenderPiece } from '../../viewmodel/ExpansionRenderPiece';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionBackdrop } from './ExpansionBackdrop';
 import { GameArtTile } from '../../components/GameArtTile';
 
 @ComponentV2
@@ -40,6 +41,7 @@ export struct ExpansionMatchingBoard {
   @Builder
   Board() {
     Stack({ alignContent: Alignment.TopStart }) {
+      ExpansionBackdrop(this.gameId)
       if (this.gameId === 'linktiles') {
         Stack() {}.width(this.unit() * 7).height(this.unit() * (this.vm.state.rows + 1))
           .border({ width: 1, color: SemanticColors.textSecondary, style: BorderStyle.Dashed }).borderRadius(RadiusTokens.sm)
@@ -73,7 +75,7 @@ export struct ExpansionMatchingBoard {
         }, (segment: number) => segment.toString())
       }
     }.width('100%').aspectRatio((this.gameId === 'linktiles' ? 8 : 6) / (this.vm.state.rows + (this.gameId === 'linktiles' ? 2 : 0)))
-      .backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
+      .backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base).clip(true).onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
   }
   mahjongFace(value: number): Resource {
     const faces: Resource[] = [$r('app.string.mahjong_pair_face_1'), $r('app.string.mahjong_pair_face_2'), $r('app.string.mahjong_pair_face_3'),
@@ -83,6 +85,7 @@ export struct ExpansionMatchingBoard {
   @Builder
   Mahjong() {
     Stack({ alignContent: Alignment.TopStart }) {
+      ExpansionBackdrop(this.gameId)
       ForEach(this.vm.worldPieces, (rendered: ExpansionRenderPiece) => {
         if (rendered.piece.alive) {
           Stack() {
@@ -100,7 +103,7 @@ export struct ExpansionMatchingBoard {
             .translate({ x: rendered.piece.x * this.unit() + 2 + rendered.piece.owner * 2, y: rendered.piece.y * this.unit() + 2 + rendered.piece.owner * 2 })
         }
       }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
-    }.width('100%').aspectRatio(6 / 4).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').aspectRatio(6 / 4).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base).clip(true)
       .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
   }
 }

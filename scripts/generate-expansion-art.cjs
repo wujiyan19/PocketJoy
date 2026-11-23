@@ -2,6 +2,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { pruneSvgDefs, resolveSvg, writeThemedSvg } = require('./svg-resource-utils.cjs');
+const { boardBackground } = require('./expansion-board-backgrounds.cjs');
+const { rasterizedExpansionBoards, writeThemedPng } = require('./board-raster.cjs');
 const root = path.resolve(__dirname, '..');
 const catalog = fs.readFileSync(path.join(root, 'entry/src/main/ets/model/ExpansionCatalog.ets'), 'utf8');
 const ids = [...catalog.matchAll(/\{ id: '([^']+)'/g)].map(m => m[1]);
@@ -25,8 +27,9 @@ const line = (d,stroke,width=3,opacity=1) => `<path d="${d}" fill="none" stroke=
 const shape = (d,fill,stroke='none',sw=2) => `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
 const grad = (id,a,b) => `<linearGradient id="${id}" x2="0" y2="1"><stop stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
 // Pass resource suffixes to regenerate just those SVGs, without selectors or icons.
-function generate(only = []) {
+async function generate(only = []) {
   const selected = new Set(only);
+  const rasterJobs = [];
   for (const theme of ['base', 'dark']) {
     const dark = theme === 'dark';
     const p = { ink:dark?'#DAE8FF':'#304A69', edge:dark?'#516884':'#9CB7D0', paper:dark?'#30445F':'#FFFAF0', low:dark?'#1C2B42':'#DCE8F1',
@@ -39,7 +42,11 @@ function generate(only = []) {
     const put = (name,body,w=100,h=100,resourceDefs=defs) => {
       const resource = 'exp_'+name;
       if (selected.size === 0 || selected.has(name)) {
-        writeThemedSvg(theme,resource,pruneSvgDefs(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${resourceDefs}</defs>${body}</svg>\n`));
+        const svg = pruneSvgDefs(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${resourceDefs}</defs>${body}</svg>\n`);
+        writeThemedSvg(theme, resource, svg);
+        if (rasterizedExpansionBoards.has(resource)) {
+          rasterJobs.push(writeThemedPng(theme, resource, svg));
+        }
       }
       assets.set(resource,{name:resource,width:w,height:h}); bodyByName.set(name,body);
     };
@@ -138,10 +145,16 @@ function generate(only = []) {
         shape(s.river,s.water)+contours+s.hero,300,300);
     });
     const xiangqiInk=dark?'#C8A77D':'#765335';
-    put('xiangqi_lines',rect(0,0,360,400,6,dark?'#453A31':'#EED7AE')+
+    const xiangqiSurface=grad('xiangqi-maple',dark?'#514032':'#F2E4C9',dark?'#44362E':'#E5CDA7');
+    put('xiangqi_lines',rect(0,0,360,400,6,'url(#xiangqi-maple)')+
+      Array.from({length:12},(_,i)=>line(`M0 ${12+33*i}Q77 ${7+33*i} 154 ${12+33*i}T360 ${10+33*i}`,xiangqiInk,.8,.12)).join('')+
       Array.from({length:10},(_,i)=>line(`M20 ${20+40*i}H340`,xiangqiInk,1.7)).join('')+
       Array.from({length:9},(_,i)=>{const x=20+40*i;return line(i===0||i===8?`M${x} 20V380`:`M${x} 20V180M${x} 220V380`,xiangqiInk,1.7)}).join('')+
-      line('M140 20L220 100M220 20L140 100M140 300L220 380M220 300L140 380',xiangqiInk,1.7),360,400);
+      line('M140 20L220 100M220 20L140 100M140 300L220 380M220 300L140 380',xiangqiInk,1.7),360,400,xiangqiSurface);
+    put('sokoban_floor',rect(0,0,100,100,0,'url(#workshop)')+
+      line('M0 3H97M3 5V95',dark?'#B59B78':'#FFEDC9',1,dark?.12:.55)+
+      line('M0 97H100M98 5V100',dark?'#151416':'#A68F71',1,.21),100,100,
+      grad('workshop',dark?'#51463C':'#E8D7B9',dark?'#474039':'#E1CCAC'));
     put('glove',shape('M17 57L10 32Q10 20 19 24L30 45L24 15Q25 6 33 10L42 37L40 8Q47 0 53 10L56 35L61 9Q69 4 73 13L73 43L82 26Q95 24 91 38L83 70Q70 94 45 88Z','url(#gold)',p.ink)+line('M30 59Q49 43 68 58',p.ink,3));
     const fruits = ['cherry','berry','grape','orange','apple','pear','peach','mango','melon','watermelon'];
     fruits.forEach((f,i)=>{
@@ -212,6 +225,11 @@ function generate(only = []) {
     };
     const surface={sky:p.sky,water:dark?'#17394B':'#A5D9E8',space:dark?'#14223C':'#D7E0F1',garden:dark?'#26483F':'#D2E9C8',wood:dark?'#44362E':'#ECDAC0',street:dark?'#253348':'#DFE7EC',felt:dark?'#20453F':'#BEDFD3',court:dark?'#284A54':'#AED1D9',room:dark?'#303B4E':'#F2E4D2',ceramic:p.low};
     ids.forEach(id=>{
+      const artwork = boardBackground(id, dark);
+      if (artwork) {
+        put('board_' + id, artwork.body, 360, 460, artwork.defs);
+        return;
+      }
       const family=groupFor(id); let bg=rect(0,0,360,460,0,surface[family]);
       if(family==='sky')bg+=circle(290,65,28,dark?'#BCD5E9':'#FFE1A1')+line('M30 75H110M185 105H250',dark?'#3F5871':'#F6FCFF',17)+shape('M0 300L65 220L145 290L240 180L360 275V460H0Z',dark?'#254D58':'#8DBBA9')+shape('M0 355Q130 260 360 340V460H0Z',dark?'#346567':'#6C9C8C');
       if(family==='water')bg+=Array.from({length:8},(_,i)=>line(`M0 ${40+i*51}Q70 ${19+i*51} 140 ${40+i*51}T280 ${40+i*51}T420 ${40+i*51}`,dark?'#30708A':'#DBF6FA',2,.6)).join('')+shape('M0 420Q100 390 180 435Q280 398 360 416V460H0Z',dark?'#48776A':'#9DD0AF');
@@ -249,6 +267,7 @@ function generate(only = []) {
     const original=fs.readFileSync(resolveSvg('base','expansion_puzzle_scene'),'utf8');
     if(dark && selected.size === 0)writeThemedSvg('dark','expansion_puzzle_scene',original.replaceAll('#C9E8F4','#24445F').replaceAll('#83BCA1','#417567').replaceAll('#4F987F','#2D6255').replaceAll('#F3D3A5','#B48D68').replaceAll('#FFFFFF','#B9D6E7'));
   }
+  await Promise.all(rasterJobs);
   if (selected.size > 0) {
     for (const name of selected) if (!assets.has('exp_'+name)) throw new Error('Unknown resource '+name);
     console.log(`Generated ${selected.size} selected gameplay resources × 2 themes.`);
@@ -268,5 +287,7 @@ function generate(only = []) {
   require('./generate-game-icons.cjs').generate();
   console.log(`Generated ${assets.size} gameplay resources × 2 themes; icons use the shared 100-game system.`);
 }
-if(require.main===module)generate(process.argv.slice(2));
+if (require.main === module) {
+  generate(process.argv.slice(2)).catch(error => { console.error(error); process.exitCode = 1; });
+}
 module.exports={generate};

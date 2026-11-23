@@ -189,6 +189,8 @@ export struct GuessNumberPage {
           this.KeyRow(['7', '8', '9'])
           this.KeyRow(['⌫', '0', 'submit'])
         }.padding({ bottom: SpacingTokens.lg })
+          .backgroundImage($r('app.media.play_guess_panel'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
         }.width('100%').height('100%').constraintSize({ minHeight: $r('app.float.guess_content_min_height') })
           .padding({ left: SpacingTokens.base, right: SpacingTokens.base })
         }.width('100%').layoutWeight(1).id('guess-content-scroll')

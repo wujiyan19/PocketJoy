@@ -223,6 +223,56 @@
       "height": 500
     },
     {
+      "name": "play_snake_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_tetris_board",
+      "width": 220,
+      "height": 440
+    },
+    {
+      "name": "play_2048_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_2048_well",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "name": "play_mine_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_mine_cover",
+      "width": 100,
+      "height": 100
+    },
+    {
+      "name": "play_sudoku_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_slide_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_guess_panel",
+      "width": 160,
+      "height": 136
+    },
+    {
+      "name": "play_memory_board",
+      "width": 400,
+      "height": 500
+    },
+    {
       "name": "play_whack_scene",
       "width": 400,
       "height": 400
@@ -231,6 +281,16 @@
       "name": "play_brick_scene",
       "width": 400,
       "height": 500
+    },
+    {
+      "name": "play_match3_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "play_match3_well",
+      "width": 100,
+      "height": 100
     }
   ]
 }

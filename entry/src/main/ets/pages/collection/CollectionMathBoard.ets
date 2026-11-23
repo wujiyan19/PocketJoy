@@ -1,4 +1,5 @@
 import { FontTokens, RadiusTokens, SemanticColors, SpacingTokens } from '../../common/DesignTokens';
+import { CollectionArt } from '../../common/CollectionArt';
 import { MATH_MODES } from '../../common/GameModes';
 import { GameDataManager } from '../../model/GameData';
 import { CollectionViewModel } from '../../viewmodel/CollectionViewModel';
@@ -52,6 +53,7 @@ export struct CollectionMathBoard {
       }
     }.width('100%').constraintSize({ minHeight: $r('app.float.collection_art_question_height') })
       .justifyContent(FlexAlign.Center).padding(SpacingTokens.base).backgroundColor(SemanticColors.surface)
+      .backgroundImage(CollectionArt.question(this.vm.modeId)).backgroundImageSize({ width: '100%', height: '100%' })
       .borderRadius(RadiusTokens.lg).id('math-question')
   }
 

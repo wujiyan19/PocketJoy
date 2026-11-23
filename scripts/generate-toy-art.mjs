@@ -66,11 +66,13 @@ function platform(color) {
   // A bevel and visible top surface retain a precise horizontal landing edge.
   box(g,76,3,42,1,'#EFE4C4',0,6,-1);return g;
 }
-function floor(g,w,h,color) {box(g,w,h,12,10,'#B79A77',0,0,-12);box(g,w-10,h-10,9,8,color,0,0,-5);}
 function rolling(dark=false) {
-  const g=group('world');floor(g,358,458,dark?'#465867':'#EAE1CD');
-  for(const x of [-174,174])box(g,8,450,10,3,'#BBA17D',x,0,2);
-  for(const y of [-224,224])box(g,350,8,10,3,'#BBA17D',0,y,2);
+  const g=group('world');
+  box(g,358,458,12,10,dark?'#7D6A55':'#B79A77',0,0,-12);
+  box(g,348,448,9,8,dark?'#465B69':'#EEE5D2',0,0,-5).userData.floorTint=true;
+  const rim=dark?'#A48F73':'#C2A782';
+  for(const x of [-174,174])box(g,8,450,10,3,rim,x,0,2);
+  for(const y of [-224,224])box(g,350,8,10,3,rim,0,y,2);
   const b=group('ball');ball(b,16,'#81B7BD');
   const stripe=ring(b,15.6,2,'#F8EBD0');stripe.rotation.y=Math.PI/2;g.add(b);
   for(let i=0;i<3;i++){const w=group('wall'+i);box(w,240,16,22,4,palette[i+1],120,0,6);g.add(w);}
@@ -101,7 +103,7 @@ function glb(g,name,cameraBounds) {
     if(o.isMesh){const key=o.geometry.uuid+o.material.color.getHexString();let mi=geometries.get(key);
       if(mi===undefined){const geom=o.geometry,p=geom.attributes.position,n=geom.attributes.normal,positions=new Float32Array(p.array),colors=new Float32Array(p.count*3),normals=new Float32Array(n.array);const box3=new T.Box3().setFromBufferAttribute(p);
         // glTF vertex colors are linear. The phone renderer performs display conversion.
-        for(let i=0;i<p.count;i++){const normal=new T.Vector3().fromBufferAttribute(n,i);const c=o.material.color.clone().multiplyScalar(.76+.24*Math.max(0,normal.dot(light)));colors.set([c.r,c.g,c.b],i*3);}
+        for(let i=0;i<p.count;i++){const normal=new T.Vector3().fromBufferAttribute(n,i);const tone=o.userData.floorTint?1.02+(-p.getX(i)+p.getY(i))/2600:1;const c=o.material.color.clone().multiplyScalar(tone*(.76+.24*Math.max(0,normal.dot(light))));colors.set([c.r,c.g,c.b],i*3);}
         const primitive={attributes:{POSITION:acc(positions,'VEC3',5126,box3.min.toArray(),box3.max.toArray()),NORMAL:acc(normals,'VEC3',5126),COLOR_0:acc(colors,'VEC3',5126)},material:0};
         if(geom.index)primitive.indices=acc(new Uint16Array(geom.index.array),'SCALAR',5123);
         mi=json.meshes.length;json.meshes.push({primitives:[primitive]});geometries.set(key,mi);
@@ -121,14 +123,18 @@ render(slot,'toy_slot',[-18,18,18,-18],108,108);
 for(let i=0;i<5;i++)render(plate(palette[i]),'toy_plate_'+i,[0,220,96,0],660,288);
 for(let i=0;i<6;i++)render(car(palette[i]),'toy_car_'+i,[-22,22,46,-46],132,276);
 for(const theme of ['base','dark']) {
-  const dark=theme==='dark',bg=dark?'#344653':'#F1E8D4',edge=dark?'#6D756E':'#C7B38E',line=dark?'#536671':'#D8CBB2';
-  const frame=(h)=>`<rect x="1" y="1" width="358" height="${h-2}" rx="18" fill="${edge}"/><rect x="7" y="7" width="346" height="${h-14}" rx="13" fill="${bg}"/>`;
-  const svg=(h,body)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 ${h}" width="360" height="${h}">${frame(h)}${body}</svg>\n`;
-  const screws=[[17,17],[343,17],[17,443],[343,443]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="${line}"/><path d="M${x-2} ${y}h4" stroke="${edge}" stroke-width="1.5"/>`).join('');
-  const grid=Array.from({length:17},(_,i)=>{const p=10+i*21.25;return `<path d="M10 ${p}H350M${p} 10V350" stroke="${line}" stroke-width=".6" opacity=".5"/>`;}).join('');
+  const dark=theme==='dark';
+  const light=dark?'#4D625E':'#F5EBDC',shade=dark?'#304543':'#E7D9BC';
+  const edge=dark?'#71836F':'#BEA57A',highlight=dark?'#879276':'#FFF4D9';
+  const gradient=(top,bottom)=>`<defs><linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient></defs>`;
+  const svg=(h,body)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 ${h}" width="360" height="${h}">${body}</svg>\n`;
+  const screws=[[17,17],[343,17],[17,443],[343,443]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="3.5" fill="${edge}"/><path d="M${x-2} ${y}h4" stroke="${highlight}" stroke-width="1.3"/>`).join('');
+  const workbench=gradient(light,shade)+`<rect x="1" y="1" width="358" height="458" rx="18" fill="${edge}"/><rect x="7" y="7" width="346" height="443" rx="13" fill="url(#surface)"/><path d="M10 108V25Q10 10 26 10H114M350 351V432Q350 447 334 447H244" fill="none" stroke="${highlight}" stroke-width="1.6" opacity=".55"/><path d="M20 38H68M23 43H43M312 421H336M295 426H337" fill="none" stroke="${edge}" stroke-width="1" opacity=".63"/>`+screws;
+  const parkingLine=dark?'#687B85':'#A4AEB0';
+  const grid=Array.from({length:17},(_,i)=>{const p=10+i*21.25;return `<path d="M10 ${p}H350M${p} 10V350" stroke="${parkingLine}" stroke-width=".65" opacity=".28"/>`;}).join('');
   const dir=path.join(root,`entry/src/main/resources/${theme}/media`);fs.mkdirSync(dir,{recursive:true});
-  const parking = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360" width="360" height="360"><rect width="360" height="360" rx="14" fill="${dark?"#344852":"#72848B"}"/><rect x="10" y="10" width="340" height="340" rx="5" fill="${bg}"/>${grid}<rect x="5" y="5" width="350" height="350" rx="10" fill="none" stroke="${dark?"#CFD5C1":"#F7F1D9"}" stroke-width="1.8" stroke-dasharray="9 7"/></svg>\n`;
-  for(const [name,body]of [['toy_screw_board.svg',svg(460,screws)],['toy_parking_board.svg',parking]]){
+  const parking=gradient(dark?'#465B65':'#E8EEEA',dark?'#32464F':'#D7E1DE')+`<rect width="360" height="360" rx="14" fill="${dark?'#2A3A42':'#819393'}"/><rect x="10" y="10" width="340" height="340" rx="5" fill="url(#surface)"/>${grid}<rect x="5" y="5" width="350" height="350" rx="10" fill="none" stroke="${dark?'#9BACAA':'#F8F7DD'}" stroke-width="1.6" stroke-dasharray="9 7"/><path d="M24 2H127M234 358H335" stroke="${dark?'#729291':'#BBCAC1'}" stroke-width="2" stroke-linecap="round"/>`;
+  for(const [name,body]of [['toy_screw_board.svg',svg(460,workbench)],['toy_parking_board.svg',svg(360,parking)]]){
     fs.writeFileSync(path.join(dir,name),body);assets.push({name:theme+'/'+name,bytes:Buffer.byteLength(body),packaged:true});
   }
 }
@@ -165,8 +171,8 @@ try {
       const T=window.T;window.renderer?.dispose();document.body.innerHTML='';document.body.style.margin='0';document.body.style.background='transparent';
       const renderer=new T.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});window.renderer=renderer;renderer.setClearColor(0,0);renderer.setSize(job.w,job.h);document.body.append(renderer.domElement);
       const g=new T.ObjectLoader().parse(job.object),light=new T.Vector3(-.45,.65,1).normalize();
-      g.traverse(m=>{if(!m.isMesh)return;const geom=m.geometry.clone(),n=geom.attributes.normal,colors=new Float32Array(n.count*3);
-        for(let i=0;i<n.count;i++){const normal=new T.Vector3().fromBufferAttribute(n,i);const c=m.material.color.clone().multiplyScalar(.76+.24*Math.max(0,normal.dot(light)));colors.set([c.r,c.g,c.b],i*3);}
+      g.traverse(m=>{if(!m.isMesh)return;const geom=m.geometry.clone(),p=geom.attributes.position,n=geom.attributes.normal,colors=new Float32Array(n.count*3);
+        for(let i=0;i<n.count;i++){const normal=new T.Vector3().fromBufferAttribute(n,i);const tone=m.userData.floorTint?1.02+(-p.getX(i)+p.getY(i))/2600:1;const c=m.material.color.clone().multiplyScalar(tone*(.76+.24*Math.max(0,normal.dot(light))));colors.set([c.r,c.g,c.b],i*3);}
         geom.setAttribute('color',new T.BufferAttribute(colors,3));m.geometry=geom;m.material=new T.MeshBasicMaterial({vertexColors:true});
       });
       const scene=new T.Scene();scene.add(g);const camera=new T.OrthographicCamera(...job.bounds,.1,3000);camera.position.z=1000;renderer.render(scene,camera);

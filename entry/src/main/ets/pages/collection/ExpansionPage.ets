@@ -35,6 +35,7 @@ import { BRAIN_IDS } from '../../model/game/ExpansionBrain';
 import { ExpansionBrainBoard } from './ExpansionBrainBoard';
 import { ExpansionLifeBoard } from './ExpansionLifeBoard';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionBackdrop } from './ExpansionBackdrop';
 import { GameArtTile } from '../../components/GameArtTile';
 import { ExpansionFeedback } from '../../components/ExpansionFeedback';
 import { ToyPuzzleBoard } from '../../components/ToyPuzzleBoard';
@@ -362,7 +363,7 @@ export struct ExpansionPage {
         }.width('100%').layoutWeight(1)
       }, (row: number) => this.vm.state.cols + ':' + row)
     }.width('100%').aspectRatio(this.vm.state.cols / this.vm.state.rows).padding(SpacingTokens.sm)
-      .backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+      .backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).clip(true)
   }
   @Builder
   ClearArrowCell(index: number) {
@@ -466,11 +467,13 @@ export struct ExpansionPage {
           .accessibilityText($r('app.string.expansion_tube', tube + 1, this.vm.state.board.slice(tube * 4, tube * 4 + 4).join(', ')))
           .onClick(() => { this.vm.tap(tube); })
       }, (tube: number) => tube.toString())
-    }.width('100%')
+    }.width('100%').backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' })
+      .borderRadius(RadiusTokens.base).clip(true)
   }
   @Builder
   Arena() {
     Stack({ alignContent: Alignment.TopStart }) {
+      ExpansionBackdrop(this.gameId)
       if (this.gameId === 'runner') {
         Row() {
           ForEach(range(3), (lane: number) => {
@@ -543,7 +546,7 @@ export struct ExpansionPage {
             .translate({ x: (rendered.piece.x - this.arenaRadius(rendered.piece)) * this.arenaScale(), y: (rendered.piece.y - this.arenaRadius(rendered.piece)) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
         }
       }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
-    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).clip(true)
+    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base).clip(true)
       .onAreaChange((previous: Area, current: Area) => { this.measureArena(current); })
       .onTouch((event: TouchEvent) => {
         if (event.type === TouchType.Down && ['blackhole', 'fisheat'].includes(this.gameId)) { this.vm.setDragging(true); }

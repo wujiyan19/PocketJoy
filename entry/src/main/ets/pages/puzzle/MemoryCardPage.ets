@@ -197,6 +197,8 @@ export struct MemoryCardPage {
             }
           }, (r: number) => r.toString())
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center).padding({ bottom: SpacingTokens.xl })
+          .backgroundImage($r('app.media.play_memory_board'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);
             const height: number = parseFloat(newValue.height as string);

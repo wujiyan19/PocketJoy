@@ -463,6 +463,41 @@
       "name": "game_reaction",
       "width": 120,
       "height": 120
+    },
+    {
+      "name": "col_flood_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "col_hanoi_station",
+      "width": 120,
+      "height": 220
+    },
+    {
+      "name": "col_memory_board",
+      "width": 400,
+      "height": 400
+    },
+    {
+      "name": "col_signal_stage",
+      "width": 400,
+      "height": 420
+    },
+    {
+      "name": "col_question_compare",
+      "width": 500,
+      "height": 200
+    },
+    {
+      "name": "col_question_sequence",
+      "width": 500,
+      "height": 200
+    },
+    {
+      "name": "col_question_targetsum",
+      "width": 500,
+      "height": 200
     }
   ],
   "iconGenerator": "scripts/generate-game-icons.cjs"

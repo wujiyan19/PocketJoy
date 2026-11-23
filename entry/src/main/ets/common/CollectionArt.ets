@@ -5,7 +5,9 @@ export class CollectionArt {
     if (id === 'reversi') { return $r('app.media.col_jade_board'); }
     if (id === 'fourline') { return $r('app.media.col_blue_board'); }
     if (id === 'maze') { return $r('app.media.col_garden_board'); }
-    if (id === 'lights' || id === 'memorysequence') { return $r('app.media.col_night_board'); }
+    if (id === 'lights') { return $r('app.media.col_night_board'); }
+    if (id === 'memorysequence') { return $r('app.media.col_memory_board'); }
+    if (id === 'flood') { return $r('app.media.col_flood_board'); }
     if (id === 'nonogram') { return $r('app.media.col_paper_board'); }
     return $r('app.media.col_ceramic_board');
   }
@@ -32,7 +34,13 @@ export class CollectionArt {
     return player === 1 ? $r('app.media.col_stone_dark') : $r('app.media.col_stone_light');
   }
   static question(id: string): Resource {
-    return id === 'binary' ? $r('app.media.col_question_binary') : $r('app.media.col_question_paper');
+    switch (id) {
+      case 'compare': return $r('app.media.col_question_compare');
+      case 'sequence': return $r('app.media.col_question_sequence');
+      case 'binary': return $r('app.media.col_question_binary');
+      case 'targetsum': return $r('app.media.col_question_targetsum');
+      default: return $r('app.media.col_question_paper');
+    }
   }
   static disc(index: number): Resource {
     const images: Resource[] = [$r('app.media.col_disc_0'), $r('app.media.col_disc_1'),

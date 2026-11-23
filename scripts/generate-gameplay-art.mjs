@@ -3,31 +3,47 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import artStyle from './game-art-palette.cjs';
+import boardRaster from './board-raster.cjs';
 import svgResources from './svg-resource-utils.cjs';
 const { pruneSvgDefs, writeThemedSvg } = svgResources;
+const { writeThemedPng } = boardRaster;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rect = (x,y,w,h,r,fill,stroke='none',sw=2) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
 const ellipse = (x,y,rx,ry,fill,opacity=1) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${fill}" opacity="${opacity}"/>`;
 const circle = (x,y,r,fill,stroke='none',sw=2) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
 const shape = (d,fill,stroke='none',sw=2) => `<path d="${d}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`;
 const line = (d,color,w=2,opacity=1) => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" opacity="${opacity}"/>`;
+const gradient = (id, top, bottom, x2='0%') => `<linearGradient id="${id}" x1="0%" y1="0%" x2="${x2}" y2="100%"><stop stop-color="${top}"/><stop offset="100%" stop-color="${bottom}"/></linearGradient>`;
+const selected = new Set(process.argv.slice(2));
+const rasterBackgrounds = new Set(['tetris_board', '2048_board', '2048_well', 'mine_board', 'sudoku_board',
+  'slide_board', 'guess_panel', 'memory_board', 'match3_board', 'match3_well']);
+const rasterJobs = [];
 const generated = [];
 for (const theme of ['base','dark']) {
   const dark = theme === 'dark', p = artStyle.palette(theme), defs = artStyle.gradients(theme);
-  const colorFile = path.join(root,`entry/src/main/resources/${theme}/element/color.json`);
-  const resources = JSON.parse(fs.readFileSync(colorFile,'utf8'));
-  const colors = artStyle.resourceColors(theme);
-  for (const [name,value] of Object.entries(colors)) {
-    const existing = resources.color.find(color=>color.name===name);
-    if (existing) existing.value=value;
-    else resources.color.push({name,value});
+  if (selected.size === 0) {
+    const colorFile = path.join(root,`entry/src/main/resources/${theme}/element/color.json`);
+    const resources = JSON.parse(fs.readFileSync(colorFile,'utf8'));
+    const colors = artStyle.resourceColors(theme);
+    for (const [name,value] of Object.entries(colors)) {
+      const existing = resources.color.find(color=>color.name===name);
+      if (existing) existing.value=value;
+      else resources.color.push({name,value});
+    }
+    fs.writeFileSync(colorFile,JSON.stringify(resources,null,2)+'\n');
   }
-  fs.writeFileSync(colorFile,JSON.stringify(resources,null,2)+'\n');
   const saveSvg = (name,w,h,svg) => {
-    writeThemedSvg(theme,'play_'+name,pruneSvgDefs(svg));
-    if (theme === 'base') generated.push({ name:'play_'+name, width:w, height:h });
+    const resource = 'play_' + name;
+    if (selected.size === 0 || selected.has(name)) {
+      const artwork = pruneSvgDefs(svg);
+      writeThemedSvg(theme, resource, artwork);
+      if (rasterBackgrounds.has(name)) rasterJobs.push(writeThemedPng(theme, resource, artwork));
+    }
+    if (theme === 'base') generated.push({ name:resource, width:w, height:h });
   };
-  const save = (name,w,h,body) => saveSvg(name,w,h,`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${defs}</defs>${body}</svg>\n`);
+  const save = (name,w,h,body,artDefs=defs) => saveSvg(name,w,h,`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><defs>${artDefs}</defs>${body}</svg>\n`);
+  const surface = (w,h,edge,corner=18) => rect(0,0,w,h,corner,edge) + rect(4,4,w-8,h-8,corner-4,'url(#face)') +
+    line(`M${corner+1} 6H${w-corner-1}`,p.white,2,dark?.17:.53);
   const tile = (w,h,color,r=12) => rect(3,5,w-6,h-8,r,p.edge)+rect(3,2,w-6,h-8,r,`url(#${color})`,p.edge)+
     line(`M${r+5} 9H${w-r-8}`,'#FFFFFF',2,.48);
   const gloss = (w,h,r=12) => rect(2,2,w-4,h-4,r,'none',p.edge,2)+
@@ -47,8 +63,17 @@ for (const theme of ['base','dark']) {
   save('sudoku_cell',100,100,rect(1,1,98,98,5,'none',p.edge,1)+line('M9 10H33','#FFFFFF',2,dark?.18:.4));
   save('slide_tile',100,100,gloss(100,100,12));
   save('guess_key',100,100,gloss(100,100,12));
-  save('klotski_board',320,400,tile(320,400,'wood',22)+rect(13,12,294,374,14,p.woodInset,p.woodEdge,2)+
-    line('M118 385H202',p.gold,7)+line('M135 371L160 382L185 371',p.gold,3));
+  const mapleEdge = dark?'#241E19':'#D9C3A3';
+  const mapleGrain = dark?'#68513C':'#B29872';
+  save('klotski_board',320,400,rect(3,3,314,394,22,mapleEdge)+
+    rect(5,5,310,387,19,'none',dark?'#634C37':'#C6AA88',2)+
+    rect(13,12,294,374,14,'url(#face)',mapleGrain,2)+
+    line('M15 37V30Q15 15 30 15H290M307 366Q304 382 288 384H34',dark?'#171410':'#BDA282',2,.29)+
+    line('M27 8H293M8 29V368',p.white,1.5,dark?.10:.48)+
+    line('M24 53H146M186 78H299M22 158H193M126 237H300M26 300H132M165 341H296',mapleGrain,1,.19)+
+    [113,286].map(y=>rect(7,y,4,12,1.5,p.gold)+rect(309,y,4,12,1.5,p.gold)).join('')+
+    line('M118 389H202',p.gold,6)+line('M135 373L160 384L185 373',p.gold,3),
+    gradient('face',dark?'#332B24':'#EFE4D2',dark?'#30261F':'#E7D7BD','100%'));
   save('klotski_target',128,128,tile(128,128,'coral',14));
   save('klotski_vertical',80,160,tile(80,160,'gold',10));
   save('klotski_horizontal',160,80,tile(160,80,'wood',10));
@@ -85,7 +110,8 @@ for (const theme of ['base','dark']) {
   save('jump_platform',160,52,tile(160,52,'wood',13));
   save('brick_gloss',160,64,gloss(160,64,10));
   save('brick_paddle',160,32,tile(160,32,'blue',12));
-  save('brick_ball',64,64,circle(32,33,27,p.edge)+circle(32,30,27,'url(#ivory)',p.edge)+ellipse(24,21,9,5,'#FFFFFF',.65));
+  save('brick_ball',64,64,circle(32,33,27,p.edge)+
+    circle(32,30,27,'url(#ivory)',dark?'#ABC5DA':'#35516B',4)+ellipse(24,21,9,5,'#FFFFFF',.65));
   const outlines = [
     'M27 10H73L96 50L73 90H27L4 50Z',
     'M50 4L93 50L50 96L7 50Z',
@@ -104,15 +130,100 @@ for (const theme of ['base','dark']) {
   save('jump_scene',400,500,rect(0,0,400,500,24,'url(#paper)')+
     shape('M0 449Q100 409 211 458Q315 417 400 442V500H0Z',dark?'#263F3A':'#D1E5DB')+
     ellipse(74,81,50,15,p.paper,.6)+ellipse(287,125,67,17,p.paper,.45));
-  saveSvg('whack_scene',400,400,`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-  <defs><linearGradient id="lawn" x2="0" y2="1"><stop stop-color="${dark?'#263F36':'#E0EFCD'}"/><stop offset="1" stop-color="${dark?'#233B30':'#CDE4B7'}"/></linearGradient></defs>
-  <rect width="400" height="400" rx="16" fill="url(#lawn)"/>
-  <path d="m17 46 4-8 4 8m337 34 4-9 4 9M35 221l4-8 4 8m320-34 4-8 4 8M90 368l4-9 4 9m231-13 4-7 4 7" fill="none" stroke="${dark?'#486E58':'#87AE7C'}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`);
-  save('brick_scene',400,500,rect(0,0,400,500,20,'url(#paper)')+rect(8,8,384,484,16,'none',p.edge,2)+line('M31 35H92',p.edge,2,.3));
+
+  const gardenEdge = dark?'#365347':'#95B998';
+  const snakeChecks = Array.from({length:20},(_,row)=>`M${row%2*20} ${10+row*20}H400`).join('');
+  save('snake_board',400,400,rect(0,0,400,400,0,'url(#face)')+
+    `<path d="${snakeChecks}" fill="none" stroke="${dark?'#739884':'#85A98A'}" stroke-width="20" stroke-dasharray="20 20" opacity="${dark?.105:.13}"/>`+
+    line('M1 25V1H25M375 1H399V25M1 375V399H25M399 375V399H375',gardenEdge,4)+
+    line('M3 32V368M397 32V368',gardenEdge,2,.5)+
+    line('M4 92Q10 76 20 68M4 80Q13 82 17 76M396 308Q390 323 380 332M396 319Q387 317 383 324',gardenEdge,2,.65),
+  gradient('face',dark?'#253C32':'#F4F8EE',dark?'#1B2B25':'#DEEADB'));
+
+  const enamelEdge = dark?'#506889':'#9DB7CD';
+  save('tetris_board',220,440,surface(220,440,enamelEdge,10)+
+    line('M14 18V11H43M177 11H206V18M14 422V429H43M177 429H206V422',p.ink,2,.32)+
+    line('M13 37V403M207 37V403',p.white,1.5,dark?.11:.40),
+  gradient('face',dark?'#2C4058':'#E8F1F8',dark?'#1F2B42':'#CCDDED'));
+
+  save('2048_board',400,400,surface(400,400,dark?'#5A6D82':'#A0B6C7')+
+    line('M16 28V16H28M372 16H384V28M16 372V384H28M384 372V384H372',p.white,2,dark?.23:.58),
+  gradient('face',dark?'#3E526A':'#C8D9E4',dark?'#304158':'#A9C0D3'));
+  save('2048_well',100,100,rect(0,0,100,100,14,'url(#face)')+
+    rect(1,1,98,98,13,'none',p.edge,2)+line('M17 7Q8 7 8 18V69',p.ink,2,.17)+
+    line('M92 20V82Q92 92 82 92H27',p.white,2,dark?.16:.64),
+  gradient('face',dark?'#26384D':'#D7E3EA',dark?'#344D65':'#EEF4F7'));
+
+  save('mine_board',400,400,surface(400,400,dark?'#6A8095':'#839BAF',13)+
+    line('M21 7H379M7 22V378',p.white,2,dark?.14:.56),
+  gradient('face',dark?'#405669':'#CEDCE7',dark?'#304454':'#AFC0CD'));
+  save('mine_cover',100,100,rect(3,3,94,94,13,'url(#face)',p.edge,2)+
+    line('M14 32V20Q14 14 20 14H69',p.white,3,dark?.19:.63)+
+    line('M83 73V84H65',p.ink,2,.22),
+  gradient('face',dark?'#3D556D':'#E6EFF5',dark?'#293D50':'#B9CCD9'));
+
+  const sudokuRooms = [0,1,2].flatMap(row=>[0,1,2].filter(col=>(row+col)%2===1)
+    .map(col=>rect(col*132+2,row*132+2,132,132,0,dark?'#27374A':'#EDF3F3'))).join('');
+  save('sudoku_board',400,400,rect(0,0,400,400,4,'url(#face)')+sudokuRooms+
+    line('M4 395H396M396 5V395',p.edge,2,.46),
+  gradient('face',dark?'#30445C':'#FFFBF1',dark?'#293B51':'#F3EEE2'));
+
+  save('slide_board',400,400,surface(400,400,dark?'#526F65':'#8CAB9C')+
+    [42,109,197,275,352].map(y=>line(`M10 ${y}Q101 ${y-6} 208 ${y}T390 ${y}`,dark?'#7EABA0':'#648B7E',1,.33)).join('')+
+    line('M16 29V18H29M371 18H384V29M16 371V383H29M371 383H384V371',p.white,2,dark?.24:.58),
+  gradient('face',dark?'#3B5751':'#CCDFD3',dark?'#29403D':'#AACBBE'));
+
+  const keypadTint = dark?'#31475F':'#CDDFEA';
+  const keypadFade = `<radialGradient id="keypad" cx="50%" cy="46%" r="53%">
+    <stop stop-color="${keypadTint}" stop-opacity=".68"/>
+    <stop offset="58%" stop-color="${keypadTint}" stop-opacity=".43"/>
+    <stop offset="100%" stop-color="${keypadTint}" stop-opacity="0"/>
+  </radialGradient>`;
+  save('guess_panel',160,136,rect(0,0,160,136,0,'url(#keypad)'),keypadFade);
+
+  save('memory_board',400,500,surface(400,500,dark?'#45556E':'#A7B9CD',24)+
+    rect(12,12,376,476,16,'none',p.edge,2)+
+    line('M15 54Q24 35 54 22M346 22Q376 35 385 54M15 446Q24 465 54 478M346 478Q376 465 385 446',p.white,2,dark?.17:.56)+
+    line('M29 30H54M29 30V56M371 30H346M371 30V56M29 470H54M29 470V444M371 470H346M371 470V444',p.edge,2,.55),
+  gradient('face',dark?'#30445B':'#DAE7EF',dark?'#252E46':'#C6D6E7'));
+
+  const meadow = dark?'#3C6050':'#A2C489';
+  const shrub = dark?'#324A36':'#AFCC96';
+  const shrubLit = dark?'#3C593E':'#C0D9A7';
+  const fence = dark?'#625D43':'#C2AB70';
+  const pebble = dark?'#646854':'#ABBD99';
+  save('whack_scene',400,400,surface(400,400,gardenEdge,19)+
+    shape('M4 365Q10 354 25 358Q35 347 48 356Q61 357 66 374Q80 371 89 386L93 396H23Q4 396 4 377Z',shrub)+
+    shape('M396 24V65Q381 65 372 54Q357 58 352 42Q335 40 332 23Q322 16 322 4H376Q396 4 396 24Z',shrub)+
+    shape('M6 370Q24 361 35 368Q46 362 54 375Q65 373 70 383Q52 380 41 389H12Z',shrubLit)+
+    shape('M396 30Q385 47 374 42Q365 44 360 34Q346 36 343 24Q331 20 331 7H374Q394 7 396 30Z',shrubLit)+
+    line('M28 26H78M28 33H78',fence,3,.62)+[28,45,62,78].map(x=>rect(x-2,20,4,19,1.5,fence)).join('')+
+    ellipse(109,24,5,2.4,pebble,.65)+ellipse(119,22,3,1.5,pebble,.58)+
+    ellipse(340,377,6,2.5,pebble,.64)+ellipse(351,382,3.5,1.5,pebble,.52)+
+    line('M18 80l4-10 5 10M377 102l5-10 4 10M16 263l5-11 5 11M367 356l4-9 5 9',meadow,2),
+  gradient('face',dark?'#263529':'#DCECD0',dark?'#1C2920':'#C4DFB2','100%'));
+
+  const courtEdge = dark?'#6B8FA9':'#779BB3';
+  save('brick_scene',400,500,surface(400,500,courtEdge,17)+
+    rect(8,8,384,484,12,'none',p.edge,2)+
+    line('M12 468V33Q12 15 33 15H367Q388 15 388 33V468',p.white,2,dark?.16:.58)+
+    line('M16 128V72M16 221V165M16 314V258M16 407V351M384 72V128M384 165V221M384 258V314M384 351V407',courtEdge,2,.45)+
+    line('M28 470H65M334 470H372',courtEdge,2,.48),
+  gradient('face',dark?'#233A50':'#EAF2F6',dark?'#19283E':'#CDDFEB'));
+
+  const jewelRim = dark?'#50697F':'#8AABBC';
+  save('match3_board',400,400,surface(400,400,jewelRim,20)+
+    line('M12 28V12H28M372 12H388V28M12 372V388H28M372 388H388V372',p.white,2,dark?.21:.67),
+  gradient('face',dark?'#40566C':'#C3D6DC',dark?'#303F52':'#99B8C5'));
+  save('match3_well',100,100,rect(0,0,100,100,15,'url(#face)')+
+    line('M9 46V19Q9 9 19 9H46',p.edge,2,.46)+line('M55 91H81Q91 91 91 81V55',p.white,2,dark?.14:.58),
+  gradient('face',dark?'#2A3B50':'#E3EDF0',dark?'#384F64':'#F4F8F6'));
 }
+for (const name of selected) {
+  if (!generated.some(asset=>asset.name==='play_'+name)) throw new Error('Unknown original-game resource: '+name);
+}
+await Promise.all(rasterJobs);
 fs.writeFileSync(path.join(root,'docs/art/legacy-gameplay-manifest.json'),JSON.stringify({
   style:'Shared icon palette; soft vector toy materials; base and dark', games:13, assets:generated
 },null,2)+'\n');
-console.log(`Generated ${generated.length} original-game resources in both themes.`);
+console.log(`Generated ${selected.size || generated.length} original-game resources in both themes.`);

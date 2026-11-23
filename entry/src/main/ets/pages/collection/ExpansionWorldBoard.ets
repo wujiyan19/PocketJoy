@@ -5,6 +5,7 @@ import { ExpansionPiece } from '../../model/game/ExpansionState';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionBackdrop } from './ExpansionBackdrop';
 import { ToyRollingStage } from '../../components/ToyRollingStage';
 import { ToyDriftStage } from '../../components/ToyDriftStage';
 import { grappleAnchor } from '../../model/game/ExpansionAction';
@@ -175,21 +176,16 @@ export struct ExpansionWorldBoard {
   @Builder
   Arena() {
     Stack({ alignContent: Alignment.TopStart }) {
-      if (this.gameId === 'airhockey') {
-        Image(ExpansionArt.board(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill).hitTestBehavior(HitTestMode.None)
-      }
+      if (this.gameId !== 'shooter') { ExpansionBackdrop(this.gameId) }
       if (this.gameId === 'shooter') {
         ForEach([-1, 0], (copy: number) => {
           Image(ExpansionArt.board(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill)
             .translate({ y: (copy * 460 + (this.vm.state.time * 25) % 460) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
         }, (copy: number) => copy.toString())
       }
-      if (this.gameId === 'fruitslice') {
-        Image(ExpansionArt.board(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill).hitTestBehavior(HitTestMode.None)
-        if (this.vm.state.phase === 0) {
-          Text($r('app.string.fruitslice_swipe_hint')).width('100%').textAlign(TextAlign.Center).fontColor(Color.White)
-            .fontSize(FontTokens.sizeBody).translate({ y: 180 * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
-        }
+      if (this.gameId === 'fruitslice' && this.vm.state.phase === 0) {
+        Text($r('app.string.fruitslice_swipe_hint')).width('100%').textAlign(TextAlign.Center).fontColor(Color.White)
+          .fontSize(FontTokens.sizeBody).translate({ y: 180 * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
       }
       if (this.gameId === 'flappy') {
         Row() {
@@ -208,7 +204,6 @@ export struct ExpansionWorldBoard {
         }, (i: number) => i.toString())
       }
       if (this.gameId === 'hillclimb') {
-        Image(ExpansionArt.board(this.gameId)).width('100%').height('100%').objectFit(ImageFit.Fill).hitTestBehavior(HitTestMode.None)
         Polygon().width('100%').height('100%')
           .points([...this.hillGround, [this.arenaWidth, 460 * this.arenaScale()], [0, 460 * this.arenaScale()]])
           .fill($r('app.color.hill_soil')).hitTestBehavior(HitTestMode.None)
@@ -303,7 +298,7 @@ export struct ExpansionWorldBoard {
             .strokeWidth(3).stroke(Color.White).hitTestBehavior(HitTestMode.None)
         }, (i: number) => i.toString())
       }
-    }.id(WORLD_TOUCH_ARENAS.includes(this.gameId) ? this.gameId + '-arena' : '').width('100%').aspectRatio(360 / 460).clip(true).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.id(WORLD_TOUCH_ARENAS.includes(this.gameId) ? this.gameId + '-arena' : '').width('100%').aspectRatio(360 / 460).clip(true).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base)
       .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); }).onTouch((event: TouchEvent) => { this.touch(event); })
   }
 }

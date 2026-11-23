@@ -9,6 +9,7 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
  */
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
+import { GameBoardArt } from '../../components/GameBoardArt';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
 import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { GameResultDialog } from '../../components/GameResultDialog';
@@ -201,10 +202,8 @@ export struct MinesweeperPage {
               Row() {
                 ForEach(this.idx9, (col: number) => {
                   Stack() {
-                    if (!this.viewModel.isRevealed(row, col)) {
-                      Image($r('app.media.play_2048_surface'))
-                        .width(this.cellSize).height(this.cellSize).objectFit(ImageFit.Fill)
-                        .draggable(false).hitTestBehavior(HitTestMode.None)
+                    if (!this.viewModel.isRevealed(row, col) && !this.viewModel.isFlagged(row, col)) {
+                      GameBoardArt($r('app.media.play_mine_cover'))
                     }
                     if (this.viewModel.isRevealed(row, col)) {
                       if (this.viewModel.isMine(row, col)) {
@@ -233,7 +232,10 @@ export struct MinesweeperPage {
               }
             }, (row: number) => row.toString())
           }.padding(2)
-          .backgroundColor($r('app.color.play_piece_border')).borderRadius(RadiusTokens.sm).id('mine-board')
+          .backgroundColor($r('app.color.play_piece_border'))
+          .backgroundImage($r('app.media.play_mine_board'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
+          .borderRadius(RadiusTokens.sm).id('mine-board')
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => {
             const width: number = parseFloat(newValue.width as string);

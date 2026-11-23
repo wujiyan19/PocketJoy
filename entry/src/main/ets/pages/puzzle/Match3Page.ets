@@ -70,7 +70,6 @@ export struct Match3Page {
   }
 
   private step(): number { return this.cell + GAP; }
-  private innerSize(): number { return this.cell * COLS + (COLS - 1) * GAP; }
 
   /** 六种原创宝石图案，对应游戏规则中的类型编号。 */
   getGemImage(type: number): Resource {
@@ -146,6 +145,8 @@ export struct Match3Page {
                     .width(this.cell).height(this.cell)
                     .borderRadius(RadiusTokens.md)
                     .backgroundColor($r('app.color.play_cell_background'))
+                    .backgroundImage($r('app.media.play_match3_well'))
+                    .backgroundImageSize({ width: '100%', height: '100%' })
 
                   Image(this.getGemImage(this.viewModel.gemType(r, c)))
                     .id('match3-gem-' + r + '-' + c + '-' + this.viewModel.gemType(r, c))
@@ -182,9 +183,11 @@ export struct Match3Page {
             }
             }, (r: number) => r.toString())
           }
-          .width(this.innerSize())
+          .width(this.boardSize)
           .padding(4)
           .backgroundColor($r('app.color.play_board_background'))
+          .backgroundImage($r('app.media.play_match3_board'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
           .borderRadius(RadiusTokens.base)
         }
         .width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)

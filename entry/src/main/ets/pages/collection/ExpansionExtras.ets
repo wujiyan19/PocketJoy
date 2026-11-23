@@ -30,7 +30,7 @@ export struct ExpansionExtras {
           }, (lane: number) => lane.toString())
         }.width('100%')
       }
-    }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base).clip(true)
   }
   @Builder
   Card(card: number) {

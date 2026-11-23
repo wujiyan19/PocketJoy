@@ -5,6 +5,7 @@ import { ExpansionPiece } from '../../model/game/ExpansionState';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionBackdrop } from './ExpansionBackdrop';
 
 @ComponentV2
 export struct ExpansionSortingBoard {
@@ -43,7 +44,8 @@ export struct ExpansionSortingBoard {
     Column({ space: SpacingTokens.base }) {
       if (this.gameId === 'buscolor') { this.Buses() }
       if (this.gameId === 'untangle') { this.Knots() }
-    }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').padding(SpacingTokens.sm).backgroundImage(this.gameId === 'buscolor' ? ExpansionArt.board(this.gameId) : '')
+      .backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
   }
   @Builder
   Bus(index: number, parked: boolean) {
@@ -83,7 +85,7 @@ export struct ExpansionSortingBoard {
           Column() {
             if (slot < this.vm.state.tray.length) { this.Bus(slot, true) }
             else { Text('○').fontColor(SemanticColors.textSecondary).height(58).width('100%').textAlign(TextAlign.Center) }
-          }.layoutWeight(1).border({ width: 1, color: SemanticColors.border }).borderRadius(RadiusTokens.sm)
+          }.layoutWeight(1).border({ width: 1, color: $r('app.color.bus_parking_border') }).borderRadius(RadiusTokens.sm)
         }, (slot: number) => slot.toString())
       }.width('100%')
       if (this.vm.state.tray.length === 3) { Text($r('app.string.expansion_bus_stuck')).fontColor(SemanticColors.warningText) }
@@ -117,6 +119,7 @@ export struct ExpansionSortingBoard {
   @Builder
   Knots() {
     Stack({ alignContent: Alignment.TopStart }) {
+      ExpansionBackdrop(this.gameId)
       ForEach(range(this.vm.state.board.length / 2), (edge: number) => {
         Line().width('100%').height('100%').startPoint(this.point(this.vm.state.board[edge * 2])).endPoint(this.point(this.vm.state.board[edge * 2 + 1]))
           .strokeWidth(this.vm.dragging && (this.vm.state.board[edge * 2] === this.vm.state.selected ||
@@ -134,7 +137,7 @@ export struct ExpansionSortingBoard {
         }.width(42 * this.arenaScale()).height(42 * this.arenaScale())
           .translate({ x: (rendered.piece.x - 21) * this.arenaScale(), y: (rendered.piece.y - 21) * this.arenaScale() }).hitTestBehavior(HitTestMode.None)
       }, (rendered: ExpansionRenderPiece) => rendered.id.toString())
-    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base).clip(true)
       .id('knot-board').onAreaChange((oldArea: Area, area: Area) => { this.measure(area); }).onTouch((event: TouchEvent) => { this.touch(event); })
   }
 }

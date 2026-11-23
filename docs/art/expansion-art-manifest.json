@@ -1212,6 +1212,11 @@
       "height": 400
     },
     {
+      "name": "exp_sokoban_floor",
+      "width": 100,
+      "height": 100
+    },
+    {
       "name": "exp_glove",
       "width": 100,
       "height": 100

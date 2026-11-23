@@ -4,6 +4,7 @@ import { ExpansionTonePlayer } from '../../common/ExpansionTonePlayer';
 import { SemanticColors, FontTokens, SpacingTokens, RadiusTokens } from '../../common/DesignTokens';
 import { range } from '../../common/Range';
 import { ExpansionArt } from '../../common/ExpansionArt';
+import { ExpansionBackdrop } from './ExpansionBackdrop';
 import { GameSound, gameSound } from '../../common/GameSound';
 
 @ComponentV2
@@ -63,7 +64,8 @@ export struct ExpansionBrainBoard {
       if (this.gameId === 'beatjump') {
         Row({ space: SpacingTokens.sm }) { ForEach(range(3), (lane: number) => { Button(['←', '●', '→'][lane]).layoutWeight(1).height($r('app.float.expansion_control_height')).id('beatjump-key-' + lane).onClick(() => { this.vm.tap(lane); }) }, (lane: number) => lane.toString()) }.width('100%')
       }
-    }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').padding(SpacingTokens.sm).backgroundImage(this.gameId === 'beatjump' ? '' : ExpansionArt.board(this.gameId))
+      .backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
   }
   @Builder
   Picture() {
@@ -116,9 +118,10 @@ export struct ExpansionBrainBoard {
   @Builder
   Arena() {
     Stack({ alignContent: Alignment.TopStart }) {
+      ExpansionBackdrop(this.gameId)
       if (this.gameId === 'beatjump') { ForEach(range(3), (lane: number) => { Column().width(72 * this.arenaScale()).height(18 * this.arenaScale()).backgroundColor(this.color(lane)).translate({ x: (24 + lane * 120) * this.arenaScale(), y: 370 * this.arenaScale() }) }, (lane: number) => lane.toString()) }
       this.ArenaPieces()
-    }.width('100%').aspectRatio(360 / 460).clip(true).backgroundColor(SemanticColors.boardBg).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').aspectRatio(360 / 460).backgroundColor(SemanticColors.boardBg).borderRadius(RadiusTokens.base).clip(true)
       .onAreaChange((oldArea: Area, area: Area) => { this.measure(area); })
   }
   @Builder

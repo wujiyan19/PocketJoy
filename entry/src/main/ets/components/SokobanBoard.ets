@@ -66,6 +66,10 @@ struct WarehouseCell {
           Rect().width('100%').height('12%').fill($r('app.color.sokoban_wall_edge')).accessibilityLevel('no')
         }
       } else {
+        if (this.tile === WarehouseTile.Floor || this.tile >= WarehouseTile.Up) {
+          Image($r('app.media.exp_sokoban_floor')).width('100%').height('100%').objectFit(ImageFit.Fill)
+            .hitTestBehavior(HitTestMode.None).accessibilityLevel('no')
+        }
         Stack() {
           if (this.player || this.box !== undefined) {
             Image(this.player ? $r('app.media.exp_robot') :

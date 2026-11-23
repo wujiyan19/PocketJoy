@@ -320,6 +320,8 @@ export struct Game2048Page {
                       .width(this.cell).height(this.cell).margin(3)
                       .borderRadius(RadiusTokens.md)
                       .backgroundColor($r('app.color.play_cell_alternate'))
+                      .backgroundImage($r('app.media.play_2048_well'))
+                      .backgroundImageSize({ width: '100%', height: '100%' })
                   }, (col: number) => col.toString())
                 }
               }, (row: number) => row.toString())
@@ -348,6 +350,8 @@ export struct Game2048Page {
           .width(this.boardSize).height(this.boardSize)
           .id('2048-board')
           .backgroundColor($r('app.color.play_board_background'))
+          .backgroundImage($r('app.media.play_2048_board'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
           .borderRadius(RadiusTokens.lg)
           .padding(4)
           .gesture(PanGesture({ direction: PanDirection.All })

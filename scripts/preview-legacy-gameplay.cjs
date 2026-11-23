@@ -4,6 +4,7 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 const sharp = require('sharp');
 const artStyle = require('./game-art-palette.cjs');
+const { resolveSvg } = require('./svg-resource-utils.cjs');
 const root = path.resolve(__dirname,'..');
 const out = path.join(root,'docs/art/legacy-gameplay-2026-10-08');
 fs.mkdirSync(out,{recursive:true});
@@ -28,7 +29,7 @@ async function main() {
     const p=artStyle.palette(theme), colors=artStyle.resourceColors(theme), dark=theme==='dark';
     const dir=path.join(root,`entry/src/main/resources/${theme}/media`);
     for (const asset of manifest.assets) {
-      const file=path.join(dir,asset.name+'.svg'), source=fs.readFileSync(file,'utf8');
+      const file=resolveSvg(theme, asset.name), source=fs.readFileSync(file,'utf8');
       assert(!/<image|<filter|<mask|<text|https?:\/\/(?!www.w3.org)/.test(source));
       const result=await sharp(file).ensureAlpha().raw().toBuffer({resolveWithObject:true});
       assert.equal(result.info.width,asset.width); assert.equal(result.info.height,asset.height);
@@ -52,7 +53,7 @@ async function main() {
         if(id==='2048') fill=[colors.tile_2,colors.tile_4,colors.tile_8][k%3];
         if(id==='slidepuzzle') fill=colors.play_selection_background;
         body+=rect(ax,ay,90,57,10,fill);
-        images.push({input:await sharp(path.join(dir,'play_'+assets[k]+'.svg')).resize(86,53,{fit:'contain',background:'#00000000'}).png().toBuffer(),left:ax+2,top:ay+2});
+        images.push({input:await sharp(resolveSvg(theme,'play_'+assets[k])).resize(86,53,{fit:'contain',background:'#00000000'}).png().toBuffer(),left:ax+2,top:ay+2});
         if(['2048','slidepuzzle','sudoku','guessnumber'].includes(id)) overlay+=text(id==='2048'?'2':id==='guessnumber'?'7':'5',ax+34,ay+38,28,id==='2048'?colors.tile_text_low:colors.play_piece_text);
       }
     }

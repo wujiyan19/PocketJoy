@@ -7,22 +7,22 @@
   "assets": [
     {
       "name": "base/toy_screw_board.svg",
-      "bytes": 644,
+      "bytes": 1058,
       "packaged": true
     },
     {
       "name": "base/toy_parking_board.svg",
-      "bytes": 1676,
+      "bytes": 2072,
       "packaged": true
     },
     {
       "name": "dark/toy_screw_board.svg",
-      "bytes": 644,
+      "bytes": 1058,
       "packaged": true
     },
     {
       "name": "dark/toy_parking_board.svg",
-      "bytes": 1676,
+      "bytes": 2072,
       "packaged": true
     },
     {
@@ -120,7 +120,7 @@
     },
     {
       "name": "preview/toy_rolling_preview.png",
-      "bytes": 19404,
+      "bytes": 43241,
       "packaged": false
     },
     {
@@ -130,7 +130,7 @@
     },
     {
       "name": "preview/toy_rolling_preview_dark.png",
-      "bytes": 19497,
+      "bytes": 35739,
       "packaged": false
     },
     {
@@ -139,5 +139,5 @@
       "packaged": false
     }
   ],
-  "totalBytes": 525524
+  "totalBytes": 527144
 }

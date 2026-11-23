@@ -43,7 +43,9 @@ export struct ExpansionCardBoard {
     Column({ space: SpacingTokens.base }) {
       if (CHESS_IDS.includes(this.gameId)) { ExpansionChessBoard({ gameId: this.gameId, vm: this.vm }) }
       if (this.gameId === 'spider' || this.gameId === 'freecell') { this.Solitaire() }
-    }.width('100%').padding(SpacingTokens.sm).backgroundImage(ExpansionArt.board(this.gameId)).backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
+    }.width('100%').padding(SpacingTokens.sm)
+      .backgroundImage(this.gameId === 'spider' || this.gameId === 'xiangqi' ? ExpansionArt.board(this.gameId) : '')
+      .backgroundImageSize({ width: '100%', height: '100%' }).borderRadius(RadiusTokens.base)
       .enabled(CHESS_IDS.includes(this.gameId) || !this.vm.computerThinking)
   }
   @Builder
@@ -92,44 +94,46 @@ export struct ExpansionCardBoard {
   @Builder
   Solitaire() {
     Column({ space: SpacingTokens.base }) {
-      if (this.gameId === 'spider') {
-        Row({ space: SpacingTokens.md }) {
-          Button($r('app.string.expansion_stock', this.vm.state.piles[10].cards.length)).id('spider-stock')
-            .enabled(this.vm.state.piles[10].cards.length > 0 && this.vm.state.piles.slice(0, 10).every((p: ExpansionPile) => p.cards.length > 0))
-            .onClick(() => { this.vm.tap(900); })
-          Text($r('app.string.spider_sets_done', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary).fontSize(FontTokens.sizeBody).id('spider-done')
-        }.width('100%').justifyContent(FlexAlign.Center)
-        if (this.spiderViewportWidth < 10 * 48 + 9 * SpacingTokens.xs) {
-          Text($r('app.string.spider_columns_hint')).fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textSecondary)
-            .id('spider-columns-hint')
+      Column({ space: SpacingTokens.base }) {
+        if (this.gameId === 'spider') {
+          Row({ space: SpacingTokens.md }) {
+            Button($r('app.string.expansion_stock', this.vm.state.piles[10].cards.length)).id('spider-stock')
+              .enabled(this.vm.state.piles[10].cards.length > 0 && this.vm.state.piles.slice(0, 10).every((p: ExpansionPile) => p.cards.length > 0))
+              .onClick(() => { this.vm.tap(900); })
+            Text($r('app.string.spider_sets_done', this.vm.state.data[0])).fontColor(SemanticColors.textPrimary).fontSize(FontTokens.sizeBody).id('spider-done')
+          }.width('100%').justifyContent(FlexAlign.Center)
+          if (this.spiderViewportWidth < 10 * 48 + 9 * SpacingTokens.xs) {
+            Text($r('app.string.spider_columns_hint')).fontSize(FontTokens.sizeBodySmall).fontColor(SemanticColors.textSecondary)
+              .id('spider-columns-hint')
+          }
+        } else {
+          Row({ space: SpacingTokens.md }) {
+            this.FreecellSlots(0, $r('app.string.freecell_reserve'))
+            this.FreecellSlots(4, $r('app.string.freecell_foundations'))
+          }.width('100%')
+          Text($r('app.string.freecell_columns_hint')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
         }
-      }
-      else {
-        Row({ space: SpacingTokens.md }) {
-          this.FreecellSlots(0, $r('app.string.freecell_reserve'))
-          this.FreecellSlots(4, $r('app.string.freecell_foundations'))
-        }.width('100%')
-        Text($r('app.string.freecell_columns_hint')).fontSize(FontTokens.sizeCaption).fontColor(SemanticColors.textSecondary)
-      }
-      Scroll() {
-        Row({ space: SpacingTokens.xs }) {
-          ForEach(range(this.gameId === 'spider' ? 10 : 8), (col: number) => {
-            Stack({ alignContent: Alignment.TopStart }) {
-              Button('○', { type: ButtonType.Normal }).width(this.gameId === 'freecell' ? 52 : this.spiderCardWidth).height(62).backgroundColor(SemanticColors.primaryLight).onClick(() => { this.vm.tap(200 + col); })
-              ForEach(this.vm.state.piles[col].cards, (card: number, pos: number) => {
-                Column() {
-                  if (this.gameId === 'spider') { this.SpiderCard(card) } else { this.Card(card) }
-                }.translate({ y: this.gameId === 'spider' ? this.spiderOffset(this.vm.state.piles[col], pos) : pos * 24 })
-                  .id(this.gameId === 'spider' ? 'spider-card-' + col + '-' + pos : 'freecell-card-' + col + '-' + pos + '-' + card)
-              }, (card: number) => card.toString())
-            }.width(this.gameId === 'freecell' ? 52 : this.spiderCardWidth).height(this.tableauHeight()).id(this.gameId === 'spider' ? 'spider-pile-' + col : 'freecell-pile-' + col)
-          }, (col: number) => col.toString())
-        }
-      }.width('100%').scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Auto)
-        .id(this.gameId === 'spider' ? 'spider-tableau' : 'freecell-tableau')
-        .onAreaChange((oldArea: Area, area: Area) => {
-          if (this.gameId === 'spider' && Number(area.width) > 0) { this.spiderViewportWidth = Number(area.width); }
-        })
+        Scroll() {
+          Row({ space: SpacingTokens.xs }) {
+            ForEach(range(this.gameId === 'spider' ? 10 : 8), (col: number) => {
+              Stack({ alignContent: Alignment.TopStart }) {
+                Button('○', { type: ButtonType.Normal }).width(this.gameId === 'freecell' ? 52 : this.spiderCardWidth).height(62).backgroundColor(SemanticColors.primaryLight).onClick(() => { this.vm.tap(200 + col); })
+                ForEach(this.vm.state.piles[col].cards, (card: number, pos: number) => {
+                  Column() {
+                    if (this.gameId === 'spider') { this.SpiderCard(card) } else { this.Card(card) }
+                  }.translate({ y: this.gameId === 'spider' ? this.spiderOffset(this.vm.state.piles[col], pos) : pos * 24 })
+                    .id(this.gameId === 'spider' ? 'spider-card-' + col + '-' + pos : 'freecell-card-' + col + '-' + pos + '-' + card)
+                }, (card: number) => card.toString())
+              }.width(this.gameId === 'freecell' ? 52 : this.spiderCardWidth).height(this.tableauHeight()).id(this.gameId === 'spider' ? 'spider-pile-' + col : 'freecell-pile-' + col)
+            }, (col: number) => col.toString())
+          }
+        }.width('100%').scrollable(ScrollDirection.Horizontal).scrollBar(BarState.Auto)
+          .id(this.gameId === 'spider' ? 'spider-tableau' : 'freecell-tableau')
+          .onAreaChange((oldArea: Area, area: Area) => {
+            if (this.gameId === 'spider' && Number(area.width) > 0) { this.spiderViewportWidth = Number(area.width); }
+          })
+      }.width('100%').backgroundImage(this.gameId === 'freecell' ? ExpansionArt.board(this.gameId) : '')
+        .backgroundImageSize({ width: '100%', height: '100%' })
       if (this.gameId === 'freecell') {
         Row({ space: SpacingTokens.sm }) {
           Button($r('app.string.expansion_foundation')).layoutWeight(1).enabled(this.vm.state.selected >= 0).id('freecell-home')

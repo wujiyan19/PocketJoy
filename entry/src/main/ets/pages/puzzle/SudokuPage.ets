@@ -102,8 +102,7 @@ export struct SudokuPage {
         return $r('app.color.sudoku_related_cells');
       }
     }
-    if ((Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0) { return $r('app.color.play_cell_background'); }
-    return $r('app.color.play_cell_alternate');
+    return Color.Transparent;
   }
 
   getCellBorderWidth(row: number, col: number): EdgeWidths {
@@ -206,6 +205,8 @@ export struct SudokuPage {
                 }
               }, (row: number) => row.toString())
             }
+            .backgroundImage($r('app.media.play_sudoku_board'))
+            .backgroundImageSize({ width: '100%', height: '100%' })
             .scale({ x: this.scaleFactor, y: this.scaleFactor })
             .translate({ x: this.translateX, y: this.translateY })
             // 81 格随双指缩放/位移，整体缓存为一张位图，减少渲染批次（P2-1）

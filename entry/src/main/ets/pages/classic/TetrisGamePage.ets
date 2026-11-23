@@ -83,7 +83,7 @@ export struct TetrisGamePage {
   getCellColor(r: number, c: number): ResourceColor {
     const mark = this.viewModel.cells[r * COLS + c].mark;
     if (mark !== 0) { return SHAPE_COLORS[mark - 1]; }
-    return $r('app.color.play_cell_alternate');
+    return Color.Transparent;
   }
 
   @Styles
@@ -166,6 +166,8 @@ export struct TetrisGamePage {
             (this.viewModel.piece?.y ?? -1) + 1, (this.viewModel.piece?.x ?? -1) + 1))
           .borderRadius(RadiusTokens.md)
           .backgroundColor($r('app.color.play_board_background'))
+          .backgroundImage($r('app.media.play_tetris_board'))
+          .backgroundImageSize({ width: '100%', height: '100%' })
         }.width('100%').layoutWeight(1).justifyContent(FlexAlign.Center)
           .onAreaChange((oldValue: Area, newValue: Area) => { this.updateCell(newValue); })
 

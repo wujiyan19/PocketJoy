@@ -9,12 +9,12 @@ import { GameSessionTransfer } from '../../common/GameSessionTransfer';
  */
 import { SemanticColors, RadiusTokens, FontTokens, SpacingTokens } from '../../common/DesignTokens';
 import { GameHeader } from '../../components/GameHeader';
+import { GameBoardArt } from '../../components/GameBoardArt';
 import { Haptics } from '../../common/Haptics';
 import { GameResultDialog } from '../../components/GameResultDialog';
 import { GameDifficulty, GameStatus } from '../../common/GameConstants';
 import { SafeAreaInsets, SafeAreaState } from '../../common/SafeAreaInsets';
 import { ScreenUtils } from '../../common/ScreenUtils';
-import { range } from '../../common/Range';
 import { GameLifecycleBus } from '../../common/GameLifecycleBus';
 import { ExitConfirmDialog } from '../../components/ExitConfirmDialog';
 import { SnakeCellData, SnakeCellKind, SnakeViewModel } from '../../viewmodel/SnakeViewModel';
@@ -29,7 +29,6 @@ export struct SnakeGamePage {
   @Local safeArea: SafeAreaState = SafeAreaInsets.state;
   @Local viewModel: SnakeViewModel = new SnakeViewModel();
   @Local cell: number = 16;
-  private idx20: number[] = range(COLS);
 
   @Monitor('viewModel.status', 'viewModel.confirmExit', 'viewModel.started')
   playTimeStateChanged(): void { GameLifecycleBus.updatePlayTime(this.viewModel); }
@@ -113,16 +112,7 @@ export struct SnakeGamePage {
         Column() {
           Column() {
             Stack({ alignContent: Alignment.TopStart }) {
-              Column() {
-                ForEach(this.idx20, (row: number) => {
-                  Row() {
-                    ForEach(this.idx20, (col: number) => {
-                      Column().width(this.cell).height(this.cell)
-                        .backgroundColor((row + col) % 2 === 0 ? $r('app.color.snake_floor') : $r('app.color.snake_floor_alt'))
-                    }, (col: number) => col.toString())
-                  }
-                }, (row: number) => row.toString())
-              }.renderGroup(true).accessibilityLevel('no')
+              GameBoardArt($r('app.media.play_snake_board'))
               ForEach(this.viewModel.visibleCells, (tile: SnakeCellData) => {
                 Image(this.getSnakeImage(tile.kind)).width(this.cell).height(this.cell).objectFit(ImageFit.Contain)
                   .rotate({ z: 1, angle: tile.rotation, centerX: '50%', centerY: '50%' })
